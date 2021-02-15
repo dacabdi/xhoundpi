@@ -1,0 +1,110 @@
+name: Bump version
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - closed
+
+env:
+  PIPENV_VENV_IN_PROJECT: 1
+
+jobs:
+
+  bumpversion:
+    if: github.event.pull_request.merged
+    name: Bump version
+    strategy:
+      max-parallel: 1
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.x"]
+    runs-on: ${{ matrix.os }}
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 #all
+
+      - name: Prepare and describe environment
+        run: |
+          echo "Preparing '$RUNNER_OS' environment"
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            SUDO=sudo
+            if [ "$GITHUB_ACTOR" == "nektos/act" ]; then
+              echo "Running in 'act' container, not using sudo"
+              SUDO=""
+            fi
+            printenv
+
+            $SUDO apt update
+            $SUDO apt install -y \
+              tree \
+              zlib1g \
+              libicu-dev \
+              liblttng-ust0
+
+            tree
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            printenv
+            cmd //c "tree /f /a"
+          else
+            echo "$RUNNER_OS not supported"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      - name: Prepare environment
+        run: |
+          pip install pipenv
+          pipenv --where --venv --py --envs --support install --three --dev
+          git checkout master
+          export COMMIT_OLD_MSG=$(git log --format=%B -n1)
+          export COMMIT_AUTHOR=$(git log --format=%an -n1)
+          export COMMIT_AUTHOR_EMAIL=$(git log --format=%ae -n1)
+          git config --global user.name "$COMMIT_AUTHOR"
+          git config --global user.email "$COMMIT_AUTHOR_EMAIL"
+
+      # bump version depending on pull request title convention
+
+      - name: Bump patch version
+        if: startsWith(github.event.pull_request.title, 'patch')
+        run: |
+          pipenv run bump2version patch --verbose
+
+      - name: Bump minor version
+        if: startsWith(github.event.pull_request.title, 'feature')
+        run: |
+          pipenv run bump2version minor --verbose
+
+      - name: Bump major version
+        if: startsWith(github.event.pull_request.title, 'major')
+        run: |
+          pipenv run bump2version major --verbose
+
+      - name: Bump release
+        if: startsWith(github.event.pull_request.title, 'release')
+        run: |
+          pipenv run bump2version release --verbose
+
+      # amend last pr commit with  and push
+
+      - name: Amend PR commit with bumped version
+        id: pushtag
+        run: |
+          git add --all
+          git commit --amend --no-edit
+          git push --force
+          git push --tag
+
+      # TODO generate a release action
