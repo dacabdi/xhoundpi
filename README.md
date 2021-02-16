@@ -28,10 +28,18 @@ High precision GPS firmware for point surveyor xHound hardware modules based on 
 ### Testing and validation
 - Run all tests issue the following command from the root of the repository: `pipenv run python -m unittest discover --start-directory 'tests' --pattern 'Test*.py' --verbose --locals`
 - Then run the linter using the commend: `pipenv run pylint xhoundpi` (tests are not linting and style conforming but please keep them clean)
-- 
 
 ### Code submission
 
+#### Conventions
 
+1. All PRs must be named following the convention `[feature,patch,release,major]/some-informative-title'` to pass validation. The prefixes will be mapped to a version bump as follows (brush up on [semantic versioning](https://medium.com/the-non-traditional-developer/semantic-versioning-for-dummies-45c7fe04a1f8) to better understand the scheme),
+```
+      release -> release
+      major -> major
+      feature -> minor
+      path -> patch
+```
+---
 ## Licensing
 See LICENSE file.
