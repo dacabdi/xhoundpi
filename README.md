@@ -27,7 +27,7 @@ High precision GPS firmware for point surveyor xHound hardware modules based on 
 
 #### Linux
 1. [Download and install Visual Studio Code](https://code.visualstudio.com/download)
-2. Install Python 3 [use this guide]([use this guide](https://realpython.com/installing-python/#how-to-install-python-on-linux))
+2. Install Python 3 ([use this guide](https://realpython.com/installing-python/#how-to-install-python-on-linux))
    1. Ensure that Python and `pip` are installed `$ python --version` and `$ pip --version` respectively.
    2. From a terminal window, run: `$ pip install pipenv`.
 3. Clone this repository and initialize the environment
@@ -39,10 +39,11 @@ High precision GPS firmware for point surveyor xHound hardware modules based on 
    6. Run command `pipenv install --dev` and await for initialization to complete.
    7. Run `pipenv shell` to enter the `pipenv` shell for this environment.
 5. Verify by running tests and linter (see below in **Testing and validation**)
+6. Open workspace (e.g., `code .\.vscode\xhoundpi.code-workspace`)
 
 ### Testing and validation
 #### Quick feedback loop
-- Run all tests issue the following command from the root of the repository: `pipenv run python -m unittest discover --start-directory 'tests' --pattern 'Test*.py' --verbose --locals`
+- Run all tests issue the following command from the root of the repository: `pipenv run python -m unittest discover --start-directory "tests" --pattern "Test*.py" --verbose --locals`
 - Then run the linter using the commend: `pipenv run pylint xhoundpi` (tests are not linting and style conforming but please keep them clean)
 
 #### Using nektos/act
