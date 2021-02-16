@@ -1,11 +1,11 @@
 # xHoundPi
-High precision GPS firmware for point surveyor xHound hardware modules based on ARM64 Raspberry Pi platfor
+High precision GPS firmware for point surveyor xHound hardware modules based on ARM64 Raspberry Pi platforms.
 
 ---
 ## Collaborate
 :warning: xHound project tasks are shared equally among developers and engineers who work on the survey problem domain or hardware design. The setup, collaboration guidelines, and notes, will/should be exhaustive and pedantic to keep the instructions clear to collaborators with any class of background or lack thereof.
 
-### Setup
+#
 :point_right: We aim to automate this setup process. In the meantime, use the following instructions.
 
 #### Windows
@@ -44,6 +44,7 @@ High precision GPS firmware for point surveyor xHound hardware modules based on 
 #### Quick feedback loop
 - Run all tests issue the following command from the root of the repository: `pipenv run python -m unittest discover --start-directory 'tests' --pattern 'Test*.py' --verbose --locals`
 - Then run the linter using the commend: `pipenv run pylint xhoundpi` (tests are not linting and style conforming but please keep them clean)
+
 #### Using nektos/act
 The project [`nektos/act`](https://github.com/nektos/act) is designed to run GitHub actions locally and provide immediate feedback without resorting to the GitHub agents and pipelines. These tests would provide a closer validation to the one your PRs will be subjected too and always setup temporary clean environments on every run. Follow the setup instructions on the project's README and use it with our repository to run the validation workflows.
 
