@@ -28,46 +28,25 @@ jobs:
         with:
           fetch-depth: 0 #all
 
-      - name: Prepare and describe environment
-        run: |
-          echo "Preparing '$RUNNER_OS' environment"
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            SUDO=sudo
-            if [ "$GITHUB_ACTOR" == "nektos/act" ]; then
-              echo "Running in 'act' container, not using sudo"
-              SUDO=""
-            fi
-            printenv
+      - name: 'Make all scripts executable'
+        run: chmod +x ${{ env.SCRIPTS_ROOT }}/*
+        if: runner.os == 'Linux'
 
-            $SUDO apt update
-            $SUDO apt install -y \
-              tree \
-              zlib1g \
-              libicu-dev \
-              liblttng-ust0
+      - name: Prepare and describe working environment
+        run: ${{ env.SCRIPTS_ROOT }}/setup-env-linux.sh
 
-            tree
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-            printenv
-            cmd //c "tree /f /a"
-          else
-            echo "$RUNNER_OS not supported"
-            exit 1
-          fi
-        shell: bash
-
-      - name: Setup Python ${{ matrix.python-version }}
+      - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
-
-      - name: Prepare environment
+      - name: Stage Python environment
         run: |
           pip install pipenv
           pipenv --where --venv --py --envs --support install --three --dev
+
+      - name: Stage changes
+        run: |
           git checkout master
           export COMMIT_OLD_MSG=$(git log --format=%B -n1)
           export COMMIT_AUTHOR=$(git log --format=%an -n1)
@@ -81,22 +60,18 @@ jobs:
         if: startsWith(github.event.pull_request.title, 'patch')
         run: |
           pipenv run bump2version patch --verbose
-
       - name: Bump minor version
         if: startsWith(github.event.pull_request.title, 'feature')
         run: |
           pipenv run bump2version minor --verbose
-
       - name: Bump major version
         if: startsWith(github.event.pull_request.title, 'major')
         run: |
           pipenv run bump2version major --verbose
-
       - name: Bump release
         if: startsWith(github.event.pull_request.title, 'release')
         run: |
           pipenv run bump2version release --verbose
-
       # amend last pr commit with  and push
 
       - name: Amend PR commit with bumped version

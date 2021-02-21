@@ -9,58 +9,44 @@ on:
       - master
 
 env:
-  PIPENV_VENV_IN_PROJECT: 1
+  ENV_FILE: .env
 
 jobs:
 
-  #TODO consolidate options (versions, os, etc. into variables across jobs)
-
-  test:
+  validate:
     name: 'Test and lint'
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.x"]
+        os: [ ubuntu-latest ]
+        python-version: [ 3.x ]
     runs-on: ${{ matrix.os }}
     steps:
 
       - name: 'Checkout repository'
         uses: actions/checkout@v2
 
-      - name: Prepare and describe environment
-        run: |
-          echo "Preparing '$RUNNER_OS' environment"
-          if [ "$RUNNER_OS" == "Linux" ]; then
-            SUDO=sudo
-            if [ "$GITHUB_ACTOR" == "nektos/act" ]; then
-              echo "Running in 'act' container, not using sudo"
-              SUDO=""
-            fi
-            printenv
-
-            $SUDO apt update
-            $SUDO apt install -y \
-              tree \
-
-            tree -Dphug
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-            printenv
-            cmd //c "tree /f /a"
-          else
-            echo "$RUNNER_OS not supported"
-            exit 1
-          fi
+      # see https://github.com/actions/runner/issues/655
+      - name: Import environment variables from .env
+        id: import-env
         shell: bash
+        run: |
+          while read line; do
+            echo "$line" >> $GITHUB_ENV
+          done < ${{ env.ENV_FILE }}
 
-      - name: Setup Python ${{ matrix.python-version }}
+      - name: 'Make all scripts executable'
+        if: runner.os == 'Linux'
+        run: chmod +x ${{ env.SCRIPTS_ROOT }}/*
+
+      - name: Prepare and describe working environment
+        run: ${{ env.SCRIPTS_ROOT }}/setup-env-linux.sh
+
+      - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Display Python version
-        run: python -c "import sys; print(sys.version)"
-
-      - name: Prepare environment
+      - name: Stage Python environment
         run: |
           pip install pipenv
           pipenv --where --venv --py --envs --support install --three --dev
