@@ -6,9 +6,12 @@ on:
       - master
     types:
       - closed
+    paths-ignore:
+      - '.bumpversion.cfg'
+      - 'setup.py'
 
 env:
-  PIPENV_VENV_IN_PROJECT: 1
+  ENV_FILE: .env
 
 jobs:
 
@@ -18,8 +21,8 @@ jobs:
     strategy:
       max-parallel: 1
       matrix:
-        os: [ubuntu-latest]
-        python-version: ["3.x"]
+        os: [ ubuntu-latest ]
+        python-version: [ 3.x ]
     runs-on: ${{ matrix.os }}
     steps:
 
@@ -27,6 +30,16 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0 #all
+          token: ${{ secrets.GH_TOKEN_ACTION }}
+
+      # see https://github.com/actions/runner/issues/655
+      - name: Import environment variables from .env
+        id: import-env
+        shell: bash
+        run: |
+          while read line; do
+            echo "$line" >> $GITHUB_ENV
+          done < ${{ env.ENV_FILE }}
 
       - name: 'Make all scripts executable'
         run: chmod +x ${{ env.SCRIPTS_ROOT }}/*
@@ -47,12 +60,12 @@ jobs:
 
       - name: Stage changes
         run: |
-          git checkout master
           export COMMIT_OLD_MSG=$(git log --format=%B -n1)
           export COMMIT_AUTHOR=$(git log --format=%an -n1)
           export COMMIT_AUTHOR_EMAIL=$(git log --format=%ae -n1)
           git config --global user.name "$COMMIT_AUTHOR"
           git config --global user.email "$COMMIT_AUTHOR_EMAIL"
+          git config --global github.token ${{ secrets.GH_TOKEN_ACTION }}
 
       # bump version depending on pull request title convention
 
@@ -72,6 +85,7 @@ jobs:
         if: startsWith(github.event.pull_request.title, 'release')
         run: |
           pipenv run bump2version release --verbose
+
       # amend last pr commit with  and push
 
       - name: Amend PR commit with bumped version
