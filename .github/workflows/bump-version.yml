@@ -93,7 +93,7 @@ jobs:
         run: |
           git add .bumpversion.cfg
           git add setup.py
-          git commit --amend --no-edit
+          git commit --amend -m "${{ github.event.pull_request.title }}"
           git push --force
           git push --tag
 
