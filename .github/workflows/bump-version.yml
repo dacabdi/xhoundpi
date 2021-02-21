@@ -72,27 +72,28 @@ jobs:
       - name: Bump patch version
         if: startsWith(github.event.pull_request.title, 'patch')
         run: |
-          pipenv run bump2version patch --verbose
+          pipenv run bump2version patch ${{ env.BUMPVERSION_FLAGS }}
       - name: Bump minor version
         if: startsWith(github.event.pull_request.title, 'feature')
         run: |
-          pipenv run bump2version minor --verbose
+          pipenv run bump2version minor ${{ env.BUMPVERSION_FLAGS }}
       - name: Bump major version
         if: startsWith(github.event.pull_request.title, 'major')
         run: |
-          pipenv run bump2version major --verbose
+          pipenv run bump2version major ${{ env.BUMPVERSION_FLAGS }}
       - name: Bump release
         if: startsWith(github.event.pull_request.title, 'release')
         run: |
-          pipenv run bump2version release --verbose
+          pipenv run bump2version release ${{ env.BUMPVERSION_FLAGS }}
 
       # amend last pr commit with  and push
 
       - name: Amend PR commit with bumped version
         id: pushtag
         run: |
-          git add --all
-          git commit --amend --no-edit
+          git add .bumpversion.cfg
+          git add setup.py
+          git commit --amend -m "${{ github.event.pull_request.title }}"
           git push --force
           git push --tag
 
