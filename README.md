@@ -1,5 +1,3 @@
-test
-
 # xHoundPi
 High precision GPS firmware for point surveyor xHound hardware modules based on ARM64 Raspberry Pi platforms.
 
