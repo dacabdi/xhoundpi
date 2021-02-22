@@ -12,4 +12,7 @@ def setup_configparser() -> configargparse.ArgumentParser:
     parser.add('--log', default='xhoundpi.log', dest='log', metavar='FILE', help='logs file path')
     parser.add('--verbose', dest='verbose', action='store_true', help='verbose logging execution')
     parser.add('--buffer-capacity', dest='buffer_capacity', type=int, help='internal buffers capacity limit')
+    parser.add('--mock-gnss', dest='mock_gnss', action='store_true', help='mock gnss message io')
+    parser.add('--gnss-mock-input', default="gnss_mock_input.dat", dest='gnss_mock_input', type=str, help='input file for gnss mock serial data')
+    parser.add('--gnss-mock-output', default="gnss_mock_output.dat",dest='gnss_mock_output', type=str, help='output file for gnss mock serial data')
     return parser

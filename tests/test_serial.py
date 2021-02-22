@@ -1,23 +1,27 @@
 import unittest
+from io import BytesIO
 from xhoundpi.serial import StubSerial
 
 class test_StubSerial(unittest.TestCase):
 
     def test_read(self):
-        rx = [0x0, 0x1, 0x2, 0x3, 0x4, 0x5]
-        ss = StubSerial(rx=rx)
+        rx = BytesIO(bytes.fromhex('01 0A 0B FF 0D 1F'))
+        tx = BytesIO()
+        ss = StubSerial(rx=rx, tx=tx)
 
-        self.assertSequenceEqual([0x0], ss.read())
-        self.assertSequenceEqual([0x1], ss.read())
-        self.assertSequenceEqual([0x2, 0x3], ss.read(2))
-        self.assertSequenceEqual([0x4, 0x5, 0x0, 0x1], ss.read(4))
+        self.assertSequenceEqual([0x01], ss.read())
+        self.assertSequenceEqual([0x0A], ss.read())
+        self.assertSequenceEqual([0x0B, 0xFF, 0x0D], ss.read(3))
+        self.assertSequenceEqual([0x1F, 0x01, 0x0A, 0x0B], ss.read(4))
+        self.assertSequenceEqual([0xFF, 0x0D, 0x1F, 0x01, 0x0A, 0x0B, 0xFF, 0x0D, 0x1F, 0x01, 0x0A, 0x0B, 0xFF], ss.read(13))
 
     def test_write(self):
-        tx = []
-        ss = StubSerial(tx=tx)
+        rx = BytesIO()
+        tx = BytesIO()
+        ss = StubSerial(rx=rx, tx=tx)
 
-        self.assertEqual(1, ss.write([0x1]))
-        self.assertSequenceEqual([0x1], tx)
+        self.assertEqual(1, ss.write(bytes.fromhex('01')))
+        self.assertSequenceEqual([0x1], tx.getvalue())
 
-        self.assertEqual(3, ss.write([0x2, 0x3, 0x4]))
-        self.assertSequenceEqual([0x1, 0x2, 0x3, 0x4], tx)
+        self.assertEqual(3, ss.write(bytes.fromhex('02 03 04')))
+        self.assertSequenceEqual([0x1, 0x2, 0x3, 0x4], tx.getvalue())
