@@ -7,14 +7,15 @@ from typing import Union
 from .serial import ISerial
 
 class IGnssClient(ABC):
+    """ Interface for GNSS client implementations """
 
     @abstractmethod
     def read(self, size) -> bytes:
-        pass
+        """ Read n bytes from GNSS device transport """
 
     @abstractmethod
     def write(self, data: bytes) -> int:
-        pass
+        """ Write bytes to GNSS device transport """
 
 class GnssClient(IGnssClient):
     """ Gnss client implementation facade """

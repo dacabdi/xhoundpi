@@ -7,7 +7,7 @@ from .config import setup_configparser
 from .serial import StubSerial
 from .gnss_client import GnssClient
 from .proto_class import ProtocolClass
-from .proto_parser import StubProtocolClassifier, StubParserProvider
+from .proto_parser import StubProtocolClassifier, StubParserProvider, StubProtocolParser
 from .gnss_service import GnssService
 
 async def main():
@@ -25,7 +25,8 @@ async def main():
     gnss_serial = gnss_serial_provider(config)
     gnss_client = GnssClient(gnss_serial)
     gnss_protocol_classifier = StubProtocolClassifier(ProtocolClass.NONE)
-    gnss_parser_provider = StubParserProvider()
+    gnss_parser = StubProtocolParser()
+    gnss_parser_provider = StubParserProvider(gnss_parser)
 
     gnss_service = GnssService(
         inbound_queue=gnss_inbound_queue,
@@ -37,9 +38,11 @@ async def main():
     await gnss_service.run()
 
 def gnss_serial_provider(config):
+    """ Resolves the serial comm based on configuration """
     if config.mock_gnss:
-        rx = open(config.gnss_mock_input, mode='rb')
-        tx = open(config.gnss_mock_output, mode='+wb')
-        return StubSerial(rx, tx)
+        transport_rx = open(config.gnss_mock_input, mode='rb')
+        transport_tx = open(config.gnss_mock_output, mode='+wb')
+        return StubSerial(transport_rx, transport_tx)
+    raise "Not implemented"
 
 main()
