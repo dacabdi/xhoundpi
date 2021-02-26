@@ -1,12 +1,13 @@
 """xHoundPi firmware execution module"""
 
 from asyncio.queues import Queue
-from xhoundpi.serial import StubSerial
 
 # local imports
 from .config import setup_configparser
+from .serial import StubSerial
 from .gnss_client import GnssClient
-from .proto_classifier import ProtocolClass, StubProtocolClassifier
+from .proto_class import ProtocolClass
+from .proto_parser import StubProtocolClassifier, StubParserProvider
 from .gnss_service import GnssService
 
 async def main():
@@ -23,8 +24,8 @@ async def main():
     gnss_outbound_queue = Queue(config.buffer_capacity)
     gnss_serial = gnss_serial_provider(config)
     gnss_client = GnssClient(gnss_serial)
-    gnss_protocol_classifier = StubProtocolClassifier(ProtocolClass.UBX)
-    gnss_parser_provider = # TODO provide
+    gnss_protocol_classifier = StubProtocolClassifier(ProtocolClass.NONE)
+    gnss_parser_provider = StubParserProvider()
 
     gnss_service = GnssService(
         inbound_queue=gnss_inbound_queue,

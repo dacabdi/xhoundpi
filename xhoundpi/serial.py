@@ -1,8 +1,19 @@
 """ Serial emulator for tests and stubs """
 
+from abc import ABC, abstractmethod
 from io import BytesIO
 
-class StubSerial():
+class ISerial(ABC):
+
+    @abstractmethod
+    def read(self, size) -> bytes:
+        pass
+
+    @abstractmethod
+    def write(self, data: bytes) -> int:
+        pass
+
+class StubSerial(ISerial):
     """ Serial implementation reading and writing circularly """
 
     def __init__(self, rx: BytesIO, tx: BytesIO):
