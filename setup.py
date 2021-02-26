@@ -17,8 +17,7 @@ setup(
     long_description_content_type='text/markdown',
     author='xHound',
     author_email='dacabdi@gmail.com',
-    url='https://github.com/dacabdi/ariadna',
-    download_url='https://github.com/dacabdi/ariadna/archive/v0.0.3b.tar.gz',
+    url='https://github.com/dacabdi/xhoundpi',
     keywords=[
         'xhound',
         'gps',
