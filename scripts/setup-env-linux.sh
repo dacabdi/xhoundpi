@@ -28,9 +28,9 @@ echo "Updating apt sources:"
 $SUDO apt update
 
 echo "Installing packages:"
-$SUDO apt install -y \
-    tree \
-    libc6 \
+$SUDO apt install -y    \
+    tree                \
+    libc6               \
     git
 
 echo "Dumping working tree structure:"

@@ -9,10 +9,20 @@ class test_config(unittest.TestCase):
         self.assertEqual(config.config, 'xhoundpi.conf')
         self.assertEqual(config.log, 'xhoundpi.log')
         self.assertFalse(config.verbose)
+        self.assertFalse(config.mock_gnss)
+        self.assertEqual(config.gnss_mock_input, 'gnss_mock_input.dat')
+        self.assertEqual(config.gnss_mock_output, 'gnss_mock_output.dat')
 
     def test_config_cli_overrides_long_version(self):
         parser = setup_configparser()
-        config = parser.parse('--verbose --config /etc/xhound/xhound.conf --log /var/log/xhound.log', config_file_contents='')
+        config = parser.parse(' '.join([
+            '--verbose',
+            '--config /etc/xhound/xhound.conf',
+            '--log /var/log/xhound.log',
+            '--mock-gnss',
+            '--gnss-mock-input /tmp/gnss-mock-in.bin',
+            '--gnss-mock-output /tmp/gnss-mock-out.bin'
+            ]), config_file_contents='')
         self.assertEqual(config.config, '/etc/xhound/xhound.conf')
         self.assertEqual(config.log, '/var/log/xhound.log')
         self.assertTrue(config.verbose)
