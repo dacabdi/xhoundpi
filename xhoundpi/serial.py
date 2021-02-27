@@ -18,7 +18,11 @@ class StubSerial(ISerial):
     """ Serial implementation reading and writing circularly """
 
     def __init__(self, rx: BytesIO, tx: BytesIO):
-        self.transport_rx = rx
+        """ NOTE an rx stream with length zero would cause an infinite loop upon reading
+        with real (non-stubbed) serial implementation, this won't be a problem because
+        the OS provides locked reading behavior on exhausted streams and the coroutines
+        can be unscheduled """
+        self.transport_rx = BytesIO(b'\x00') if rx.getbuffer().nbytes == 0 else rx
         self.transport_tx = tx
 
     def open(self):
@@ -32,8 +36,12 @@ class StubSerial(ISerial):
         self.transport_tx.close()
 
     def read(self, size=1):
-        """ Read n bytes from the stream """
-        data = []
+        """ Read n bytes from the stream
+        NOTE: this stub will cause an infinite
+        reading loop on an empty stream,
+        blocking behavior is controlled
+        by the OS """
+        data = bytearray()
         while size > 0:
             read = self.transport_rx.read(size)
             if len(read) != size:

@@ -73,8 +73,7 @@ logging-modules=logging
 [MISCELLANEOUS]
 
 notes=FIXME,
-      XXX,
-      TODO
+      XXX
 
 [SIMILARITIES]
 

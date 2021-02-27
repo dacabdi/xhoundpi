@@ -15,6 +15,7 @@ autopep8 = "*"
 
 [packages]
 configargparse = "*"
+pyubx2 = "*"
 
 [requires]
 python_version = "3.9"
