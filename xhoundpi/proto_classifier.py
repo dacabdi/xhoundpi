@@ -19,8 +19,8 @@ class StubProtocolClassifier():
 
     def __init__(self, stub_value: ProtocolClass):
         """ Set a default value to classify """
-        self.stub_value = stub_value
+        self.__stub_value = stub_value
 
     def classify(self, stream: BytesIO) -> Tuple[bytes, ProtocolClass]:
         """ Reads a line and returns a fixed setup protocol value """
-        return (stream.read(1), self.stub_value)
+        return (stream.read(1), self.__stub_value)

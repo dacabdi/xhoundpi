@@ -39,8 +39,8 @@ class StubParserProvider(IProtocolParserProvider):
     """ Stub for a GNSS message protocol classifier """
 
     def __init__(self, parser: IProtocolParser):
-        self.parser = parser
+        self.__parser = parser
 
     def get_parser(self, protocol: ProtocolClass) -> IProtocolParserProvider:
         """ Provide parser according to protocol class """
-        return self.parser
+        return self.__parser
