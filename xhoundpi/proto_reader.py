@@ -156,8 +156,8 @@ class NMEAProtocolReader(IProtocolReader):
         while frame[-2:] != NMEAProtocolReader.__end_marker:
             if len(frame) >= NMEAProtocolReader.__max_nmea_frame_size - 1:
                 raise MalformedFrameError(NMEAProtocolReader.protocol_class,
-                    f'Failed to find the frame\'s end marker of non-special message '
-                    f'before the max expected size ({NMEAProtocolReader.__max_nmea_frame_size} bytes).',
+                    f'Failed to find the frame\'s end marker of non-special message before '
+                    f'the max expected size ({NMEAProtocolReader.__max_nmea_frame_size} bytes).',
                     details=frame)
             frame.extend(stream.read(1))
         return frame
