@@ -1,10 +1,12 @@
 """xHoundPi firmware execution module"""
 
+import asyncio
 from asyncio.queues import Queue
 from xhoundpi.proto_reader import StubProtocolReader, StubProtocolReaderProvider
 
 # local imports
 from .config import setup_configparser
+from .async_ext import loop_forever_async
 from .serial import StubSerial
 from .gnss_client import GnssClient
 from .proto_class import ProtocolClass
@@ -41,7 +43,11 @@ async def main():
         reader_provider=gnss_protocol_reader_provider,
         parser_provider=gnss_parser_provider)
 
-    await gnss_service.run()
+    # run and wait for all tasks
+    await asyncio.gather(
+        loop_forever_async(gnss_service.read_message),
+        loop_forever_async(gnss_service.write_message),
+        return_exceptions=True)
 
 def gnss_serial_provider(config):
     """ Resolves the serial comm based on configuration """

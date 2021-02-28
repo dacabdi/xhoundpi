@@ -27,22 +27,6 @@ class GnssService():
         self.__reader_provider = reader_provider
         self.__parser_provider = parser_provider
 
-    async def run(self):
-        """ Coroutine that runs the inbound and outbound queue processing loops """
-        await asyncio.gather(self.outbound_loop(), self.inbound_loop(), return_exceptions=True)
-
-    async def inbound_loop(self):
-        """ Reads messages from the GNSS client
-        and writes them to the outbound queue """
-        while True:
-            await self.read_message()
-
-    async def outbound_loop(self):
-        """ Reads messages from the outbound queue
-        and writes the raw bytes to the GNSS client """
-        while True:
-            await self.write_message()
-
     async def read_message(self):
         """ Reads, classifies, and parses input from the GNSS client stream """
         (header, protocol) = self.__classifier.classify(self.__gnss_client)
