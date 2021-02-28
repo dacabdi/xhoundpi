@@ -17,6 +17,7 @@ asynctest = "*"
 [packages]
 configargparse = "*"
 pyubx2 = "*"
+pynmea2 = "*"
 
 [requires]
 python_version = "3.9"

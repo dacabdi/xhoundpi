@@ -117,9 +117,10 @@ class UBXProtocolReader(IProtocolReader):
         return checksum
 
 class NMEAProtocolReader(IProtocolReader):
-    """ NMEA frame reader """
+    """ NMEA 0183 frame reader """
 
     protocol_class = ProtocolClass.NMEA
+    protocol_revision = 'NMEA-0183'
 
     # https://en.wikipedia.org/wiki/NMEA_0183#Message_structure
     __encoding = 'ascii'
@@ -180,3 +181,14 @@ class StubProtocolReaderProvider(IProtocolReaderProvider):
     def get_reader(self, protocol: ProtocolClass) -> IProtocolReader:
         """ Return message reader """
         return self.__reader
+
+
+class ProtocolReaderProvider(IProtocolReaderProvider):
+    """ Protocol reader provider based on a static mapping provided on init """
+
+    def __init__(self, mapping: dict):
+        self.__mapping = mapping
+
+    def get_reader(self, protocol: ProtocolClass) -> IProtocolReader:
+        """ Return mapped reader for the protocol provided """
+        return self.__mapping[protocol]

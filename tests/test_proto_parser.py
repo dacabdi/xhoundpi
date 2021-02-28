@@ -1,9 +1,10 @@
 import unittest
+from unittest.mock import MagicMock
 from io import BytesIO
 
 from xhoundpi.proto_class import ProtocolClass
 from xhoundpi.proto_classifier import StubProtocolClassifier
-from xhoundpi.proto_parser import StubParserProvider, StubProtocolParser
+from xhoundpi.proto_parser import StubParserProvider, StubProtocolParser, UBXProtocolParser
 
 class test_StubProtocolClassifier(unittest.TestCase):
 
@@ -20,6 +21,14 @@ class test_StubProtocolParser(unittest.TestCase):
         parser = StubProtocolParser()
 
         self.assertEqual(parser.parse(data_source), b'\x01\x02')
+
+class test_UBXProtocolParser(unittest.TestCase):
+
+    def test_parse(self):
+        parser_lib_entry_point = MagicMock(return_value='parsed message')
+        parser = UBXProtocolParser(parser_lib_entry_point)
+        self.assertEqual(parser.parse(b'abc'), 'parsed message')
+        parser_lib_entry_point.assert_called_once_with(b'abc')
 
 class test_StubParserProvider(unittest.TestCase):
 

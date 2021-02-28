@@ -2,8 +2,6 @@
 
 from abc import ABC, abstractmethod
 from typing import Tuple, Any
-from pyubx2 import UBXReader
-from pyubx2.ubxtypes_core import GET
 
 from .proto_class import ProtocolClass
 
@@ -30,10 +28,12 @@ class StubProtocolParser(IProtocolParser):
 class UBXProtocolParser(IProtocolParser):
     """ UBX protocol parser proxy """
 
+    def __init__(self, parser_lib_entry_point: callable):
+        self.__parser_lib_entry_point = parser_lib_entry_point
+
     def parse(self, frame: bytes) -> Tuple[Any]:
-        # TODO the parser libary should not be an implicit dependency
-        """ Parse the UBX frame byte array into a UBXMessage """
-        return UBXReader.parse(frame, validate=True, mode=GET)
+        """ Parse the UBX frame byte array into a deserialized message """
+        return self.__parser_lib_entry_point(frame)
 
 class StubParserProvider(IProtocolParserProvider):
     """ Stub for a GNSS message protocol classifier """
