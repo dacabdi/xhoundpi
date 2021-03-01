@@ -1,9 +1,11 @@
 """xHoundPi firmware execution module"""
 
 import asyncio
+from asyncio.queues import Queue
+
+# parsing libs
 import pynmea2
 import pyubx2
-from asyncio.queues import Queue
 
 # local imports
 from .config import setup_configparser
@@ -19,12 +21,13 @@ from .proto_parser import ProtocolParserProvider,\
                           UBXProtocolParser,\
                           NMEAProtocolParser
 from .gnss_service import GnssService
-from xhoundpi.class_utils import add_method
+from .class_utils import add_method
 
 # NOTE patch NMEASentence to include byte
 # serialization for uniform message API
 @add_method(pynmea2.NMEASentence)
 def serialize(self):
+    """ Serialize NMEA message to bytes with trailing new line """
     return bytearray(self.render(self, newline=True), 'ascii')
 
 async def main_async():
@@ -87,6 +90,7 @@ def gnss_serial_provider(config):
     raise NotImplementedError("Currently only supporting GNSS input from file")
 
 def main():
+    """ Entry point and async main scheduler """
     loop = asyncio.get_event_loop()
     exit_code = loop.run_until_complete(main_async())
     return exit_code
