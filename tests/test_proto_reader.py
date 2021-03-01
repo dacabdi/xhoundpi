@@ -1,8 +1,9 @@
 import unittest
+from unittest.mock import Mock
 from io import BytesIO
 
 from xhoundpi.proto_class import ProtocolClass
-from xhoundpi.proto_reader import StubProtocolReader,\
+from xhoundpi.proto_reader import ProtocolReaderProvider, StubProtocolReader,\
                                   UBXProtocolReader,\
                                   NMEAProtocolReader,\
                                   StubProtocolReaderProvider,\
@@ -284,3 +285,27 @@ class test_StubProtocolReaderProvider(unittest.TestCase):
         provider = StubProtocolReaderProvider(reader)
 
         self.assertEqual(provider.get_reader(ProtocolClass.NONE), reader)
+
+class test_ProtocolReaderProvider(unittest.TestCase):
+
+    def test_provide(self):
+        none_reader = Mock()
+        none_reader.read_frame.return_value = "none reader"
+
+        ubx_reader = Mock()
+        ubx_reader.read_frame.return_value = "ubx reader"
+
+        nmea_reader = Mock()
+        nmea_reader.read_frame.return_value = "nmea reader"
+
+        readers = {
+            ProtocolClass.NONE : none_reader,
+            ProtocolClass.UBX : ubx_reader,
+            ProtocolClass.NMEA : nmea_reader,
+        }
+
+        provider = ProtocolReaderProvider(readers)
+
+        self.assertEqual(provider.get_reader(ProtocolClass.NONE).read_frame(), "none reader")
+        self.assertEqual(provider.get_reader(ProtocolClass.UBX).read_frame(), "ubx reader")
+        self.assertEqual(provider.get_reader(ProtocolClass.NMEA).read_frame(), "nmea reader")

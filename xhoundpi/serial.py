@@ -22,7 +22,9 @@ class StubSerial(ISerial):
         with real (non-stubbed) serial implementation, this won't be a problem because
         the OS provides locked reading behavior on exhausted streams and the coroutines
         can be unscheduled """
-        self.__transport_rx = BytesIO(b'\x00') if rx.getbuffer().nbytes == 0 else rx
+        self.__transport_rx = BytesIO(b'\x00') \
+            if isinstance(rx, BytesIO) and rx.getbuffer().nbytes == 0 \
+            else rx
         self.__transport_tx = tx
 
     def open(self):

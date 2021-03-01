@@ -28,11 +28,26 @@ class StubProtocolParser(IProtocolParser):
 class UBXProtocolParser(IProtocolParser):
     """ UBX protocol parser proxy """
 
+    protocol_class = ProtocolClass.UBX
+
     def __init__(self, parser_lib_entry_point: callable):
         self.__parser_lib_entry_point = parser_lib_entry_point
 
     def parse(self, frame: bytes) -> Tuple[Any]:
         """ Parse the UBX frame byte array into a deserialized message """
+        return self.__parser_lib_entry_point(frame)
+
+class NMEAProtocolParser(IProtocolParser):
+    """ NMEA 0183 protocol parser proxy """
+
+    protocol_class = ProtocolClass.NMEA
+    protocol_revision = 'NMEA-0183'
+
+    def __init__(self, parser_lib_entry_point: callable):
+        self.__parser_lib_entry_point = parser_lib_entry_point
+
+    def parse(self, frame: bytes) -> Tuple[Any]:
+        """ Parse the NMEA frame byte array into a deserialized message """
         return self.__parser_lib_entry_point(frame)
 
 class StubParserProvider(IProtocolParserProvider):
@@ -44,3 +59,13 @@ class StubParserProvider(IProtocolParserProvider):
     def get_parser(self, protocol: ProtocolClass) -> IProtocolParserProvider:
         """ Provide parser according to protocol class """
         return self.__parser
+
+class ProtocolParserProvider(IProtocolParserProvider):
+    """ Protocol parser provider based on a static mapping provided on init """
+
+    def __init__(self, mapping: dict):
+        self.__mapping = mapping
+
+    def get_parser(self, protocol: ProtocolClass) -> IProtocolParser:
+        """ Return mapped parser for the protocol provided """
+        return self.__mapping[protocol]
