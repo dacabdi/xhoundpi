@@ -1,16 +1,36 @@
 """xHoundPi firmware execution module"""
 
+import asyncio
 from asyncio.queues import Queue
+
+# parsing libs
+import pynmea2
+import pyubx2
 
 # local imports
 from .config import setup_configparser
+from .async_ext import loop_forever_async
 from .serial import StubSerial
 from .gnss_client import GnssClient
 from .proto_class import ProtocolClass
-from .proto_parser import StubProtocolClassifier, StubParserProvider, StubProtocolParser
+from .proto_classifier import ProtocolClassifier
+from .proto_reader import ProtocolReaderProvider,\
+                          UBXProtocolReader,\
+                          NMEAProtocolReader
+from .proto_parser import ProtocolParserProvider,\
+                          UBXProtocolParser,\
+                          NMEAProtocolParser
 from .gnss_service import GnssService
+from .class_utils import add_method
 
-async def main():
+# NOTE patch NMEASentence to include byte
+# serialization for uniform message API
+@add_method(pynmea2.NMEASentence)
+def serialize(self):
+    """ Serialize NMEA message to bytes with trailing new line """
+    return bytearray(self.render(self, newline=True), 'ascii')
+
+async def main_async():
     """xHoundPi entry point"""
 
     # setup and read configuration
@@ -19,23 +39,47 @@ async def main():
     parser.print_values()
     print(vars(config))
 
-    # create and run gnss service
     gnss_inbound_queue = Queue(config.buffer_capacity)
     gnss_outbound_queue = Queue(config.buffer_capacity)
     gnss_serial = gnss_serial_provider(config)
     gnss_client = GnssClient(gnss_serial)
-    gnss_protocol_classifier = StubProtocolClassifier(ProtocolClass.NONE)
-    gnss_parser = StubProtocolParser()
-    gnss_parser_provider = StubParserProvider(gnss_parser)
+
+    gnss_protocol_classifier = ProtocolClassifier({
+        bytes(b'\x24') : ProtocolClass.NMEA,
+        bytes(b'\xb5\x62') : ProtocolClass.UBX
+    })
+
+    gnss_ubx_frame_reader = UBXProtocolReader()
+    gnss_nmea_frame_reader = NMEAProtocolReader()
+    gnss_protocol_reader_provider = ProtocolReaderProvider({
+        ProtocolClass.UBX : gnss_ubx_frame_reader,
+        ProtocolClass.NMEA : gnss_nmea_frame_reader
+    })
+
+    gnss_ubx_frame_parser = UBXProtocolParser(
+        lambda frame: pyubx2.UBXReader.parse(frame, validate=True))
+    gnss_nmea_frame_parser = NMEAProtocolParser(
+        lambda frame: pynmea2.parse(frame.decode(), check=True))
+    gnss_protocol_parser_provider = ProtocolParserProvider({
+        ProtocolClass.UBX : gnss_ubx_frame_parser,
+        ProtocolClass.NMEA : gnss_nmea_frame_parser
+    })
 
     gnss_service = GnssService(
         inbound_queue=gnss_inbound_queue,
         outbound_queue=gnss_outbound_queue,
         gnss_client=gnss_client,
         classifier=gnss_protocol_classifier,
-        parser_provider=gnss_parser_provider)
+        reader_provider=gnss_protocol_reader_provider,
+        parser_provider=gnss_protocol_parser_provider)
 
-    await gnss_service.run()
+    # run and wait for all tasks
+    await asyncio.gather(
+        loop_forever_async(gnss_service.read_message),
+        loop_forever_async(gnss_service.write_message),
+        return_exceptions=True)
+
+    return 0
 
 def gnss_serial_provider(config):
     """ Resolves the serial comm based on configuration """
@@ -43,6 +87,12 @@ def gnss_serial_provider(config):
         transport_rx = open(config.gnss_mock_input, mode='rb')
         transport_tx = open(config.gnss_mock_output, mode='+wb')
         return StubSerial(transport_rx, transport_tx)
-    raise "Not implemented"
+    raise NotImplementedError("Currently only supporting GNSS input from file")
+
+def main():
+    """ Entry point and async main scheduler """
+    loop = asyncio.get_event_loop()
+    exit_code = loop.run_until_complete(main_async())
+    return exit_code
 
 main()

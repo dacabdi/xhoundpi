@@ -5,6 +5,7 @@ limit-inference-results=100
 persistent=yes
 suggestion-mode=yes
 unsafe-load-any-extension=no
+ignore=tests
 
 [MESSAGES CONTROL]
 
@@ -73,8 +74,7 @@ logging-modules=logging
 [MISCELLANEOUS]
 
 notes=FIXME,
-      XXX,
-      TODO
+      XXX
 
 [SIMILARITIES]
 

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ad416bb1e7bcf62cb06cad44f99fdf392d24e3a94a9b8ca1c0035e7b647bb85f"
+            "sha256": "63ecec4bd8e4bfd253958ac9598ddd16f123e683030a8f4bfe7580548f18a14f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -22,6 +22,22 @@
             ],
             "index": "pypi",
             "version": "==1.3"
+        },
+        "pynmea2": {
+            "hashes": [
+                "sha256:4fbb2a293883b24932e8403730f654b479828c218b00470031478c53202e2f71",
+                "sha256:93079d80a850d5d334635a82b85f68a67bcbdaaf4989c7fc7cffee3e68aac376"
+            ],
+            "index": "pypi",
+            "version": "==1.16.0"
+        },
+        "pyubx2": {
+            "hashes": [
+                "sha256:a9677d7be58fd6e8bb9660cb7f24346f18bbd54a1bf850bb1fac1e922e65c573",
+                "sha256:b2bb53c4284c5c66e038c6af39fe226b824838d8dd16e8ba03ba287fecbd56af"
+            ],
+            "index": "pypi",
+            "version": "==1.0.5"
         }
     },
     "develop": {
@@ -32,6 +48,14 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==2.5.0"
+        },
+        "asynctest": {
+            "hashes": [
+                "sha256:5da6118a7e6d6b54d83a8f7197769d046922a44d2a99c21382f0a6e4fadae676",
+                "sha256:c27862842d15d83e6a34eb0b2866c323880eb3a75e4485b079ea11748fd77fac"
+            ],
+            "index": "pypi",
+            "version": "==0.13.0"
         },
         "autopep8": {
             "hashes": [
@@ -106,11 +130,11 @@
         },
         "keyring": {
             "hashes": [
-                "sha256:8ae8e53d744e3e395e7402fd04c7474d46c8ad2d65e095bcde8a622dc643f7cd",
-                "sha256:c73c66c4ca89bee6a233b1638e1d2f5bcba4da35f8713ad4f98decc46e64cccd"
+                "sha256:16927a444b2c73f983520a48dec79ddab49fe76429ea05b8d528d778c8339522",
+                "sha256:2bc8363ebdd63886126a012057a85c8cb6e143877afa02619ac7dbc9f38a207b"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==22.2.0"
+            "version": "==22.3.0"
         },
         "lazy-object-proxy": {
             "hashes": [

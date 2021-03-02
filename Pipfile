@@ -12,9 +12,12 @@ bump2version = "*"
 rope = "*"
 pyenchant = "<=1.6.6"
 autopep8 = "*"
+asynctest = "*"
 
 [packages]
 configargparse = "*"
+pyubx2 = "*"
+pynmea2 = "*"
 
 [requires]
 python_version = "3.9"
