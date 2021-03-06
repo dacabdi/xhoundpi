@@ -21,14 +21,14 @@ from .proto_parser import ProtocolParserProvider,\
                           UBXProtocolParser,\
                           NMEAProtocolParser
 from .gnss_service import GnssService
-from .class_utils import add_method
+from .monkey_patching import add_method
 
 # NOTE patch NMEASentence to include byte
 # serialization for uniform message API
 @add_method(pynmea2.NMEASentence)
 def serialize(self):
     """ Serialize NMEA message to bytes with trailing new line """
-    return bytearray(self.render(self, newline=True), 'ascii')
+    return bytearray(self.render(newline=True), 'ascii')
 
 async def main_async():
     """xHoundPi entry point"""

@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Run xHoundPi module",
+            "type": "python",
+            "request": "launch",
+            "module": "xhoundpi",
+            "args": [
+                "--config", "xhoundpi.config",
+                "--log", "xhoundpi.log"
+            ],
+        },
+        {
+            "name": "Debug Tests",
+            "type": "python",
+            "request": "test",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}
