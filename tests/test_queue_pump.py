@@ -1,3 +1,4 @@
+from asyncio.tasks import wait_for
 import unittest
 import asyncio
 
@@ -9,7 +10,7 @@ class test_AsyncPump(unittest.TestCase):
     def test_run(self):
         in_queue = asyncio.queues.Queue()
         out_queue = asyncio.queues.Queue()
-        pump = AsyncPump(input=in_queue, output=out_queue)
+        pump = AsyncPump(input_queue=in_queue, output_queue=out_queue)
 
         loop = asyncio.get_event_loop()
         task = loop.create_task(pump.run())
@@ -22,3 +23,7 @@ class test_AsyncPump(unittest.TestCase):
 
         self.assertTrue(out_queue.empty())
         self.assertFalse(task.done())
+
+        task.cancel()
+        with self.assertRaises(asyncio.exceptions.CancelledError) as context:
+            run_sync(wait_for(task, 1))

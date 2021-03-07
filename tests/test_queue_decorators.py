@@ -9,7 +9,7 @@ import xhoundpi.queue_decorators
 from xhoundpi.async_ext import run_sync
 from xhoundpi.queue_ext import get_forever_async
 
-from .async_utils import wait_for_condition, notify_condition
+from tests.async_utils import wait_for_condition, notify_condition
 
 class test_AsyncQueueWithGetTransform(unittest.TestCase):
 

@@ -6,8 +6,8 @@ import functools
 import rx
 from rx.disposable import Disposable
 
-from .queue_decorators import with_callback
-from .queue_ext import get_forever_async
+from .queue_decorators import with_callback # pylint: disable=unused-import
+from .queue_ext import get_forever_async # pylint: disable=unused-import
 
 class EventBus:
     """ EventBus types """

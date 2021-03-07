@@ -2,8 +2,8 @@ import unittest
 import asyncio
 import asynctest
 
-from .async_utils import wait_for_condition, notify_condition
 from xhoundpi.async_ext import run_sync, loop_forever_async
+from tests.async_utils import wait_for_condition, notify_condition
 
 class test_AsyncExtFunctions(unittest.TestCase):
 

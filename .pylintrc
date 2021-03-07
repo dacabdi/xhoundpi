@@ -78,10 +78,11 @@ notes=FIXME,
 
 [SIMILARITIES]
 
+# TODO fix this
 ignore-comments=no
 ignore-docstrings=no
 ignore-imports=no
-min-similarity-lines=4
+min-similarity-lines=20
 
 [SPELLING]
 

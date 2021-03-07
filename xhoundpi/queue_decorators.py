@@ -18,6 +18,7 @@ class AsyncQueueWithGetTransform(asyncio.queues.Queue):
     """ Queue decorator that performs a transformation
     before returning the dequeued item """
 
+    # pylint: disable=super-init-not-called
     def __init__(self, inner, transform):
         self._inner = inner
         self._transform = transform
@@ -57,6 +58,7 @@ class AsyncQueueWithGetTransform(asyncio.queues.Queue):
 class AsyncQueueWithCallback(asyncio.queues.Queue):
     """ Queue decorator that calls a method upon dequeueing each item """
 
+    # pylint: disable=super-init-not-called
     def __init__(self, inner, callback):
         # pylint : disable=super-init-not-called
         self._inner = inner

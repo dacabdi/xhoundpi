@@ -14,7 +14,7 @@ class test_EventBus(unittest.TestCase):
         queue = asyncio.queues.Queue()
         event_bus = EventBus.from_async_queue(queue)
 
-        event_bus.subscribe(
+        disposable = event_bus.subscribe(
             on_next=subscriber
         )
 
@@ -25,3 +25,5 @@ class test_EventBus(unittest.TestCase):
 
         run_sync(queue.put("second"))
         subscriber.assert_called_with("second")
+
+        disposable.dispose()

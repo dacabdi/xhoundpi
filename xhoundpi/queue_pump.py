@@ -12,9 +12,9 @@ class IAsyncPump(ABC):
 class AsyncPump(IAsyncPump):
     """ Async pump between two queues """
 
-    def __init__(self, input, output):
-        self.__input = input
-        self.__output = output
+    def __init__(self, input_queue, output_queue):
+        self.__input = input_queue
+        self.__output = output_queue
 
     async def run(self):
         """ Passes over every item from input queue to output queue """
