@@ -87,9 +87,9 @@ def gnss_serial_provider(config):
     """ Resolves the serial comm based on configuration """
     if config.mock_gnss:
         transport_rx = open(config.gnss_mock_input, mode='rb')
-        transport_tx = open(config.gnss_mock_output, mode='+wb')
+        transport_tx = open(config.gnss_mock_output, mode='wb')
         return StubSerial(transport_rx, transport_tx)
-    raise NotImplementedError("Currently only supporting GNSS input from file")
+    raise NotImplementedError("Currently only supporting GNSS input from mock file")
 
 def main():
     """ Entry point and async main scheduler """

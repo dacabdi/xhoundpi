@@ -10,8 +10,8 @@ class test_config(unittest.TestCase):
         self.assertEqual(config.log, 'xhoundpi.log')
         self.assertFalse(config.verbose)
         self.assertFalse(config.mock_gnss)
-        self.assertEqual(config.gnss_mock_input, 'gnss_mock_input.dat')
-        self.assertEqual(config.gnss_mock_output, 'gnss_mock_output.dat')
+        self.assertEqual(config.gnss_mock_input, 'data/gnss_mock_input.hex')
+        self.assertEqual(config.gnss_mock_output, 'data/gnss_mock_output.hex')
 
     def test_config_cli_overrides_long_version(self):
         parser = setup_configparser()

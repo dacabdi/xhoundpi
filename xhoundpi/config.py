@@ -17,8 +17,8 @@ def setup_configparser() -> configargparse.ArgumentParser:
         help='internal buffers capacity limit')
     parser.add('--mock-gnss', dest='mock_gnss', action='store_true',
         help='mock gnss message io')
-    parser.add('--gnss-mock-input', default="gnss_mock_input.dat", dest='gnss_mock_input',
+    parser.add('--gnss-mock-input', default="data/gnss_mock_input.hex", dest='gnss_mock_input',
         type=str,help='input file for gnss mock serial data')
-    parser.add('--gnss-mock-output', default="gnss_mock_output.dat", dest='gnss_mock_output',
+    parser.add('--gnss-mock-output', default="data/gnss_mock_output.hex", dest='gnss_mock_output',
         type=str, help='output file for gnss mock serial data')
     return parser

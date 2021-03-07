@@ -49,5 +49,5 @@ class ProtocolClassifier(IProtocolClassifier):
         while len(data) < self.__max_size:
             data.extend(stream.read(1))
             if bytes(data) in self.__mapping.keys():
-                return self.__mapping[bytes(data)]
+                return bytes(data), self.__mapping[bytes(data)]
         raise ProtocolClassificationError(data, self.__mapping)
