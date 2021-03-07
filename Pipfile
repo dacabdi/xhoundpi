@@ -18,6 +18,7 @@ asynctest = "*"
 configargparse = "*"
 pyubx2 = "*"
 pynmea2 = "*"
+rx = "*"
 
 [requires]
 python_version = "3.9"

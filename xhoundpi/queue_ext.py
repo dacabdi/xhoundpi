@@ -2,7 +2,7 @@
 
 from asyncio.queues import Queue
 
-from .class_utils import add_method
+from .monkey_patching import add_method
 
 @add_method(Queue)
 async def get_forever_async(self):

@@ -73,7 +73,7 @@ class test_GnssService(unittest.TestCase):
         write_task = asyncio.get_event_loop().create_task(gnss_service.write_message())
         self.assertFalse(write_task.done(), "the task is started but the queue is empty, should be pending")
         run_sync(gnss_outbound_queue.put(Message(proto=ProtocolClass.NONE, header=b'\x01', frame=b'\x01\x0a', msg=None)))
-        asyncio.wait_for(write_task, timeout=1)
+        run_sync(asyncio.wait_for(write_task, timeout=1))
         self.assertTrue(write_task.done(), "an outbound msg has been enqueued, the read task must have finished within reasonable time")
         self.assertFalse(write_task.cancelled(), "must have finished successfuly, not because of cancellation")
         self.assertEqual(writing_stream.getvalue(), b'\x01\x0a', "the buffer must contain message frame")
