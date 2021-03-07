@@ -8,6 +8,4 @@ from .proto_class import ProtocolClass
 class Message:
     """ Message DTO (data transfer object) """
     proto: ProtocolClass = ProtocolClass.NONE
-    header: bytes = b''
-    frame: bytes = b''
-    msg: typing.Any = None
+    payload: typing.Any = None

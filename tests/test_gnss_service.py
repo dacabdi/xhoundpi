@@ -1,6 +1,6 @@
 import unittest
-import asyncio
 from io import BytesIO
+from unittest.mock import MagicMock, Mock
 
 from xhoundpi.async_ext import run_sync
 from xhoundpi.message import Message
@@ -20,33 +20,20 @@ class test_GnssService(unittest.TestCase):
         gnss_serial = StubSerial(rx=reading_stream, tx=writing_stream)
         gnss_client = GnssClient(gnss_serial)
 
-        gnss_inbound_queue = asyncio.queues.Queue(3)
-        gnss_outbound_queue = asyncio.queues.Queue(3)
         gnss_protocol_classifier = StubProtocolClassifier(ProtocolClass.NONE)
         gnss_parser_stub = StubProtocolParser()
         gnss_reader = StubProtocolReader(message_length=1, expected_header=b'\x01')
         gnss_reader_provider = StubProtocolReaderProvider(gnss_reader)
         gnss_parser_provider = StubParserProvider(gnss_parser_stub)
         gnss_service = GnssService(
-            inbound_queue=gnss_inbound_queue,
-            outbound_queue=gnss_outbound_queue,
             gnss_client=gnss_client,
             classifier=gnss_protocol_classifier,
             reader_provider=gnss_reader_provider,
             parser_provider=gnss_parser_provider)
 
-        self.assertEqual(gnss_inbound_queue.qsize(), 0)
-        run_sync(gnss_service.read_message())
-        self.assertEqual(gnss_inbound_queue.qsize(), 1)
-        self.assertEqual(run_sync(gnss_inbound_queue.get()), Message(proto=ProtocolClass.NONE, header=b'\x01', frame=b'\x01\x08', msg=b'\x01\x08'))
-
-        self.assertEqual(gnss_inbound_queue.qsize(), 0)
-        run_sync(gnss_service.read_message())
-        run_sync(gnss_service.read_message())
-        self.assertEqual(gnss_inbound_queue.qsize(), 2)
-        self.assertEqual(run_sync(gnss_inbound_queue.get()), Message(proto=ProtocolClass.NONE, header=b'\x01', frame=b'\x01\xff', msg=b'\x01\xff'))
-        self.assertEqual(run_sync(gnss_inbound_queue.get()), Message(proto=ProtocolClass.NONE, header=b'\x01', frame=b'\x01\x1f', msg=b'\x01\x1f'))
-        self.assertEqual(gnss_outbound_queue.qsize(), 0)
+        self.assertEqual(run_sync(gnss_service.read_message()), Message(proto=ProtocolClass.NONE, payload=b'\x01\x08'))
+        self.assertEqual(run_sync(gnss_service.read_message()), Message(proto=ProtocolClass.NONE, payload=b'\x01\xff'))
+        self.assertEqual(run_sync(gnss_service.read_message()), Message(proto=ProtocolClass.NONE, payload=b'\x01\x1f'))
 
     def test_write(self):
         reading_stream = BytesIO()
@@ -54,27 +41,29 @@ class test_GnssService(unittest.TestCase):
         gnss_serial = StubSerial(rx=reading_stream, tx=writing_stream)
         gnss_client = GnssClient(gnss_serial)
 
-        gnss_inbound_queue = asyncio.queues.Queue(3)
-        gnss_outbound_queue = asyncio.queues.Queue(3)
         gnss_protocol_classifier = StubProtocolClassifier(ProtocolClass.NONE)
         gnss_parser_stub = StubProtocolParser()
         gnss_reader = StubProtocolReader(message_length=1, expected_header=b'\x01')
         gnss_reader_provider = StubProtocolReaderProvider(gnss_reader)
         gnss_parser_provider = StubParserProvider(gnss_parser_stub)
         gnss_service = GnssService(
-            inbound_queue=gnss_inbound_queue,
-            outbound_queue=gnss_outbound_queue,
             gnss_client=gnss_client,
             classifier=gnss_protocol_classifier,
             reader_provider=gnss_reader_provider,
             parser_provider=gnss_parser_provider)
 
-        self.assertEqual(writing_stream.getbuffer().nbytes, 0, "nothing has been written, outgoing buffer must be empty")
-        write_task = asyncio.get_event_loop().create_task(gnss_service.write_message())
-        self.assertFalse(write_task.done(), "the task is started but the queue is empty, should be pending")
-        run_sync(gnss_outbound_queue.put(Message(proto=ProtocolClass.NONE, header=b'\x01', frame=b'\x01\x0a', msg=None)))
-        run_sync(asyncio.wait_for(write_task, timeout=1))
-        self.assertTrue(write_task.done(), "an outbound msg has been enqueued, the read task must have finished within reasonable time")
-        self.assertFalse(write_task.cancelled(), "must have finished successfuly, not because of cancellation")
-        self.assertEqual(writing_stream.getvalue(), b'\x01\x0a', "the buffer must contain message frame")
+        mock_payload = Mock()
+        mock_payload.serialize = MagicMock(return_value=b'\x01\x0a')
 
+        self.assertEqual(writing_stream.getbuffer().nbytes, 0)
+        self.assertEqual(run_sync(gnss_service.write_message(Message(proto=ProtocolClass.NONE, payload=mock_payload))), 2)
+        mock_payload.serialize.assert_called_once()
+
+        mock_payload.serialize = MagicMock(return_value=b'\x07\x0b\x00')
+
+        self.assertEqual(writing_stream.getbuffer().nbytes, 2)
+        self.assertEqual(run_sync(gnss_service.write_message(Message(proto=ProtocolClass.NONE, payload=mock_payload))), 3)
+        mock_payload.serialize.assert_called_once()
+
+        self.assertEqual(writing_stream.getbuffer().nbytes, 5)
+        self.assertEqual(writing_stream.getvalue(), b'\x01\x0a\x07\x0b\x00')

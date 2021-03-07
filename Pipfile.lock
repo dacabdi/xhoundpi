@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b3fd8a63f9b499e73e229c9ac48fb297d7b719ece9c8e9435b031f684a88ccc8"
+            "sha256": "fd2097984383135b91c6d99b5328ffcb68f548a976d7d7ca6b70f5b49aa3003a"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -22,6 +22,22 @@
             ],
             "index": "pypi",
             "version": "==1.3"
+        },
+        "opentelemetry-api": {
+            "hashes": [
+                "sha256:16a7ae1c5548a9066e017684c05882feece90825c4a252b439e5b0522b69d0a5",
+                "sha256:a6e05e282f258b30742ec1d305b5a2a4cf5bd35e3dbeb243d78089f030d324c3"
+            ],
+            "index": "pypi",
+            "version": "==1.0.0rc1"
+        },
+        "opentelemetry-sdk": {
+            "hashes": [
+                "sha256:516a91a52c88f01557fa3dbab593102cdda4abcfca50b069fb72067119c7f070",
+                "sha256:57ba3cb2006fb4f72c3234fd10a5fd637f93192afc8123ee6fe6900bc1971a8f"
+            ],
+            "index": "pypi",
+            "version": "==1.0.0rc1"
         },
         "pynmea2": {
             "hashes": [
@@ -244,7 +260,7 @@
                 "sha256:c203ec8783bf771a155b207279b9bccb8dea02d8f0c9e5f8ead507bc3246ecc1",
                 "sha256:ef9d7589ef3c200abe66653d3f1ab1033c3c419ae9b9bdb1240a85b024efc88b"
             ],
-            "markers": "python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+            "markers": "python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2'",
             "version": "==2.4.7"
         },
         "pywin32-ctypes": {
@@ -296,7 +312,7 @@
                 "sha256:30639c035cdb23534cd4aa2dd52c3bf48f06e5f4a941509c8bafd8ce11080259",
                 "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
             "version": "==1.15.0"
         },
         "toml": {
@@ -304,7 +320,7 @@
                 "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b",
                 "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"
             ],
-            "markers": "python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'",
+            "markers": "python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2'",
             "version": "==0.10.2"
         },
         "tqdm": {

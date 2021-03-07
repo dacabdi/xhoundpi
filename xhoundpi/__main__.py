@@ -2,6 +2,7 @@
 
 import asyncio
 from asyncio.queues import Queue
+from os import read
 
 # parsing libs
 import pynmea2
@@ -20,8 +21,10 @@ from .proto_reader import ProtocolReaderProvider,\
 from .proto_parser import ProtocolParserProvider,\
                           UBXProtocolParser,\
                           NMEAProtocolParser
-from .gnss_service import GnssService
+from .gnss_service import GnssService,\
+                          GnssServiceRunner
 from .monkey_patching import add_method
+from .queue_ext import get_forever_async
 
 # NOTE patch NMEASentence to include byte
 # serialization for uniform message API
@@ -66,18 +69,18 @@ async def main_async():
     })
 
     gnss_service = GnssService(
-        inbound_queue=gnss_inbound_queue,
-        outbound_queue=gnss_outbound_queue,
         gnss_client=gnss_client,
         classifier=gnss_protocol_classifier,
         reader_provider=gnss_protocol_reader_provider,
         parser_provider=gnss_protocol_parser_provider)
 
+    gnss_service_runner = GnssServiceRunner(
+        gnss_service,
+        inbound=gnss_inbound_queue,
+        outbound=gnss_outbound_queue)
+
     # run and wait for all tasks
-    await asyncio.gather(
-        loop_forever_async(gnss_service.read_message),
-        loop_forever_async(gnss_service.write_message),
-        return_exceptions=True)
+    await asyncio.gather(gnss_service_runner.run())
 
     return 0
 

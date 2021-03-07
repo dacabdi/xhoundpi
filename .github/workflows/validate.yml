@@ -50,6 +50,7 @@ jobs:
         run: |
           pip install pipenv
           pipenv --where --venv --py --envs --support install --three --dev
+          pipenv graph
 
       - name: 'Run tests (unittest)'
         run: pipenv run python -m unittest discover --start-directory 'tests' --pattern 'Test*.py' --verbose --locals

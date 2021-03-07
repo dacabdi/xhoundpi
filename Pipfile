@@ -19,6 +19,8 @@ configargparse = "*"
 pyubx2 = "*"
 pynmea2 = "*"
 rx = "*"
+opentelemetry-api = "*"
+opentelemetry-sdk = "*"
 
 [requires]
 python_version = "3.9"
