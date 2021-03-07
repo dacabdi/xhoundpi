@@ -9,7 +9,6 @@ import pyubx2
 
 # local imports
 from .config import setup_configparser
-from .async_ext import loop_forever_async
 from .serial import StubSerial
 from .gnss_client import GnssClient
 from .proto_class import ProtocolClass
@@ -21,14 +20,17 @@ from .proto_parser import ProtocolParserProvider,\
                           UBXProtocolParser,\
                           NMEAProtocolParser
 from .gnss_service import GnssService
-from .class_utils import add_method
+from .gnss_service_runner import GnssServiceRunner
+from .monkey_patching import add_method
+from .async_ext import loop_forever_async # pylint: disable=unused-import
+from .queue_ext import get_forever_async # pylint: disable=unused-import
 
 # NOTE patch NMEASentence to include byte
 # serialization for uniform message API
 @add_method(pynmea2.NMEASentence)
 def serialize(self):
     """ Serialize NMEA message to bytes with trailing new line """
-    return bytearray(self.render(self, newline=True), 'ascii')
+    return bytearray(self.render(newline=True), 'ascii')
 
 async def main_async():
     """xHoundPi entry point"""
@@ -66,18 +68,18 @@ async def main_async():
     })
 
     gnss_service = GnssService(
-        inbound_queue=gnss_inbound_queue,
-        outbound_queue=gnss_outbound_queue,
         gnss_client=gnss_client,
         classifier=gnss_protocol_classifier,
         reader_provider=gnss_protocol_reader_provider,
         parser_provider=gnss_protocol_parser_provider)
 
+    gnss_service_runner = GnssServiceRunner(
+        gnss_service,
+        inbound_queue=gnss_inbound_queue,
+        outbound_queue=gnss_outbound_queue)
+
     # run and wait for all tasks
-    await asyncio.gather(
-        loop_forever_async(gnss_service.read_message),
-        loop_forever_async(gnss_service.write_message),
-        return_exceptions=True)
+    await asyncio.gather(gnss_service_runner.run())
 
     return 0
 

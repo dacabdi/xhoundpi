@@ -1,10 +1,11 @@
 """ asyncio Queue extensions """
 
 from asyncio.queues import Queue
-from typing import Coroutine
 
-async def read_forever_async(queue: Queue, on_item: Coroutine):
+from .monkey_patching import add_method
+
+@add_method(Queue)
+async def get_forever_async(self):
     """ Reads the queue forever and passes items to the on_item callback """
     while True:
-        item = await queue.get()
-        await on_item(item)
+        await self.get()

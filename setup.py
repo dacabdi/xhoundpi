@@ -10,7 +10,7 @@ with open('README.md', 'r') as fh:
 setup(
     name='xHoundPi',
     packages=['xHoundPi'],
-    version='0.2.0b',
+    version='0.3.0b',
     license='Propietary, see LICENSE file for EULA',
     description='High precision GPS firmware for point surveyor xHound hardware modules based on ARM64 Raspberry Pi platforms.',
     long_description=LONG_DESCRIPTION,

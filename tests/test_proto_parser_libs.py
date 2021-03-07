@@ -2,12 +2,12 @@ import unittest
 import pyubx2
 import pynmea2
 
-from xhoundpi.class_utils import add_method
+from xhoundpi.monkey_patching import add_method
 
 # patch NMEASentence to include byte serialization for uniform message API
 @add_method(pynmea2.NMEASentence)
 def serialize(self):
-    return bytearray(self.render(self, newline=True), 'ascii')
+    return bytearray(self.render(newline=True), 'ascii')
 
 # NOTE we do not own the parser libraries and these tests are a PoC.
 # Do not expect exhaustive coverage of the API surface, these libs
