@@ -1,18 +1,19 @@
 import asyncio
-from asyncio.tasks import wait_for
-from io import BytesIO
 import os
 import unittest
 import pathlib
 
-from asyncio.queues import Queue
+from asyncio.tasks import wait_for
+from io import BytesIO
+
+from structlog import get_logger
+from structlog.testing import capture_logs
 
 # parsing libs
 import pynmea2
 import pyubx2
 
 # local imports
-from xhoundpi.config import setup_configparser
 from xhoundpi.serial import StubSerial
 from xhoundpi.gnss_client import GnssClient
 from xhoundpi.proto_class import ProtocolClass
@@ -101,105 +102,109 @@ class test_Functional_Gnss(unittest.TestCase):
                 inbound_queue=gnss_inbound_queue,
                 outbound_queue=gnss_outbound_queue)
 
-            # run and wait for all tasks
-            loop = asyncio.get_event_loop()
-            task = loop.create_task(gnss_service_runner.run())
+            with capture_logs() as cap_logs:
 
-            msg1 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg1))
-            self.assertEqual(msg1.proto, ProtocolClass.NMEA)
-            self.assertEqual(msg1.payload.talker, 'GP')
-            self.assertEqual(msg1.payload.sentence_type, 'GSV')
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg1.payload.serialize()))
+                # run and wait for all tasks
+                loop = asyncio.get_event_loop()
+                task = loop.create_task(gnss_service_runner.run())
 
-            msg2 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg2))
-            self.assertEqual(msg2.proto, ProtocolClass.UBX)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg2.payload.serialize()))
+                msg1 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg1))
+                self.assertEqual(msg1.proto, ProtocolClass.NMEA)
+                self.assertEqual(msg1.payload.talker, 'GP')
+                self.assertEqual(msg1.payload.sentence_type, 'GSV')
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg1.payload.serialize()))
 
-            msg3 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg3))
-            self.assertEqual(msg3.proto, ProtocolClass.UBX)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg3.payload.serialize()))
+                msg2 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg2))
+                self.assertEqual(msg2.proto, ProtocolClass.UBX)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg2.payload.serialize()))
 
-            msg4 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg4))
-            self.assertEqual(msg4.proto, ProtocolClass.NMEA)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg4.payload.serialize()))
+                msg3 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg3))
+                self.assertEqual(msg3.proto, ProtocolClass.UBX)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg3.payload.serialize()))
 
-            msg5 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg5))
-            self.assertEqual(msg5.proto, ProtocolClass.UBX)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg5.payload.serialize()))
+                msg4 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg4))
+                self.assertEqual(msg4.proto, ProtocolClass.NMEA)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg4.payload.serialize()))
 
-            msg6 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg6))
-            self.assertEqual(msg6.proto, ProtocolClass.UBX)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg6.payload.serialize()))
+                msg5 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg5))
+                self.assertEqual(msg5.proto, ProtocolClass.UBX)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg5.payload.serialize()))
 
-            msg7 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg7))
-            self.assertEqual(msg7.proto, ProtocolClass.UBX)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg7.payload.serialize()))
+                msg6 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg6))
+                self.assertEqual(msg6.proto, ProtocolClass.UBX)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg6.payload.serialize()))
 
-            msg8 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg8))
-            self.assertEqual(msg8.proto, ProtocolClass.UBX)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg8.payload.serialize()))
+                msg7 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg7))
+                self.assertEqual(msg7.proto, ProtocolClass.UBX)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg7.payload.serialize()))
 
-            msg9 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg9))
-            self.assertEqual(msg9.proto, ProtocolClass.UBX)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg9.payload.serialize()))
+                msg8 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg8))
+                self.assertEqual(msg8.proto, ProtocolClass.UBX)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg8.payload.serialize()))
 
-            msg10 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg10))
-            self.assertEqual(msg10.proto, ProtocolClass.UBX)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg10.payload.serialize()))
+                msg9 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg9))
+                self.assertEqual(msg9.proto, ProtocolClass.UBX)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg9.payload.serialize()))
 
-            msg11 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg11))
-            self.assertEqual(msg11.proto, ProtocolClass.NMEA)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg11.payload.serialize()))
+                msg10 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg10))
+                self.assertEqual(msg10.proto, ProtocolClass.UBX)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg10.payload.serialize()))
 
-            msg12 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg12))
-            self.assertEqual(msg12.proto, ProtocolClass.NMEA)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg12.payload.serialize()))
+                msg11 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg11))
+                self.assertEqual(msg11.proto, ProtocolClass.NMEA)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg11.payload.serialize()))
 
-            msg13 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg13))
-            self.assertEqual(msg13.proto, ProtocolClass.NMEA)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg13.payload.serialize()))
+                msg12 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg12))
+                self.assertEqual(msg12.proto, ProtocolClass.NMEA)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg12.payload.serialize()))
 
-            msg14 = run_sync(gnss_inbound_queue.get())
-            run_sync(gnss_outbound_queue.put(msg14))
-            self.assertEqual(msg14.proto, ProtocolClass.NMEA)
-            self.assertFalse(task.done())
-            self.assertTrue(transport_tx.getvalue().endswith(msg14.payload.serialize()))
+                msg13 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg13))
+                self.assertEqual(msg13.proto, ProtocolClass.NMEA)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg13.payload.serialize()))
 
-            # should circle back here
+                msg14 = run_sync(gnss_inbound_queue.get())
+                run_sync(gnss_outbound_queue.put(msg14))
+                self.assertEqual(msg14.proto, ProtocolClass.NMEA)
+                self.assertFalse(task.done())
+                self.assertTrue(transport_tx.getvalue().endswith(msg14.payload.serialize()))
 
-            msg15 = run_sync(gnss_inbound_queue.get())
-            self.assertEqual(msg15.proto, ProtocolClass.NMEA)
-            self.assertEqual(msg1.payload.serialize(), msg15.payload.serialize())
+                # should circle back here
 
-            task.cancel()
-            with self.assertRaises(asyncio.exceptions.CancelledError):
-                run_sync(wait_for(task, 1))
+                msg15 = run_sync(gnss_inbound_queue.get())
+                self.assertEqual(msg15.proto, ProtocolClass.NMEA)
+                self.assertEqual(msg1.payload.serialize(), msg15.payload.serialize())
+
+                task.cancel()
+                with self.assertRaises(asyncio.exceptions.CancelledError):
+                    run_sync(wait_for(task, 1))
+
+            # TODO assert the logs
 
     def test_run_on_corrupt_stream(self):
 
@@ -266,33 +271,37 @@ class test_Functional_Gnss(unittest.TestCase):
             reader_provider=gnss_protocol_reader_provider,
             parser_provider=gnss_protocol_parser_provider)
 
-        gnss_service_runner = GnssServiceRunner(
-            gnss_service,
-            inbound_queue=gnss_inbound_queue,
-            outbound_queue=gnss_outbound_queue)
+        with capture_logs() as cap_logs:
 
-        # run and wait for all tasks
-        loop = asyncio.get_event_loop()
-        task = loop.create_task(gnss_service_runner.run())
+            gnss_service_runner = GnssServiceRunner(
+                gnss_service,
+                inbound_queue=gnss_inbound_queue,
+                outbound_queue=gnss_outbound_queue)
 
-        msg1 = run_sync(gnss_inbound_queue.get())
-        run_sync(gnss_outbound_queue.put(msg1))
-        self.assertEqual(msg1.proto, ProtocolClass.UBX)
-        self.assertFalse(task.done())
-        self.assertTrue(transport_tx.getvalue().endswith(msg1.payload.serialize()))
+            # run and wait for all tasks
+            loop = asyncio.get_event_loop()
+            task = loop.create_task(gnss_service_runner.run())
 
-        msg2 = run_sync(gnss_inbound_queue.get())
-        run_sync(gnss_outbound_queue.put(msg2))
-        self.assertEqual(msg2.proto, ProtocolClass.UBX)
-        self.assertFalse(task.done())
-        self.assertTrue(transport_tx.getvalue().endswith(msg2.payload.serialize()))
+            msg1 = run_sync(gnss_inbound_queue.get())
+            run_sync(gnss_outbound_queue.put(msg1))
+            self.assertEqual(msg1.proto, ProtocolClass.UBX)
+            self.assertFalse(task.done())
+            self.assertTrue(transport_tx.getvalue().endswith(msg1.payload.serialize()))
 
-        # should circle back here
+            msg2 = run_sync(gnss_inbound_queue.get())
+            run_sync(gnss_outbound_queue.put(msg2))
+            self.assertEqual(msg2.proto, ProtocolClass.UBX)
+            self.assertFalse(task.done())
+            self.assertTrue(transport_tx.getvalue().endswith(msg2.payload.serialize()))
 
-        msg3 = run_sync(gnss_inbound_queue.get())
-        self.assertEqual(msg3.proto, ProtocolClass.UBX)
-        self.assertEqual(msg1.payload.serialize(), msg3.payload.serialize())
+            # should circle back here
 
-        task.cancel()
-        with self.assertRaises(asyncio.exceptions.CancelledError):
-            run_sync(wait_for(task, 1))
+            msg3 = run_sync(gnss_inbound_queue.get())
+            self.assertEqual(msg3.proto, ProtocolClass.UBX)
+            self.assertEqual(msg1.payload.serialize(), msg3.payload.serialize())
+
+            task.cancel()
+            with self.assertRaises(asyncio.exceptions.CancelledError):
+                run_sync(wait_for(task, 1))
+
+        # TODO aseert logs

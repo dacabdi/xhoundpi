@@ -1,7 +1,13 @@
 """xHoundPi firmware execution module"""
 
+# standard libs
 import asyncio
-from asyncio.queues import Queue
+import logging
+import logging.config
+
+# external imports
+import yaml
+import structlog
 
 # parsing libs
 import pynmea2
@@ -32,6 +38,9 @@ def serialize(self):
     """ Serialize NMEA message to bytes with trailing new line """
     return bytearray(self.render(newline=True), 'ascii')
 
+logger = structlog.get_logger('xhoundpi')
+
+#pylint: disable=too-many-locals
 async def main_async():
     """xHoundPi entry point"""
 
@@ -41,22 +50,28 @@ async def main_async():
     parser.print_values()
     print(vars(config))
 
-    gnss_inbound_queue = Queue(config.buffer_capacity)
-    gnss_outbound_queue = Queue(config.buffer_capacity)
+    # setup loggers
+    setup_logging(config.log_config_file)
+    logger.info('start_application', config=vars(config))
+
+    gnss_inbound_queue = asyncio.queues.Queue(config.buffer_capacity)
+    gnss_outbound_queue =  asyncio.queues.Queue(config.buffer_capacity)
     gnss_serial = gnss_serial_provider(config)
     gnss_client = GnssClient(gnss_serial)
 
-    gnss_protocol_classifier = ProtocolClassifier({
+    classifications = {
         bytes(b'\x24') : ProtocolClass.NMEA,
         bytes(b'\xb5\x62') : ProtocolClass.UBX
-    })
+    }
+    gnss_protocol_classifier = ProtocolClassifier(classifications)
 
     gnss_ubx_frame_reader = UBXProtocolReader()
     gnss_nmea_frame_reader = NMEAProtocolReader()
-    gnss_protocol_reader_provider = ProtocolReaderProvider({
+    gnss_protocol_reader_mappings = {
         ProtocolClass.UBX : gnss_ubx_frame_reader,
         ProtocolClass.NMEA : gnss_nmea_frame_reader
-    })
+    }
+    gnss_protocol_reader_provider = ProtocolReaderProvider(gnss_protocol_reader_mappings)
 
     gnss_ubx_frame_parser = UBXProtocolParser(
         lambda frame: pyubx2.UBXReader.parse(frame, validate=True))
@@ -90,6 +105,55 @@ def gnss_serial_provider(config):
         transport_tx = open(config.gnss_mock_output, mode='wb')
         return StubSerial(transport_rx, transport_tx)
     raise NotImplementedError("Currently only supporting GNSS input from mock file")
+
+def setup_logging(config_path):
+    """ Setup logging configuration """
+
+    timestamper = structlog.processors.TimeStamper(fmt='iso')
+    pre_chain = [
+        # Add the log level and a timestamp to the event_dict if the log entry
+        # is not from structlog.
+        structlog.stdlib.add_log_level,
+        timestamper,
+    ]
+
+    # configure logging
+    with open(config_path, 'rt') as config_file:
+        config = yaml.safe_load(config_file.read())
+        # add structlog formatters
+        config['formatters'] = {
+            "plain": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.dev.ConsoleRenderer(colors=False),
+                "foreign_pre_chain": pre_chain,
+            },
+            "colored": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.dev.ConsoleRenderer(colors=True),
+                "foreign_pre_chain": pre_chain,
+            },
+            "json": {
+                "()": structlog.stdlib.ProcessorFormatter,
+                "processor": structlog.processors.JSONRenderer(indent=1, sort_keys=True),
+                "foreign_pre_chain": pre_chain,
+            }
+        }
+        logging.config.dictConfig(config)
+
+    # configure structlog
+    structlog.configure_once(
+        processors=[
+            structlog.stdlib.add_log_level,
+            structlog.stdlib.PositionalArgumentsFormatter(),
+            timestamper,
+            structlog.processors.StackInfoRenderer(),
+            structlog.processors.format_exc_info,
+            structlog.stdlib.ProcessorFormatter.wrap_for_formatter
+        ],
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=False)
 
 def main():
     """ Entry point and async main scheduler """

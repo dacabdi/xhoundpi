@@ -1,7 +1,8 @@
 import asyncio
-from asyncio.tasks import wait_for
-from tests.async_utils import wait_for_condition
 import unittest
+from asyncio.tasks import wait_for
+from structlog import get_logger
+from structlog.testing import capture_logs
 
 from xhoundpi.message import Message
 from xhoundpi.proto_class import ProtocolClass
@@ -41,45 +42,49 @@ class test_GnssServiceRunner(unittest.TestCase):
         outbound_queue = asyncio.queues.Queue(3)
         gnss_runner = GnssServiceRunner(gnss_service, inbound_queue, outbound_queue)
 
-        loop = asyncio.get_event_loop()
-        task = loop.create_task(gnss_runner.run())
+        with capture_logs() as cap_logs:
 
-        self.assertFalse(task.done())
+            loop = asyncio.get_event_loop()
+            task = loop.create_task(gnss_runner.run())
 
-        self.assertEqual(gnss_service.read, 0)
-        self.assertEqual(gnss_service.write, 0)
+            self.assertFalse(task.done())
 
-        self.assertTrue(inbound_queue.empty())
-        run_sync(notify_condition(condition))
-        self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA, payload=bytes(1)))
+            self.assertEqual(gnss_service.read, 0)
+            self.assertEqual(gnss_service.write, 0)
 
-        self.assertEqual(gnss_service.read, 1)
-        self.assertEqual(gnss_service.write, 0)
+            self.assertTrue(inbound_queue.empty())
+            run_sync(notify_condition(condition))
+            self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA, payload=bytes(1)))
 
-        self.assertTrue(inbound_queue.empty())
-        run_sync(notify_condition(condition))
-        self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA, payload=bytes(2)))
+            self.assertEqual(gnss_service.read, 1)
+            self.assertEqual(gnss_service.write, 0)
 
-        self.assertEqual(gnss_service.read, 2)
-        self.assertEqual(gnss_service.write, 0)
+            self.assertTrue(inbound_queue.empty())
+            run_sync(notify_condition(condition))
+            self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA, payload=bytes(2)))
 
-        run_sync(outbound_queue.put(Message(proto=ProtocolClass.UBX, payload=b'\x01\x02')))
-        self.assertEqual(gnss_service.read, 2)
-        self.assertEqual(gnss_service.write, 1)
-        self.assertTrue(outbound_queue.empty())
+            self.assertEqual(gnss_service.read, 2)
+            self.assertEqual(gnss_service.write, 0)
 
-        run_sync(outbound_queue.put(Message(proto=ProtocolClass.UBX, payload=b'\x01\x02')))
-        self.assertEqual(gnss_service.read, 2)
-        self.assertEqual(gnss_service.write, 2)
-        self.assertTrue(outbound_queue.empty())
+            run_sync(outbound_queue.put(Message(proto=ProtocolClass.UBX, payload=b'\x01\x02')))
+            self.assertEqual(gnss_service.read, 2)
+            self.assertEqual(gnss_service.write, 1)
+            self.assertTrue(outbound_queue.empty())
 
-        self.assertTrue(inbound_queue.empty())
-        run_sync(notify_condition(condition))
-        self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA, payload=bytes(3)))
+            run_sync(outbound_queue.put(Message(proto=ProtocolClass.UBX, payload=b'\x01\x02')))
+            self.assertEqual(gnss_service.read, 2)
+            self.assertEqual(gnss_service.write, 2)
+            self.assertTrue(outbound_queue.empty())
 
-        self.assertEqual(gnss_service.read, 3)
-        self.assertEqual(gnss_service.write, 2)
+            self.assertTrue(inbound_queue.empty())
+            run_sync(notify_condition(condition))
+            self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA, payload=bytes(3)))
 
-        task.cancel()
-        with self.assertRaises(asyncio.exceptions.CancelledError):
-            run_sync(wait_for(task, 1))
+            self.assertEqual(gnss_service.read, 3)
+            self.assertEqual(gnss_service.write, 2)
+
+            task.cancel()
+            with self.assertRaises(asyncio.exceptions.CancelledError):
+                run_sync(wait_for(task, 1))
+
+        # TODO assert the logs

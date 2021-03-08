@@ -1,0 +1,231 @@
+{"config": {"config": "xhoundpi.conf", "buffer_capacity": null, "mock_gnss": true, "gnss_mock_input": "data/gnss_mock_input.hex", "gnss_mock_output": "data/gnss_mock_output.hex", "log_config_file": "logconf.yml"}, "event": "start_application", "level": "critical", "timestamp": "2021-03-08T02:35:21.246934Z"}
+{"event": "[[{\"config\": {\"config\": \"xhoundpi.conf\", \"buffer_capacity\": null, \"mock_gnss\": true, \"gnss_mock_input\": \"data/gnss_mock_input.hex\", \"gnss_mock_output\": \"data/gnss_mock_output.hex\", \"log_config_file\": \"logconf.yml\"}, \"event\": \"start_application\", \"level\": \"critical\", \"timestamp\": \"2021-03-08T02:37:29.209986Z\"}], {\"extra\": {\"_logger\": \"<_FixedFindCallerLogger xhoundpi (INFO)>\", \"_name\": \"critical\"}}]", "level": "critical", "timestamp": "2021-03-08T02:37:29.220526Z"}
+{
+ "config": {
+  "buffer_capacity": null,
+  "config": "xhoundpi.conf",
+  "gnss_mock_input": "data/gnss_mock_input.hex",
+  "gnss_mock_output": "data/gnss_mock_output.hex",
+  "log_config_file": "logconf.yml",
+  "mock_gnss": true
+ },
+ "event": "start_application",
+ "level": "critical",
+ "timestamp": "2021-03-08T02:38:56.570453Z"
+}
+{
+ "config": {
+  "buffer_capacity": null,
+  "config": "xhoundpi.conf",
+  "gnss_mock_input": "data/gnss_mock_input.hex",
+  "gnss_mock_output": "data/gnss_mock_output.hex",
+  "log_config_file": "logconf.yml",
+  "mock_gnss": true
+ },
+ "event": "start_application",
+ "level": "info",
+ "timestamp": "2021-03-08T02:40:37.198729Z"
+}
+{
+ "config": {
+  "buffer_capacity": null,
+  "config": "xhoundpi.conf",
+  "gnss_mock_input": "data/gnss_mock_input.hex",
+  "gnss_mock_output": "data/gnss_mock_output.hex",
+  "log_config_file": "logconf.yml",
+  "mock_gnss": true
+ },
+ "event": "start_application",
+ "level": "info",
+ "modline": "__main__:171",
+ "timestamp": "2021-03-08T02:52:49.449961Z"
+}
+{
+ "event": "gnss_service_running",
+ "level": "info",
+ "modline": "__main__:171",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:52:49.494962Z"
+}
+{
+ "event": "gnss_reading_inbound_message_start",
+ "level": "info",
+ "modline": "__main__:171",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:52:49.498963Z"
+}
+{
+ "config": {
+  "buffer_capacity": null,
+  "config": "xhoundpi.conf",
+  "gnss_mock_input": "data/gnss_mock_input.hex",
+  "gnss_mock_output": "data/gnss_mock_output.hex",
+  "log_config_file": "logconf.yml",
+  "mock_gnss": true
+ },
+ "event": "start_application",
+ "level": "info",
+ "modline": "asyncio.events:80",
+ "timestamp": "2021-03-08T02:53:58.054023Z"
+}
+{
+ "event": "gnss_service_running",
+ "level": "info",
+ "modline": "xhoundpi.gnss_service_runner:24",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:53:58.111061Z"
+}
+{
+ "event": "gnss_reading_inbound_message_start",
+ "level": "info",
+ "modline": "xhoundpi.gnss_service_runner:31",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:53:58.113078Z"
+}
+{
+ "config": {
+  "buffer_capacity": null,
+  "config": "xhoundpi.conf",
+  "gnss_mock_input": "data/gnss_mock_input.hex",
+  "gnss_mock_output": "data/gnss_mock_output.hex",
+  "log_config_file": "logconf.yml",
+  "mock_gnss": true
+ },
+ "event": "start_application",
+ "level": "info",
+ "modline": "asyncio.events:80",
+ "timestamp": "2021-03-08T02:54:27.024739Z"
+}
+{
+ "event": "gnss_service_running",
+ "level": "info",
+ "modline": "xhoundpi.gnss_service_runner:24",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:54:27.083741Z"
+}
+{
+ "event": "gnss_reading_inbound_message_start",
+ "level": "info",
+ "modline": "xhoundpi.gnss_service_runner:31",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:54:27.086740Z"
+}
+{
+ "config": {
+  "buffer_capacity": null,
+  "config": "xhoundpi.conf",
+  "gnss_mock_input": "data/gnss_mock_input.hex",
+  "gnss_mock_output": "data/gnss_mock_output.hex",
+  "log_config_file": "logconf.yml",
+  "mock_gnss": true
+ },
+ "event": "start_application",
+ "level": "info",
+ "timestamp": "2021-03-08T02:56:17.582177Z"
+}
+{
+ "event": "gnss_service_running",
+ "level": "info",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:56:17.585178Z"
+}
+{
+ "event": "gnss_reading_inbound_message_start",
+ "level": "info",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:56:17.587176Z"
+}
+{
+ "config": {
+  "buffer_capacity": null,
+  "config": "xhoundpi.conf",
+  "gnss_mock_input": "data/gnss_mock_input.hex",
+  "gnss_mock_output": "data/gnss_mock_output.hex",
+  "log_config_file": "logconf.yml",
+  "mock_gnss": true
+ },
+ "event": "start_application",
+ "level": "info",
+ "timestamp": "2021-03-08T02:57:12.037573Z"
+}
+{
+ "event": "gnss_service_run",
+ "level": "info",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:57:12.041574Z"
+}
+{
+ "event": "gnss_service_inbound_wait",
+ "level": "info",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:57:12.042574Z"
+}
+{
+ "config": {
+  "buffer_capacity": null,
+  "config": "xhoundpi.conf",
+  "gnss_mock_input": "data/gnss_mock_input.hex",
+  "gnss_mock_output": "data/gnss_mock_output.hex",
+  "log_config_file": "logconf.yml",
+  "mock_gnss": true
+ },
+ "event": "start_application",
+ "level": "info",
+ "timestamp": "2021-03-08T02:58:34.374278Z"
+}
+{
+ "event": "gnss_service_run",
+ "level": "info",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:58:34.377277Z"
+}
+{
+ "config": {
+  "buffer_capacity": null,
+  "config": "xhoundpi.conf",
+  "gnss_mock_input": "data/gnss_mock_input.hex",
+  "gnss_mock_output": "data/gnss_mock_output.hex",
+  "log_config_file": "logconf.yml",
+  "mock_gnss": true
+ },
+ "event": "start_application",
+ "level": "info",
+ "timestamp": "2021-03-08T02:59:34.498290Z"
+}
+{
+ "event": "gnss_service_run",
+ "level": "info",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:59:34.502295Z"
+}
+{
+ "event": "gnss_service_inbound_wait",
+ "level": "debug",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T02:59:34.504293Z"
+}
+{
+ "config": {
+  "buffer_capacity": null,
+  "config": "xhoundpi.conf",
+  "gnss_mock_input": "data/gnss_mock_input.hex",
+  "gnss_mock_output": "data/gnss_mock_output.hex",
+  "log_config_file": "logconf.yml",
+  "mock_gnss": true
+ },
+ "event": "start_application",
+ "level": "info",
+ "timestamp": "2021-03-08T03:00:29.504299Z"
+}
+{
+ "event": "gnss_service_run",
+ "level": "info",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T03:00:29.508294Z"
+}
+{
+ "event": "gnss_service_inbound_wait",
+ "level": "debug",
+ "module": "GnssServiceRunner",
+ "timestamp": "2021-03-08T03:00:29.511294Z"
+}
