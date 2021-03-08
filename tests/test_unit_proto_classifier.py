@@ -14,9 +14,9 @@ class test_ProtocolClassifier(unittest.TestCase):
             bytes(b'\x00') : ProtocolClass.NONE
         })
 
-        self.assertEqual(classifier.classify(stream), ProtocolClass.NMEA)
-        self.assertEqual(classifier.classify(stream), ProtocolClass.UBX)
-        self.assertEqual(classifier.classify(stream), ProtocolClass.NONE)
+        self.assertEqual(classifier.classify(stream), (bytes(b'\x24'), ProtocolClass.NMEA))
+        self.assertEqual(classifier.classify(stream), (bytes(b'\xb5\x62'), ProtocolClass.UBX))
+        self.assertEqual(classifier.classify(stream), (bytes(b'\x00'), ProtocolClass.NONE))
 
     def test_classify_fails_if_past_classification_point(self):
         stream = BytesIO(b'\x00\x00\x00\x24\xb5\x62\x00')

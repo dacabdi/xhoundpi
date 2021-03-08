@@ -8,7 +8,6 @@
             "module": "xhoundpi",
             "args": [
                 "--config", "xhoundpi.config",
-                "--log", "xhoundpi.log"
             ],
         },
         {

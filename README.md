@@ -51,6 +51,13 @@ The project [`nektos/act`](https://github.com/nektos/act) is designed to run Git
 
 :warning: Currently failing due to a mismatch between GitHub's docker runner and `act`s ability to resolve the Python versions. Will be fixed soon.
 
+#### Working with data captures to mock IO devices
+To allow functional testing in isolation from the hardware, we have collected captures off the actual devices. See the `data` subdir for samples (the `notes.md` file describes the contents). To convert these text based captures to binary files, run the following commands from the root of the repository (assumes the `pipenv` shell is initialized):
+
+`$ python -m tools.capture_processor [inputfile] [outputfile]`
+
+E.g., to parse the `data/mixed_nmea_ubx_sample.txt` file and output the results into the file `data.hex` use `$ python -m tools.capture_processor "data/mixed_nmea_ubx_sample.txt" "data.hex"`. :warning: Adopt the convention of using the `.hex` extension for your processed samples, it will allow to filter them in the `.gitignore` file and avoid accidentally commiting them.
+
 ### Code submission
 
 #### Conventions
