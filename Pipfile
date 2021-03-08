@@ -23,6 +23,7 @@ rx = "*"
 opentelemetry-api = "*"
 opentelemetry-sdk = "*"
 structlog = "*"
+pyyaml = "*"
 
 [requires]
 python_version = "3.9"
