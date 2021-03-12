@@ -7,6 +7,7 @@ class test_config(unittest.TestCase):
         parser = setup_configparser()
         config = parser.parse('')
         self.assertEqual(config.config, 'xhoundpi.conf')
+        self.assertEqual(config.buffer_capacity, 1000)
         self.assertEqual(config.log_config_file, 'logconf.yml')
         self.assertFalse(config.mock_gnss)
         self.assertEqual(config.gnss_mock_input, 'data/gnss_mock_input.hex')
@@ -15,17 +16,19 @@ class test_config(unittest.TestCase):
     def test_config_cli_overrides_long_version(self):
         parser = setup_configparser()
         config = parser.parse(' '.join([
-            '--log-config-file configlog.yml',
             '--config /etc/xhound/xhound.conf',
+            '--buffer-capacity 10',
             '--mock-gnss',
             '--gnss-mock-input /tmp/gnss-mock-in.bin',
-            '--gnss-mock-output /tmp/gnss-mock-out.bin'
+            '--gnss-mock-output /tmp/gnss-mock-out.bin',
+            '--log-config-file configlog.yml'
             ]), config_file_contents='')
-        self.assertEqual(config.log_config_file, 'configlog.yml')
         self.assertEqual(config.config, '/etc/xhound/xhound.conf')
+        self.assertEqual(config.buffer_capacity, 10)
         self.assertEqual(config.mock_gnss, True)
         self.assertEqual(config.gnss_mock_input, '/tmp/gnss-mock-in.bin')
         self.assertEqual(config.gnss_mock_output, '/tmp/gnss-mock-out.bin')
+        self.assertEqual(config.log_config_file, 'configlog.yml')
 
     def test_config_overrides_allsources(self):
         parser = setup_configparser()

@@ -16,6 +16,7 @@ import pyubx2
 # local imports
 from .config import setup_configparser
 from .serial import StubSerial
+from .queue_pump import AsyncPump
 from .gnss_client import GnssClient
 from .proto_class import ProtocolClass
 from .proto_classifier import ProtocolClassifier
@@ -29,7 +30,7 @@ from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
 from .monkey_patching import add_method
 from .async_ext import loop_forever_async # pylint: disable=unused-import
-from .queue_ext import get_forever_async # pylint: disable=unused-import
+from .queue_ext import get_forever_async # pylint: disable=unused-import\
 
 # NOTE patch NMEASentence to include byte
 # serialization for uniform message API
@@ -93,8 +94,15 @@ async def main_async():
         inbound_queue=gnss_inbound_queue,
         outbound_queue=gnss_outbound_queue)
 
+    # TODO this is a temporary shortcircuit
+    round_trip_pump = AsyncPump(
+        input_queue=gnss_inbound_queue,
+        output_queue=gnss_outbound_queue)
+
     # run and wait for all tasks
-    await asyncio.gather(gnss_service_runner.run())
+    await asyncio.gather(
+        gnss_service_runner.run(),
+        round_trip_pump.run())
 
     return 0
 
