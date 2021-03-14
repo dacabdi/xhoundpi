@@ -12,7 +12,8 @@
 			"shardulm94.trailing-spaces",
 			"ms-python.python",
 			"ms-python.vscode-pylance",
-			"eamodio.gitlens"
+			"eamodio.gitlens",
+			"ms-vscode.hexeditor"
 		]
 	}
 }

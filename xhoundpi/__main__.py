@@ -1,6 +1,8 @@
 """xHoundPi firmware execution module"""
 
 # standard libs
+import signal
+import sys
 import asyncio
 import logging
 import logging.config
@@ -41,9 +43,19 @@ def serialize(self):
 
 logger = structlog.get_logger('xhoundpi')
 
+def signal_handler(sig, frame):
+    """ Signal handler """
+    signal_name = str(signal.Signals(sig)).removeprefix('Signals.')
+    logger.warning(f'Received termination signal \'{signal_name}\', exiting gracefully')
+    sys.exit(0)
+
 #pylint: disable=too-many-locals
 async def main_async():
     """xHoundPi entry point"""
+
+    # register to handle termination signals
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGBREAK, signal_handler)
 
     # setup and read configuration
     parser = setup_configparser()
@@ -101,10 +113,8 @@ async def main_async():
 
     # run and wait for all tasks
     await asyncio.gather(
-        gnss_service_runner.run(),
+        #gnss_service_runner.run(),
         round_trip_pump.run())
-
-    return 0
 
 def gnss_serial_provider(config):
     """ Resolves the serial comm based on configuration """

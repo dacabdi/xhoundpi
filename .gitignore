@@ -129,7 +129,9 @@ dmypy.json
 .pyre/
 
 # hex files
-.hex
+*.hex
+*.bin
 
-# structured logs
-.log.json
+# logs
+*.log.*
+*.log.json.*
