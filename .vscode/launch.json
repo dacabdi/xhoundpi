@@ -29,6 +29,15 @@
                 "./data/mixed_nmea_ubx_sample.cap",
                 "./data/gnss_out.bin"
             ],
+        },
+        {
+            "name": "Main Test Runner",
+            "type": "python",
+            "request": "launch",
+            "module": "test",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [],
         }
     ]
 }

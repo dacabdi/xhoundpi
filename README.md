@@ -43,7 +43,7 @@ High precision GPS firmware for point surveyor xHound hardware modules based on 
 
 ### Testing and validation
 #### Quick feedback loop
-- Run all tests issue the following command from the root of the repository: `pipenv run python -m unittest discover --start-directory "tests" --pattern "test*.py" --verbose --locals`
+- Run all tests issue the following command from the root of the repository: `pipenv run python -m unittest discover --verbose --locals`
 - Then run the linter using the commend: `pipenv run pylint xhoundpi` (tests are not linting and style conforming but please keep them clean)
 
 #### Using nektos/act

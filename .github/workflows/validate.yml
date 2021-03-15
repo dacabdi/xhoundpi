@@ -53,10 +53,44 @@ jobs:
           pipenv graph
 
       - name: 'Run tests (unittest)'
-        run: pipenv run python -m unittest discover --start-directory 'tests' --pattern 'Test*.py' --verbose --locals
+        run: pipenv run python -m unittest discover --verbose --locals
+
+      - name: 'Generate test reports (xmlrunner)'
+        run: pipenv run python -m test
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: unittest-results.xml
 
       - name: 'Run linter (pylint)'
         run: pipenv run pylint xhoundpi
 
       - name: 'Run smoke test simulation'
         run: python -m tools.simulator --verbose --parse-gnss-input ./data/mixed_nmea_ubx_sample.cap ./data/gnss_out.bin
+
+  publish-results:
+    name: "Publish Unit Tests Results"
+    needs: validate
+    runs-on: ubuntu-latest
+    if: success() || failure()
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts
+
+      - name: Publish unit test results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          check_name: Unit Test Results
+          comment_title: Unit Test Statistics
+          hide_comments: all but latest
+          comment_on_pr: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          files: unittest-results.xml
+          report_individual_runs: true
+          check_run_annotations: all tests, skipped tests
