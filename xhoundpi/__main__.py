@@ -43,9 +43,9 @@ def serialize(self):
 
 logger = structlog.get_logger('xhoundpi')
 
-def signal_handler(sig, frame):
+def signal_handler(sig, frame): # pylint: disable=unused-argument
     """ Signal handler """
-    signal_name = str(signal.Signals(sig)).removeprefix('Signals.')
+    signal_name = str(signal.Signals(sig)).removeprefix('Signals.') # pylint: disable=no-member
     logger.warning(f'Received termination signal \'{signal_name}\', exiting gracefully')
     sys.exit(0)
 
