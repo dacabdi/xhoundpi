@@ -2,8 +2,8 @@
 # pylint: disable=logging-fstring-interpolation
 
 # standard libs
-import signal
 import logging
+import sys
 
 from .config import setup_argparser
 from .simulator import Simulator
@@ -27,13 +27,18 @@ def main():
     options = config.parse_args()
 
     simulator = Simulator(options)
-    signal.signal(signal.SIGINT, simulator.signal_handler)
-    simulator.run()
+    test_passed = simulator.run_and_test()
+
+    logger.log(level=logging.INFO if test_passed else logging.ERROR,
+        msg="Simulation smoke test PASSED" if test_passed
+        else "Simulation smoke test FAILED")
+
+    sys.exit(0 if test_passed else 1)
 
 def setup_logger():
     """ Basic logger configuration """
     console_handler = logging.StreamHandler()
-    formatter = logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s')
+    formatter = logging.Formatter('SIMULATOR:[%(asctime)s][%(levelname)s] %(message)s')
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
     logger.setLevel(logging.INFO)

@@ -56,6 +56,7 @@ async def main_async():
     # register to handle termination signals
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGBREAK, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     # setup and read configuration
     parser = setup_configparser()
@@ -113,7 +114,7 @@ async def main_async():
 
     # run and wait for all tasks
     await asyncio.gather(
-        #gnss_service_runner.run(),
+        gnss_service_runner.run(),
         round_trip_pump.run())
 
 def gnss_serial_provider(config):

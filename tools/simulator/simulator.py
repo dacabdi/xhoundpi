@@ -7,6 +7,7 @@ import sys
 import os
 import subprocess
 import asyncio
+import atexit
 
 from xhoundpi.async_ext import run_sync
 from tools.capture_processor.parser import parser
@@ -27,6 +28,9 @@ class Simulator():
         self.options = options
         self.xhoundpi_proc = None
         self.xhoundpi_exit_code = 0
+        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.signal(signal.SIGBREAK, self.signal_handler)
+        atexit.register(self.last_cleanups)
 
     def run_and_test(self):
         """ Run a simulation session, smoke test, and report """
@@ -61,14 +65,17 @@ class Simulator():
         """ Send SIGINT, wait for process to exit, and cleanup environment """
         logger.info('Stopping subprocesses')
         if self.xhoundpi_proc:
-            logger.debug('Sending interrupt signal')
-            self.xhoundpi_proc.send_signal(signal.SIGINT)
-            logger.debug('Waiting for process to exit, with timeout 5 secs')
-            self.xhoundpi_exit_code = self.xhoundpi_proc.wait(5)
-            self.xhoundpi_proc.terminate()
-            self.xhoundpi_proc = None
-            logger.log(logging.INFO if self.xhoundpi_exit_code == 0 else logging.WARNING,
-                f'xHoundPi exited with code {self.xhoundpi_exit_code}')
+            logger.debug('Sending termination signal')
+            self.xhoundpi_proc.send_signal(signal.SIGTERM)
+            logger.debug('Waiting for process to exit (with timeout 5 secs)')
+            try:
+                self.xhoundpi_exit_code = self.xhoundpi_proc.wait(5)
+            except TimeoutError:
+                self.xhoundpi_proc.terminate()
+            finally:
+                self.xhoundpi_proc = None
+                logger.log(logging.INFO if self.xhoundpi_exit_code == 0 else logging.WARNING,
+                    f'xHoundPi exited with code {self.xhoundpi_exit_code}')
         else:
             logger.warning('Subprocess is not runnig')
         logger.info('Cleaning up')
@@ -94,7 +101,7 @@ class Simulator():
         try:
             passed = run_sync(self.test(), self.options.test_timeout)
         except asyncio.exceptions.TimeoutError:
-            logger.exception("Smoke test timedout")
+            logger.error("Smoke test time out")
         return passed
 
     async def test(self):
@@ -121,7 +128,7 @@ class Simulator():
                     if len(current) >= expected_size:
                         logger.error('Test failed to match output before surpassing expected size.')
                         return False
-                    logger.debug(f'Output length ({len(current)} bytes) below expected'
+                    logger.debug(f'Output length ({len(current)} bytes) below expected '
                         f'size ({expected_size} bytes).')
                     if self.xhoundpi_proc.poll():
                         logger.error('Test failed, subprocess exited early.')
@@ -145,6 +152,14 @@ class Simulator():
 
     def signal_handler(self, sig, frame):
         """ Signals handler """
-        logger.warning("Received SIGINT (Ctrl+C), exiting")
+        signal_name = str(signal.Signals(sig)).removeprefix('Signals.')
+        logger.warning(f'Received termination signal \'{signal_name}\', exiting gracefully')
         self.post_run()
         sys.exit(1)
+
+    def last_cleanups(self):
+        """ Last attempt to kill child process """
+        logger.debug('Running last resource cleanups before exiting')
+        if self.xhoundpi_proc:
+            logger.warning('Found zombie child process exiting, killing it as last attempt!')
+            os.kill(self.xhoundpi_proc.pid, signal.SIGTERM)
