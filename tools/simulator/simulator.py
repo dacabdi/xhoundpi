@@ -21,15 +21,16 @@ class Simulator():
         'python '
         '-m xhoundpi '
         '--mock-gnss '
-        '--gnss-mock-input {gnss_input} '
-        '--gnss-mock-output {gnss_output} ')
+        '--gnss-mock-input "{gnss_input}" '
+        '--gnss-mock-output "{gnss_output}"')
 
     def __init__(self, options):
         self.options = options
         self.xhoundpi_proc = None
         self.xhoundpi_exit_code = 0
         signal.signal(signal.SIGINT, self.signal_handler)
-        signal.signal(signal.SIGBREAK, self.signal_handler)
+        if sys.platform == 'win32':
+            signal.signal(signal.SIGBREAK, self.signal_handler)
         atexit.register(self.last_cleanups)
 
     def run_and_test(self):
@@ -50,7 +51,12 @@ class Simulator():
             raise RuntimeError('Simulator is already running')
         if self.options.verbose:
             logger.setLevel(logging.DEBUG)
+
         logger.info('Starting simulator session for xHoundPi!')
+        logger.debug(f'Configuration options: {self.options}')
+        logger.debug(f'Current working directory "{os.getcwd()}"')
+        logger.debug(f'Environment variables "{os.environ}"')
+
         self.parse_gnss_input()
 
     def run(self):
@@ -59,7 +65,7 @@ class Simulator():
             gnss_input=self.options.gnssinput,
             gnss_output=self.options.gnssoutput)
         logger.info(f'Starting xHoundPi with \'{cmd}\'')
-        self.xhoundpi_proc = subprocess.Popen(cmd)
+        self.xhoundpi_proc = subprocess.Popen(cmd.split(' '))
 
     def post_run(self):
         """ Send SIGINT, wait for process to exit, and cleanup environment """

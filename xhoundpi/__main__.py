@@ -55,7 +55,8 @@ async def main_async():
 
     # register to handle termination signals
     signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGBREAK, signal_handler)
+    if sys.platform == 'win32':
+        signal.signal(signal.SIGBREAK, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
     # setup and read configuration

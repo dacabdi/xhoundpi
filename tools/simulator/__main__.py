@@ -4,6 +4,7 @@
 # standard libs
 import logging
 import sys
+import os
 
 from .config import setup_argparser
 from .simulator import Simulator
