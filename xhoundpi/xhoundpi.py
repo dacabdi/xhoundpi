@@ -1,14 +1,11 @@
-""" xHoundPi Program module facade """
+""" xHoundPi program module facade """
 
 # standard libs
 import signal
 import sys
 import asyncio
-import logging
-import logging.config
 
 # external imports
-import yaml
 import structlog
 
 # parsing libs
@@ -35,7 +32,8 @@ from .queue_ext import get_forever_async # pylint: disable=unused-import
 
 logger = structlog.get_logger('xhoundpi')
 
-class XHoundPi:
+class XHoundPi: # pylint: disable=too-many-instance-attributes
+    """ XHoundPi program class """
 
     def __init__(self, config):
         self.config = config
@@ -91,7 +89,7 @@ class XHoundPi:
         """ Subscribe to signals """
         signal.signal(signal.SIGINT, self.signal_handler)
         if sys.platform == 'win32':
-            signal.signal(signal.SIGBREAK, self.signal_handler)
+            signal.signal(signal.SIGBREAK, self.signal_handler) # pylint: disable=no-member
         signal.signal(signal.SIGTERM, self.signal_handler)
 
     def signal_handler(self, sig, frame):
@@ -126,7 +124,7 @@ class XHoundPi:
             return StubSerial(transport_rx, transport_tx)
         raise NotImplementedError("Currently only supporting GNSS input from mock file")
 
-    def create_protocol_classifier(self):
+    def create_protocol_classifier(self): # pylint: disable=no-self-use
         """ Wire up a protocol classifier """
         classifications = {
             bytes(b'\x24') : ProtocolClass.NMEA,
@@ -134,7 +132,7 @@ class XHoundPi:
         }
         return ProtocolClassifier(classifications)
 
-    def create_protocol_reader_provider(self):
+    def create_protocol_reader_provider(self): # pylint: disable=no-self-use
         """ Wire up and return the protocol readers inside a reader provider """
         gnss_ubx_frame_reader = UBXProtocolReader()
         gnss_nmea_frame_reader = NMEAProtocolReader()
@@ -144,7 +142,7 @@ class XHoundPi:
         }
         return ProtocolReaderProvider(gnss_protocol_reader_mappings)
 
-    def create_protocol_parser_provider(self):
+    def create_protocol_parser_provider(self): # pylint: disable=no-self-use
         """ Wire up and return the protocol parsers inside a parser provider """
         gnss_ubx_frame_parser = UBXProtocolParser(
             lambda frame: pyubx2.UBXReader.parse(frame, validate=True))

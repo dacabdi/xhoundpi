@@ -1,0 +1,30 @@
+ignore:
+  - 'test/**'
+  - '.venv/**'
+
+comment:
+  layout: 'reach, diff, flags, files'
+  behavior: default
+  require_changes: false
+  require_base: no
+  require_head: no
+  branches:
+    - 'master'
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 0%
+        base: auto
+        flags:
+          - unittests
+        paths:
+          - 'xhoundpi'
+          - 'tools'
+        branches:
+          - master
+        if_ci_failed: error
+        informational: false
+        only_pulls: false

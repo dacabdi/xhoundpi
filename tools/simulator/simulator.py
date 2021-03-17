@@ -157,7 +157,7 @@ class Simulator():
         logger.info(f'GNSS binary input file path \'{gnss_input_path}\'')
         self.options.gnssinput = gnss_input_path
 
-    def signal_handler(self, sig, frame):
+    def signal_handler(self, sig, frame): # pylint: disable=unused-argument
         """ Signals handler """
         signal_name = str(signal.Signals(sig)).removeprefix('Signals.')
         logger.warning(f'Received termination signal \'{signal_name}\', exiting gracefully')

@@ -132,10 +132,9 @@ dmypy.json
 *.hex
 *.bin
 
-# logs
-*.log.*
-*.log.json.*
-
 # junit tests reults
 unittest-results*.xml
 unittest-results*.html
+
+log/
+coverage-html/

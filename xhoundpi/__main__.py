@@ -4,6 +4,7 @@
 import asyncio
 import logging
 import logging.config
+import os
 import sys
 
 # external imports
@@ -51,9 +52,9 @@ def setup_logging(config_path):
 
     # configure logging
     with open(config_path, 'rt') as config_file:
-        config = yaml.safe_load(config_file.read())
+        logger_config = yaml.safe_load(config_file.read())
         # add structlog formatters
-        config['formatters'] = {
+        logger_config['formatters'] = {
             "plain": {
                 "()": structlog.stdlib.ProcessorFormatter,
                 "processor": structlog.dev.ConsoleRenderer(colors=False),
@@ -70,7 +71,8 @@ def setup_logging(config_path):
                 "foreign_pre_chain": pre_chain,
             }
         }
-        logging.config.dictConfig(config)
+        create_log_dirs(logger_config)
+        logging.config.dictConfig(logger_config)
 
     # configure structlog
     structlog.configure_once(
@@ -86,5 +88,13 @@ def setup_logging(config_path):
         logger_factory=structlog.stdlib.LoggerFactory(),
         wrapper_class=structlog.stdlib.BoundLogger,
         cache_logger_on_first_use=False)
+
+def create_log_dirs(logger_config):
+    """ Check logger configuration for filenames and create subdirs """
+    for handler in logger_config['handlers']:
+        handler_dict = logger_config['handlers'][handler]
+        if 'filename' in handler_dict:
+            dirpath = os.path.dirname(handler_dict['filename'])
+            os.makedirs(dirpath, exist_ok=True)
 
 main()
