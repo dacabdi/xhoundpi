@@ -52,24 +52,24 @@ jobs:
           pipenv --where --venv --py --envs --support install --three --dev
           pipenv graph
 
-      - name: 'Run tests (unittest)'
+      - name: Run tests (unittest)
         run: pipenv run python -m unittest discover --verbose --locals
 
-      - name: 'Generate test reports (xmlrunner)'
+      - name: Generate test reports (xmlrunner)
         run: pipenv run python -m test
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: Unit Test Results
+          name: unittest-results.xml
           path: unittest-results.xml
 
-      - name: 'Run linter (pylint)'
+      - name: Run linter (pylint)
         run: pipenv run pylint xhoundpi
 
-      - name: 'Run smoke test simulation'
-        run: python -m tools.simulator --verbose --parse-gnss-input ./data/mixed_nmea_ubx_sample.cap ./data/gnss_out.bin
+      - name: Run smoke test simulation
+        run: pipenv run python -m tools.simulator --verbose --parse-gnss-input ./data/mixed_nmea_ubx_sample.cap ./data/gnss_out.bin
 
   publish-results:
     name: "Publish Unit Tests Results"

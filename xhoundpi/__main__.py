@@ -32,7 +32,7 @@ from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
 from .monkey_patching import add_method
 from .async_ext import loop_forever_async # pylint: disable=unused-import
-from .queue_ext import get_forever_async # pylint: disable=unused-import\
+from .queue_ext import get_forever_async # pylint: disable=unused-import
 
 # NOTE patch NMEASentence to include byte
 # serialization for uniform message API
