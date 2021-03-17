@@ -23,7 +23,7 @@
             "request": "launch",
             "module": "tools.simulator",
             "console": "integratedTerminal",
-            "justMyCode": true,
+            "justMyCode": false,
             "args": [
                 "--parse-gnss-input",
                 "./data/mixed_nmea_ubx_sample.cap",

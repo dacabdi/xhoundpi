@@ -21,8 +21,8 @@ class Simulator():
         'python '
         '-m xhoundpi '
         '--mock-gnss '
-        '--gnss-mock-input "{gnss_input}" '
-        '--gnss-mock-output "{gnss_output}"')
+        '--gnss-mock-input {gnss_input} '
+        '--gnss-mock-output {gnss_output}')
 
     def __init__(self, options):
         self.options = options
@@ -76,7 +76,8 @@ class Simulator():
             logger.debug('Waiting for process to exit (with timeout 5 secs)')
             try:
                 self.xhoundpi_exit_code = self.xhoundpi_proc.wait(5)
-            except TimeoutError:
+            except subprocess.TimeoutExpired:
+                logger.warning('Timed out waiting for process to exit, killing it')
                 self.xhoundpi_proc.terminate()
             finally:
                 self.xhoundpi_proc = None
