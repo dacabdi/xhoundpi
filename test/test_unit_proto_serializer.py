@@ -52,11 +52,13 @@ class test_UBXProtocolSerializer(unittest.TestCase):
         serializer = UBXProtocolSerializer(entry_point)
 
         result = serializer.serialize(
-            Message(message_id=UUID('{12345678-1234-5678-1234-567812345678}')))
+            Message(message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
+                proto=ProtocolClass.UBX, payload='dummy'))
 
         self.assertEqual(result, 'ubx serializer')
         entry_point.assert_called_once_with(
-            Message(message_id=UUID('{12345678-1234-5678-1234-567812345678}')))
+            Message(message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
+                proto=ProtocolClass.UBX, payload='dummy'))
 
     def test_serialize_error(self):
         entry_point = Mock(side_effect=Exception('internal serializer exception'))
@@ -65,11 +67,13 @@ class test_UBXProtocolSerializer(unittest.TestCase):
         with self.assertRaises(SerializerError) as context:
             serializer.serialize(Message(
                 message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
-                proto=ProtocolClass.UBX))
+                proto=ProtocolClass.UBX,
+                payload='empty'))
 
         entry_point.assert_called_once_with(
             Message(message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
-                    proto=ProtocolClass.UBX))
+                    proto=ProtocolClass.UBX,
+                    payload='empty'))
         self.assertEqual(
             'Error serializing message 12345678-1234-5678-1234-567812345678'
             ' with protocol ProtocolClass.UBX.',
@@ -82,11 +86,13 @@ class test_NMEAProtocolSerializer(unittest.TestCase):
         serializer = NMEAProtocolSerializer(entry_point)
 
         result = serializer.serialize(
-            Message(message_id=UUID('{12345678-1234-5678-1234-567812345678}')))
+            Message(message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
+                payload='empty', proto=ProtocolClass.NMEA))
 
         self.assertEqual(result, 'nmea serializer')
         entry_point.assert_called_once_with(
-            Message(message_id=UUID('{12345678-1234-5678-1234-567812345678}')))
+            Message(message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
+                payload='empty', proto=ProtocolClass.NMEA))
 
     def test_serialize_error(self):
         entry_point = Mock(side_effect=Exception('internal serializer exception'))
@@ -95,11 +101,11 @@ class test_NMEAProtocolSerializer(unittest.TestCase):
         with self.assertRaises(SerializerError) as context:
             serializer.serialize(Message(
                 message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
-                proto=ProtocolClass.NMEA))
+                proto=ProtocolClass.NMEA, payload='dummy'))
 
         entry_point.assert_called_once_with(
             Message(message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
-                    proto=ProtocolClass.NMEA))
+                proto=ProtocolClass.NMEA, payload='dummy'))
         self.assertEqual(
             'Error serializing message 12345678-1234-5678-1234-567812345678'
             ' with protocol ProtocolClass.NMEA.',

@@ -8,6 +8,6 @@ from .proto_class import ProtocolClass
 @dataclass
 class Message:
     """ Message DTO (data transfer object) """
-    proto: ProtocolClass = ProtocolClass.NONE
-    payload: typing.Any = None
-    message_id: uuid.UUID = uuid.uuid4()
+    message_id: uuid.UUID
+    proto: ProtocolClass
+    payload: typing.Any

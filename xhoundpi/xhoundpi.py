@@ -60,7 +60,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             gnss_client=self.gnss_client,
             classifier=self.gnss_protocol_classifier,
             reader_provider=self.gnss_protocol_reader_provider,
-            parser_provider=self.gnss_protocol_parser_provider)
+            parser_provider=self.gnss_protocol_parser_provider,
+            serializer_provider=self.gnss_protocol_serializer_provider)
 
         self.gnss_service_runner = GnssServiceRunner(
             gnss_service=self.gnss_service,
