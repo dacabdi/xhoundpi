@@ -9,7 +9,7 @@ def setup_configparser() -> configargparse.ArgumentParser:
         add_config_file_help=False,)
     parser.add('--config', metavar='FILE', default='xhoundpi.conf', dest='config',
         is_config_file=True, env_var="XHOUNDPI_CONFIG", help='config file path')
-    parser.add('--buffer-capacity', dest='buffer_capacity', type=int,
+    parser.add('--buffer-capacity', dest='buffer_capacity', type=int, default=1000,
         help='internal buffers capacity limit')
     parser.add('--mock-gnss', dest='mock_gnss', action='store_true',
         help='mock gnss message io')

@@ -1,1 +1,1 @@
--P ubuntu-latest=node:12.6-buster-slim
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
