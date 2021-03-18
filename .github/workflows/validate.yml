@@ -52,8 +52,72 @@ jobs:
           pipenv --where --venv --py --envs --support install --three --dev
           pipenv graph
 
-      - name: 'Run tests (unittest)'
-        run: pipenv run python -m unittest discover --start-directory 'tests' --pattern 'Test*.py' --verbose --locals
+      # Test and report
 
-      - name: 'Run linter (pylint)'
+      - name: Run tests (unittest)
+        if: always()
+        run: pipenv run python -m unittest discover --verbose --locals
+
+      - name: Generate test reports (xmlrunner)
+        if: always()
+        run: pipenv run python -m test
+
+      # Code test coverage
+      # https://about.codecov.io/blog/python-code-coverage-using-github-actions-and-codecov/
+
+      - name: Generate code coverage report
+        if: always()
+        run: |
+          pipenv run coverage run -m unittest discover --verbose --locals
+          pipenv run coverage report
+          pipenv run coverage html --directory ./coverage-xml
+          pipenv run coverage xml
+
+      # Simulate and smoke test
+
+      - name: Run smoke test simulation
+        if: always()
+        run: pipenv run python -m tools.simulator --verbose --parse-gnss-input ./data/mixed_nmea_ubx_sample.cap ./data/gnss_out.bin
+
+      # Linter
+
+      - name: Run linter (pylint)
+        if: always()
         run: pipenv run pylint xhoundpi
+
+      # Publish artifacts
+      - name: Upload build artifacts
+        if: always() && github.actor != 'nektos/act'
+        uses: actions/upload-artifact@v2
+        with:
+          name: unittest-artifacts
+          path: |
+            unittest-results.xml
+            .coverage
+            coverage.xml
+            coverage-html/
+          if-no-files-found: error
+
+      - name: Publish unit test results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          check_name: Unit Test Results
+          comment_title: Unit Test Statistics
+          hide_comments: all but latest
+          comment_on_pr: true
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          files: unittest-results.xml
+          report_individual_runs: true
+          check_run_annotations: all tests, skipped tests
+
+      - name: Upload code coverage report to Codecov
+        if: always() && github.actor != 'nektos/act'
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage.xml
+          flags: unittests
+          env_vars: OS,PYTHON
+          verbose: true
+

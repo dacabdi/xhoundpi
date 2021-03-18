@@ -2,6 +2,10 @@
 High precision GPS firmware for point surveyor xHound hardware modules based on ARM64 Raspberry Pi platforms.
 
 ---
+## Status
+![validate](https://github.com/dacabdi/xhoundpi/actions/workflows/validate.yml/badge.svg)
+[![codecov](https://codecov.io/gh/dacabdi/xhoundpi/branch/master/graph/badge.svg?token=985XCXU0H3)](https://codecov.io/gh/dacabdi/xhoundpi)
+
 ## Collaborate
 :warning: xHound project tasks are shared equally among developers and engineers who work on the survey problem domain or hardware design. The setup, collaboration guidelines, and notes, will/should be exhaustive and pedantic to keep the instructions clear to collaborators with any class of background or lack thereof.
 
@@ -43,7 +47,7 @@ High precision GPS firmware for point surveyor xHound hardware modules based on 
 
 ### Testing and validation
 #### Quick feedback loop
-- Run all tests issue the following command from the root of the repository: `pipenv run python -m unittest discover --start-directory "tests" --pattern "Test*.py" --verbose --locals`
+- Run all tests issue the following command from the root of the repository: `pipenv run python -m unittest discover --verbose --locals`
 - Then run the linter using the commend: `pipenv run pylint xhoundpi` (tests are not linting and style conforming but please keep them clean)
 
 #### Using nektos/act

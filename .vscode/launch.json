@@ -16,6 +16,28 @@
             "request": "test",
             "console": "integratedTerminal",
             "justMyCode": true
+        },
+        {
+            "name": "Simulator Smoke Test",
+            "type": "python",
+            "request": "launch",
+            "module": "tools.simulator",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "--parse-gnss-input",
+                "./data/mixed_nmea_ubx_sample.cap",
+                "./data/gnss_out.bin"
+            ],
+        },
+        {
+            "name": "Main Test Runner",
+            "type": "python",
+            "request": "launch",
+            "module": "test",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [],
         }
     ]
 }

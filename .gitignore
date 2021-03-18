@@ -129,5 +129,12 @@ dmypy.json
 .pyre/
 
 # hex files
-#.hex
-#*.log.json
+*.hex
+*.bin
+
+# junit tests reults
+unittest-results*.xml
+unittest-results*.html
+
+log/
+coverage-html/

@@ -1,1 +1,1 @@
-"""xHound modules testing captures and data processor and parser"""
+""" xHound captures data processor and parser """

@@ -5,7 +5,7 @@ limit-inference-results=100
 persistent=yes
 suggestion-mode=yes
 unsafe-load-any-extension=no
-ignore=tests
+ignore=test
 
 [MESSAGES CONTROL]
 
