@@ -49,7 +49,8 @@ High precision GPS firmware for point surveyor xHound hardware modules based on 
 #### Quick feedback loop
 - Run all tests issue the following command from the root of the repository: `pipenv run python -m unittest discover --verbose --locals`
 - Then run the linter using the commend: `pipenv run pylint xhoundpi` (tests are not linting and style conforming but please keep them clean)
-
+#### Simulator smoke tests
+Run simulator to perform a smoke test of the overall functionality by issuing the command `$ python -m tools.simulator --verbose --parse-gnss-input ./data/mixed_nmea_ubx_sample.cap ./gnss_out.hex`. This will prepare mocked input and output files, run xHoundPi, and collect results for a simple smoke test. The return code of the process indicates success/failure.
 #### Using nektos/act
 The project [`nektos/act`](https://github.com/nektos/act) is designed to run GitHub actions locally and provide immediate feedback without resorting to the GitHub agents and pipelines. These tests would provide a closer validation to the one your PRs will be subjected too and always setup temporary clean environments on every run. Follow the setup instructions on the project's README and use it with our repository to run the validation workflows.
 
@@ -74,7 +75,7 @@ E.g., to parse the `data/mixed_nmea_ubx_sample.txt` file and output the results 
       release -> release
       major -> major
       feature -> minor
-      path -> patch
+      patch -> patch
 ```
 :smiley: Happy coding!
 
