@@ -1,5 +1,11 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=line-too-long
+# pylint: disable=invalid-name
+
 import unittest
-from unittest.mock import MagicMock, Mock
+from unittest.mock import MagicMock
 
 from xhoundpi.proto_class import ProtocolClass
 from xhoundpi.proto_parser import ProtocolParserProvider,\
@@ -39,4 +45,3 @@ class test_StubParserProvider(unittest.TestCase):
         parser_provider = StubParserProvider(stub_parser)
 
         self.assertEqual(parser_provider.get_parser(ProtocolClass.NONE), stub_parser)
-

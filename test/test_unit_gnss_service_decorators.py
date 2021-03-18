@@ -1,3 +1,9 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=line-too-long
+# pylint: disable=invalid-name
+
 import io
 import unittest
 import uuid
@@ -42,7 +48,7 @@ class test_GnssServiceWithTraces(unittest.TestCase):
         tracer = trace.get_tracer("test_tracer")
 
         gnss_service = StubGnssService()
-        gnss_service_with_traces = gnss_service.with_traces(tracer)
+        gnss_service_with_traces = gnss_service.with_traces(tracer) # pylint: disable=no-member
 
         self.assertEqual(gnss_service.read, 0)
         self.assertEqual(gnss_service.write, 0)

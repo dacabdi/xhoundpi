@@ -1,3 +1,9 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=line-too-long
+# pylint: disable=invalid-name
+
 import asyncio
 import os
 import unittest
@@ -5,8 +11,6 @@ import pathlib
 
 from asyncio.tasks import wait_for
 from io import BytesIO
-
-from structlog import get_logger
 from structlog.testing import capture_logs
 
 # parsing libs
@@ -29,7 +33,7 @@ from xhoundpi.proto_serializer import (NMEAProtocolSerializer,
                                       UBXProtocolSerializer,)
 from xhoundpi.gnss_service import GnssService
 from xhoundpi.gnss_service_runner import GnssServiceRunner
-from xhoundpi.async_ext import run_sync # pylint: disable=unused-import
+from xhoundpi.async_ext import run_sync
 
 from tools.capture_processor.parser import parser
 
