@@ -14,6 +14,7 @@ import structlog
 # local imports
 from .config import setup_configparser
 from .xhoundpi import XHoundPi
+from .bound_logger_event import BoundLoggerEvents
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -86,7 +87,7 @@ def setup_logging(config_path):
         ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
-        wrapper_class=structlog.stdlib.BoundLogger,
+        wrapper_class=BoundLoggerEvents,
         cache_logger_on_first_use=True)
 
 def create_log_dirs(logger_config):

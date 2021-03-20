@@ -36,7 +36,7 @@ class StubGnssService(IGnssService):
 
     async def write_message(self, message: Message) -> Tuple[Status, int]:
         self.write += 1
-        return self.written
+        return self.return_written
 
 class test_GnssServiceWithEvents(unittest.TestCase):
 
