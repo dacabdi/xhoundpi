@@ -1,3 +1,9 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=line-too-long
+# pylint: disable=invalid-name
+
 import unittest
 from io import BytesIO
 from xhoundpi.serial import StubSerial

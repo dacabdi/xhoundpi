@@ -1,15 +1,18 @@
-from asyncio.tasks import wait_for
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=line-too-long
+# pylint: disable=invalid-name
+
 import unittest
 import unittest.mock
 import asyncio
+from asyncio.tasks import wait_for
+
 import asynctest
 
-import xhoundpi.queue_decorators
-
+import xhoundpi.queue_decorators # pylint: disable=unused-import
 from xhoundpi.async_ext import run_sync
-from xhoundpi.queue_ext import get_forever_async
-
-from .async_utils import wait_for_condition, notify_condition
 
 class test_AsyncQueueWithGetTransform(unittest.TestCase):
 
@@ -17,7 +20,7 @@ class test_AsyncQueueWithGetTransform(unittest.TestCase):
 
         transform = unittest.mock.MagicMock(return_value='transformed')
         queue = asyncio.queues.Queue()
-        queue_with_transform = queue.with_transform(transform)
+        queue_with_transform = queue.with_transform(transform) # pylint: disable=no-member
 
         # pulling the item through decorated should affect the result
         queue_with_transform.put_nowait('item1')
@@ -38,7 +41,7 @@ class test_AsyncQueueWithGetCallback(unittest.TestCase):
 
         callback = unittest.mock.MagicMock()
         queue = asyncio.queues.Queue()
-        queue_with_callback = queue.with_callback(callback)
+        queue_with_callback = queue.with_callback(callback) # pylint: disable=no-member
 
         queue_with_callback.put_nowait('item1')
         item1 = run_sync(queue_with_callback.get())
@@ -55,7 +58,7 @@ class test_AsyncQueueWithGetCallback(unittest.TestCase):
 
         callback = asynctest.CoroutineMock()
         queue = asyncio.queues.Queue()
-        queue_with_callback = queue.with_callback(callback)
+        queue_with_callback = queue.with_callback(callback) # pylint: disable=no-member
 
         self.assertTrue(asyncio.iscoroutinefunction(callback))
 
@@ -73,7 +76,7 @@ class test_AsyncQueueWithGetCallback(unittest.TestCase):
     def test_get_forever_until_cancelled(self):
         callback = asynctest.CoroutineMock()
         queue = asyncio.queues.Queue()
-        queue_with_callback = queue.with_callback(callback)
+        queue_with_callback = queue.with_callback(callback) # pylint: disable=no-member
 
         loop = asyncio.get_event_loop()
         task = loop.create_task(queue_with_callback.get_forever_async())
@@ -88,5 +91,5 @@ class test_AsyncQueueWithGetCallback(unittest.TestCase):
         callback.assert_called_with('item2')
 
         task.cancel()
-        with self.assertRaises(asyncio.exceptions.CancelledError) as context:
+        with self.assertRaises(asyncio.exceptions.CancelledError):
             run_sync(wait_for(task, 1))

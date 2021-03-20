@@ -1,3 +1,9 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=line-too-long
+# pylint: disable=invalid-name
+
 from asyncio.tasks import wait_for
 import unittest
 import asyncio
@@ -25,5 +31,5 @@ class test_AsyncPump(unittest.TestCase):
         self.assertFalse(task.done())
 
         task.cancel()
-        with self.assertRaises(asyncio.exceptions.CancelledError) as context:
+        with self.assertRaises(asyncio.exceptions.CancelledError):
             run_sync(wait_for(task, 1))

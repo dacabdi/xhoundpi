@@ -1,6 +1,7 @@
 ignore:
   - 'test/**'
   - '.venv/**'
+  - 'xhoundpi/bound_logger_event.py'
 
 comment:
   layout: 'reach, diff, flags, files'

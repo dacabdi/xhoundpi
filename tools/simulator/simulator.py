@@ -159,7 +159,7 @@ class Simulator():
 
     def signal_handler(self, sig, frame): # pylint: disable=unused-argument
         """ Signals handler """
-        signal_name = str(signal.Signals(sig)).removeprefix('Signals.')
+        signal_name = str(signal.Signals(sig)).removeprefix('Signals.') # pylint: disable=no-member
         logger.warning(f'Received termination signal \'{signal_name}\', exiting gracefully')
         self.post_run()
         sys.exit(1)
