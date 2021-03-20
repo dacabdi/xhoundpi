@@ -14,6 +14,8 @@ import structlog
 # local imports
 from .config import setup_configparser
 from .xhoundpi import XHoundPi
+from .bound_logger_event import BoundLoggerEvents
+from .events import AppEvent
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -28,7 +30,7 @@ async def main_async():
 
     # setup loggers
     setup_logging(config.log_config_file)
-    logger.info('start_application', config=vars(config))
+    logger.info(AppEvent(str), config=vars(config))
 
     # create and run module
     return await XHoundPi(config).run()
@@ -57,12 +59,12 @@ def setup_logging(config_path):
         logger_config['formatters'] = {
             "plain": {
                 "()": structlog.stdlib.ProcessorFormatter,
-                "processor": structlog.dev.ConsoleRenderer(colors=False),
+                "processor": structlog.dev.ConsoleRenderer(colors=False, pad_event=0),
                 "foreign_pre_chain": pre_chain,
             },
             "colored": {
                 "()": structlog.stdlib.ProcessorFormatter,
-                "processor": structlog.dev.ConsoleRenderer(colors=True),
+                "processor": structlog.dev.ConsoleRenderer(colors=True, pad_event=0),
                 "foreign_pre_chain": pre_chain,
             },
             "json": {
@@ -86,8 +88,8 @@ def setup_logging(config_path):
         ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
-        wrapper_class=structlog.stdlib.BoundLogger,
-        cache_logger_on_first_use=False)
+        wrapper_class=BoundLoggerEvents,
+        cache_logger_on_first_use=True)
 
 def create_log_dirs(logger_config):
     """ Check logger configuration for filenames and create subdirs """

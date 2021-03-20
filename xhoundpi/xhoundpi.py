@@ -18,17 +18,19 @@ from .queue_pump import AsyncPump
 from .gnss_client import GnssClient
 from .proto_class import ProtocolClass
 from .proto_classifier import ProtocolClassifier
-from .proto_reader import ProtocolReaderProvider,\
-                          UBXProtocolReader,\
-                          NMEAProtocolReader
-from .proto_parser import ProtocolParserProvider,\
-                          UBXProtocolParser,\
-                          NMEAProtocolParser
+from .proto_reader import (ProtocolReaderProvider,
+                          UBXProtocolReader,
+                          NMEAProtocolReader,)
+from .proto_parser import (ProtocolParserProvider,
+                          UBXProtocolParser,
+                          NMEAProtocolParser,)
+from .proto_serializer import (ProtocolSerializerProvider,
+                              UBXProtocolSerializer,
+                              NMEAProtocolSerializer,)
 from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
-from .monkey_patching import add_method
-from .async_ext import loop_forever_async # pylint: disable=unused-import
-from .queue_ext import get_forever_async # pylint: disable=unused-import
+from .gnss_service_decorators import with_events # pylint: disable=unused-import
+from .events import AppEvent
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -42,7 +44,6 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.tasks = None
 
         self.subscribe_signals()
-        self.patch_libraries()
 
         self.gnss_inbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
         self.gnss_outbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
@@ -51,12 +52,15 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.gnss_protocol_classifier = self.create_protocol_classifier()
         self.gnss_protocol_reader_provider = self.create_protocol_reader_provider()
         self.gnss_protocol_parser_provider = self.create_protocol_parser_provider()
+        self.gnss_protocol_serializer_provider = self.create_protocol_serializer_provider()
 
-        self.gnss_service = GnssService(
+        self.gnss_service = GnssService( # pylint: disable=no-member
             gnss_client=self.gnss_client,
             classifier=self.gnss_protocol_classifier,
             reader_provider=self.gnss_protocol_reader_provider,
-            parser_provider=self.gnss_protocol_parser_provider)
+            parser_provider=self.gnss_protocol_parser_provider,
+            serializer_provider=self.gnss_protocol_serializer_provider
+        ).with_events(logger)
 
         self.gnss_service_runner = GnssServiceRunner(
             gnss_service=self.gnss_service,
@@ -79,10 +83,10 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         except asyncio.exceptions.CancelledError:
             if self.signal and self.signal_frame:
                 signal_name = str(signal.Signals(self.signal)).removeprefix('Signals.') # pylint: disable=no-member
-                logger.warning(f'Received termination signal \'{signal_name}\', exiting gracefully')
+                logger.warning(AppEvent(f'Received signal \'{signal_name}\', exiting now'))
                 return 0
 
-            logger.exception('Running tasks unexpectedly cancelled')
+            logger.exception(AppEvent('Running tasks unexpectedly cancelled'))
             return 1
 
     def subscribe_signals(self):
@@ -101,15 +105,6 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.signal_frame = frame
         if self.tasks:
             self.tasks.cancel()
-
-    def patch_libraries(self):
-        """ Monkey patch parsing/reading libraries """
-        # NOTE patch NMEASentence to include byte
-        # serialization for uniform message API
-        @add_method(pynmea2.NMEASentence)
-        def serialize(self): # pylint: disable=unused-variable
-            """ Serialize NMEA message to bytes with trailing new line """
-            return bytearray(self.render(newline=True), 'ascii')
 
     def create_gnss_client(self):
         """ Create a GNSS client """
@@ -151,4 +146,15 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         return ProtocolParserProvider({
             ProtocolClass.UBX : gnss_ubx_frame_parser,
             ProtocolClass.NMEA : gnss_nmea_frame_parser
+        })
+
+    def create_protocol_serializer_provider(self): # pylint: disable=no-self-use
+        """ Wire up and return the protocol serializers inside a serializers provider """
+        gnss_ubx_serializer = UBXProtocolSerializer(
+            lambda message: message.payload.serialize())
+        gnss_nmea_serializer = NMEAProtocolSerializer(
+            lambda message: bytearray(message.payload.render(newline=True), 'ascii'))
+        return ProtocolSerializerProvider({
+            ProtocolClass.UBX : gnss_ubx_serializer,
+            ProtocolClass.NMEA : gnss_nmea_serializer
         })

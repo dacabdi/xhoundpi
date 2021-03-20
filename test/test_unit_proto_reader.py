@@ -1,3 +1,10 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=line-too-long
+# pylint: disable=invalid-name
+# pylint: disable=duplicate-code
+
 import unittest
 from unittest.mock import Mock
 from io import BytesIO

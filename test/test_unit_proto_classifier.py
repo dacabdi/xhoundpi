@@ -1,8 +1,24 @@
+# pylint: disable=missing-module-docstring
+# pylint: disable=missing-class-docstring
+# pylint: disable=missing-function-docstring
+# pylint: disable=line-too-long
+# pylint: disable=invalid-name
+
 import unittest
 from io import BytesIO
 
 from xhoundpi.proto_class import ProtocolClass
-from xhoundpi.proto_classifier import StubProtocolClassifier, ProtocolClassifier, ProtocolClassificationError
+from xhoundpi.proto_classifier import (StubProtocolClassifier,
+                                      ProtocolClassifier,
+                                      ProtocolClassificationError,)
+
+class test_StubProtocolClassifier(unittest.TestCase):
+
+    def test_classify(self):
+        header_source = BytesIO(b'H')
+        classifier = StubProtocolClassifier(ProtocolClass.UBX)
+
+        self.assertEqual(classifier.classify(header_source), (b'H', ProtocolClass.UBX))
 
 class test_ProtocolClassifier(unittest.TestCase):
 
