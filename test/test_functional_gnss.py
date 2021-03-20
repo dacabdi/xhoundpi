@@ -3,14 +3,18 @@
 # pylint: disable=missing-function-docstring
 # pylint: disable=line-too-long
 # pylint: disable=invalid-name
+# pylint: disable=too-many-locals
 
 import asyncio
 import os
 import unittest
 import pathlib
 
-from asyncio.tasks import wait_for
 from io import BytesIO
+from unittest.mock import patch
+from asyncio.tasks import wait_for
+
+import structlog
 from structlog.testing import capture_logs
 
 # parsing libs
@@ -34,11 +38,15 @@ from xhoundpi.proto_serializer import (NMEAProtocolSerializer,
 from xhoundpi.gnss_service import GnssService
 from xhoundpi.gnss_service_runner import GnssServiceRunner
 from xhoundpi.async_ext import run_sync
+import xhoundpi.gnss_service_decorators # pylint: disable=unused-import
 
 from tools.capture_processor.parser import parser
 
+from .log_utils import setup_test_event_logger
+
 def setUpModule():
     # parse input file into binary
+    setup_test_event_logger()
     current_dir = pathlib.Path(__file__).parent.absolute()
     input_capture = current_dir.joinpath('../data/mixed_nmea_ubx_sample.cap')
     with input_capture.open('r') as capture, \
@@ -55,6 +63,8 @@ def tearDownModule():
 class test_Functional_Gnss(unittest.TestCase):
 
     def create_service(self, inbound_queue, outbound_queue, transport_rx, transport_tx):
+        self.maxDiff = None
+        logger = structlog.get_logger()
         gnss_serial = StubSerial(transport_rx, transport_tx)
         gnss_client = GnssClient(gnss_serial)
         gnss_protocol_classifier = ProtocolClassifier({
@@ -73,12 +83,13 @@ class test_Functional_Gnss(unittest.TestCase):
             ProtocolClass.UBX : UBXProtocolSerializer(lambda message: message.payload.serialize()),
             ProtocolClass.NMEA : NMEAProtocolSerializer(lambda message: bytearray(message.payload.render(newline=True), 'ascii'))
         })
-        gnss_service = GnssService(
+        gnss_service = GnssService( # pylint: disable=no-member
             gnss_client=gnss_client,
             classifier=gnss_protocol_classifier,
             reader_provider=gnss_protocol_reader_provider,
             parser_provider=gnss_protocol_parser_provider,
-            serializer_provider=gnss_serializer_provider)
+            serializer_provider=gnss_serializer_provider)\
+            .with_events(logger)
         return GnssServiceRunner(
             gnss_service,
             inbound_queue=inbound_queue,
@@ -95,7 +106,8 @@ class test_Functional_Gnss(unittest.TestCase):
 
         with open(filepath, mode='rb') as transport_rx, BytesIO() as transport_tx:
             service, deserializer_provider = self.create_service(gnss_inbound_queue, gnss_outbound_queue, transport_rx, transport_tx)
-            with capture_logs() as cap_logs:
+            test_uuids = [f'10000000-2000-3000-4000-500000000{str(d).zfill(3)}' for d in range(999)]
+            with capture_logs() as cap_logs, patch('uuid.uuid4', side_effect=test_uuids):
                 # run and wait for all tasks
                 loop = asyncio.get_event_loop()
                 task = loop.create_task(service.run())
@@ -130,7 +142,8 @@ class test_Functional_Gnss(unittest.TestCase):
                 with self.assertRaises(asyncio.exceptions.CancelledError):
                     run_sync(wait_for(task, 1))
 
-            # TODO assert the logs
+        # TODO do better logs outpout assertions
+        self.assertGreaterEqual(len(cap_logs), 1)
 
     def test_run_on_corrupt_stream(self):
 
@@ -167,7 +180,8 @@ class test_Functional_Gnss(unittest.TestCase):
         transport_tx = BytesIO()
         service, deserializer_provider = self.create_service(gnss_inbound_queue, gnss_outbound_queue, transport_rx, transport_tx)
 
-        with capture_logs() as cap_logs:
+        test_uuids = [f'10000000-2000-3000-4000-500000000{str(d).zfill(3)}' for d in range(999)]
+        with capture_logs() as cap_logs, patch('uuid.uuid4', side_effect=test_uuids):
             # run and wait for all tasks
             loop = asyncio.get_event_loop()
             task = loop.create_task(service.run())
@@ -198,4 +212,5 @@ class test_Functional_Gnss(unittest.TestCase):
             with self.assertRaises(asyncio.exceptions.CancelledError):
                 run_sync(wait_for(task, 1))
 
-        # TODO assert logs
+        # TODO do better logs outpout assertions
+        self.assertGreaterEqual(len(cap_logs), 1)

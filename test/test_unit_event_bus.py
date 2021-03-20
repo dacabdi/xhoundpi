@@ -13,7 +13,7 @@ from xhoundpi.async_ext import run_sync
 
 class test_EventBus(unittest.TestCase):
 
-    def test_from_queue(self):
+    def test_from_queue(self): # pylint: disable=no-self-use
         subscriber = unittest.mock.MagicMock()
         queue = asyncio.queues.Queue()
         event_bus = EventBus.from_async_queue(queue)

@@ -30,6 +30,7 @@ from .proto_serializer import (ProtocolSerializerProvider,
 from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
 from .gnss_service_decorators import with_events # pylint: disable=unused-import
+from .events import AppEvent
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -59,7 +60,7 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             reader_provider=self.gnss_protocol_reader_provider,
             parser_provider=self.gnss_protocol_parser_provider,
             serializer_provider=self.gnss_protocol_serializer_provider
-        ).with_events()
+        ).with_events(logger)
 
         self.gnss_service_runner = GnssServiceRunner(
             gnss_service=self.gnss_service,
@@ -82,10 +83,10 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         except asyncio.exceptions.CancelledError:
             if self.signal and self.signal_frame:
                 signal_name = str(signal.Signals(self.signal)).removeprefix('Signals.') # pylint: disable=no-member
-                #logger.warning(f'Received termination signal \'{signal_name}\', exiting gracefully')
+                logger.warning(AppEvent(f'Received signal \'{signal_name}\', exiting now'))
                 return 0
 
-            #logger.exception('Running tasks unexpectedly cancelled')
+            logger.exception(AppEvent('Running tasks unexpectedly cancelled'))
             return 1
 
     def subscribe_signals(self):

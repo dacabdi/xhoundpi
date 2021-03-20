@@ -30,4 +30,9 @@ class Status:
         return self.error is None
 
     def __eq__(self, o: object) -> bool:
-        return self.__error == o.error and self.__metadata == o.metadata
+        return (
+            type(self.error) is type(o.error)
+            and ((self.error is None and o.error is None)
+                 or self.error.args == o.error.args)
+            and self.metadata == o.metadata
+        )

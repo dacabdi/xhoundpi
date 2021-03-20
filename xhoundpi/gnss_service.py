@@ -47,7 +47,7 @@ class GnssService(IGnssService):
         try:
             serializer = self.__serializer_provider.get_serializer(message.proto)
             data = serializer.serialize(message)
-            bytes_written = self.__gnss_client.write(data)
-            return Status.OK(), bytes_written
+            cbytes = self.__gnss_client.write(data)
+            return Status.OK(), cbytes
         except Exception as err: # pylint: disable=broad-except
             return Status(err), 0

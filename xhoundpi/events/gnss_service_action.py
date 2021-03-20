@@ -7,19 +7,18 @@ from enum import Enum
 from .common import ZERO_UUID
 from ..proto_class import ProtocolClass
 
-class GnssServiceActionCode(Enum):
-    """ Gnss service runner action op codes """
-    READ_BEGIN = 1
-    READ_END = 2
-    WRITE_BEGIN = 3
-    WRITE_END = 4
-    START = 5
-    END = 6
+class GnssServiceOp(Enum):
+    """ Gnss service op codes """
+    # pylint: disable=invalid-name
+    BeginRead = 1
+    EndRead = 2
+    BeginWrite = 3
+    EndWrite = 4
 
 @dataclass(order=True)
 class GnssServiceAction:
-    """ Message DTO (data transfer object) """
-    opcode: GnssServiceActionCode
+    """ GnssService Event schema """
+    opcode: GnssServiceOp
     success: bool
     activity_id: uuid.UUID
     details: str = ''

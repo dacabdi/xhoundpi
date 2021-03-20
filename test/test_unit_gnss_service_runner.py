@@ -9,7 +9,6 @@ import unittest
 import uuid
 
 from asyncio.tasks import wait_for
-from structlog.testing import capture_logs
 
 from xhoundpi.status import Status
 from xhoundpi.message import Message
@@ -53,54 +52,50 @@ class test_GnssServiceRunner(unittest.TestCase):
         outbound_queue = asyncio.queues.Queue(3)
         gnss_runner = GnssServiceRunner(gnss_service, inbound_queue, outbound_queue)
 
-        with capture_logs() as cap_logs:
+        loop = asyncio.get_event_loop()
+        task = loop.create_task(gnss_runner.run())
 
-            loop = asyncio.get_event_loop()
-            task = loop.create_task(gnss_runner.run())
+        self.assertFalse(task.done())
 
-            self.assertFalse(task.done())
+        self.assertEqual(gnss_service.read, 0)
+        self.assertEqual(gnss_service.write, 0)
 
-            self.assertEqual(gnss_service.read, 0)
-            self.assertEqual(gnss_service.write, 0)
+        self.assertTrue(inbound_queue.empty())
+        run_sync(notify_condition(condition))
+        self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA,
+            payload=bytes(1), message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}')))
 
-            self.assertTrue(inbound_queue.empty())
-            run_sync(notify_condition(condition))
-            self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA,
-                payload=bytes(1), message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}')))
+        self.assertEqual(gnss_service.read, 1)
+        self.assertEqual(gnss_service.write, 0)
 
-            self.assertEqual(gnss_service.read, 1)
-            self.assertEqual(gnss_service.write, 0)
+        self.assertTrue(inbound_queue.empty())
+        run_sync(notify_condition(condition))
+        self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA,
+            payload=bytes(2), message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}')))
 
-            self.assertTrue(inbound_queue.empty())
-            run_sync(notify_condition(condition))
-            self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA,
-                payload=bytes(2), message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}')))
+        self.assertEqual(gnss_service.read, 2)
+        self.assertEqual(gnss_service.write, 0)
 
-            self.assertEqual(gnss_service.read, 2)
-            self.assertEqual(gnss_service.write, 0)
+        run_sync(outbound_queue.put(Message(proto=ProtocolClass.UBX,
+            payload=b'\x01\x02', message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}'))))
+        self.assertEqual(gnss_service.read, 2)
+        self.assertEqual(gnss_service.write, 1)
+        self.assertTrue(outbound_queue.empty())
 
-            run_sync(outbound_queue.put(Message(proto=ProtocolClass.UBX,
-                payload=b'\x01\x02', message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}'))))
-            self.assertEqual(gnss_service.read, 2)
-            self.assertEqual(gnss_service.write, 1)
-            self.assertTrue(outbound_queue.empty())
+        run_sync(outbound_queue.put(Message(proto=ProtocolClass.UBX,
+            payload=b'\x01\x02', message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}'))))
+        self.assertEqual(gnss_service.read, 2)
+        self.assertEqual(gnss_service.write, 2)
+        self.assertTrue(outbound_queue.empty())
 
-            run_sync(outbound_queue.put(Message(proto=ProtocolClass.UBX,
-                payload=b'\x01\x02', message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}'))))
-            self.assertEqual(gnss_service.read, 2)
-            self.assertEqual(gnss_service.write, 2)
-            self.assertTrue(outbound_queue.empty())
+        self.assertTrue(inbound_queue.empty())
+        run_sync(notify_condition(condition))
+        self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA,
+            payload=bytes(3), message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}')))
 
-            self.assertTrue(inbound_queue.empty())
-            run_sync(notify_condition(condition))
-            self.assertEqual(run_sync(inbound_queue.get()), Message(proto=ProtocolClass.NMEA,
-                payload=bytes(3), message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}')))
+        self.assertEqual(gnss_service.read, 3)
+        self.assertEqual(gnss_service.write, 2)
 
-            self.assertEqual(gnss_service.read, 3)
-            self.assertEqual(gnss_service.write, 2)
-
-            task.cancel()
-            with self.assertRaises(asyncio.exceptions.CancelledError):
-                run_sync(wait_for(task, 1))
-
-        # TODO assert the logs
+        task.cancel()
+        with self.assertRaises(asyncio.exceptions.CancelledError):
+            run_sync(wait_for(task, 1))
