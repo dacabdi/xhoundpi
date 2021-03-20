@@ -87,7 +87,7 @@ def setup_logging(config_path):
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
         wrapper_class=structlog.stdlib.BoundLogger,
-        cache_logger_on_first_use=False)
+        cache_logger_on_first_use=True)
 
 def create_log_dirs(logger_config):
     """ Check logger configuration for filenames and create subdirs """

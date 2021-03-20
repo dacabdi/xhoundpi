@@ -11,6 +11,7 @@ import uuid
 from asyncio.tasks import wait_for
 from structlog.testing import capture_logs
 
+from xhoundpi.status import Status
 from xhoundpi.message import Message
 from xhoundpi.proto_class import ProtocolClass
 from xhoundpi.async_ext import run_sync
@@ -36,12 +37,12 @@ class StubGnssService(IGnssService):
             payload=bytes(self.read),
             message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}'))
         self.last_read = message
-        return message
+        return Status.OK(), message
 
     async def write_message(self, message: Message) -> int:
         self.write += 1
         self.last_written = message
-        return 1
+        return Status.OK(), 1
 
 class test_GnssServiceRunner(unittest.TestCase):
 

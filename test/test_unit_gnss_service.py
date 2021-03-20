@@ -38,12 +38,14 @@ class test_GnssService(unittest.TestCase):
                 parser_provider=gnss_parser_provider,
                 serializer_provider=gnss_serializer_provider)
 
-            result = run_sync(gnss_service.read_message())
+            status, message = run_sync(gnss_service.read_message())
             expected = Message(proto=ProtocolClass.NMEA,
                 payload='payload message',
                 message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}'))
 
-        self.assertEqual(result, expected)
+        self.assertTrue(status.ok)
+        self.assertEqual(status.error, None)
+        self.assertEqual(message, expected)
         gnss_protocol_classifier.classify.assert_called_once_with(gnss_client)
         gnss_reader_provider.get_reader.assert_called_once_with(ProtocolClass.NMEA)
         gnss_parser_provider.get_parser.assert_called_once_with(ProtocolClass.NMEA)
@@ -68,12 +70,14 @@ class test_GnssService(unittest.TestCase):
             parser_provider=gnss_parser_provider,
             serializer_provider=gnss_serializer_provider)
 
-        result = run_sync(gnss_service.write_message(Message(
+        status, bytes_written = run_sync(gnss_service.write_message(Message(
             proto=ProtocolClass.UBX,
             message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}'),
             payload='test payload')))
 
-        self.assertEqual(result, 1)
+        self.assertTrue(status.ok)
+        self.assertEqual(status.error, None)
+        self.assertEqual(bytes_written, 1)
         gnss_serializer_provider.get_serializer.assert_called_once_with(ProtocolClass.UBX)
         gnss_serializer.serialize.assert_called_once_with(
             Message(message_id=uuid.UUID('12345678-1234-5678-1234-567812345678'),

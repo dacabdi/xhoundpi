@@ -29,9 +29,7 @@ from .proto_serializer import (ProtocolSerializerProvider,
                               NMEAProtocolSerializer,)
 from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
-from .monkey_patching import add_method
-from .async_ext import loop_forever_async # pylint: disable=unused-import
-from .queue_ext import get_forever_async # pylint: disable=unused-import
+from .gnss_service_decorators import with_events # pylint: disable=unused-import
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -45,7 +43,6 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.tasks = None
 
         self.subscribe_signals()
-        self.patch_libraries()
 
         self.gnss_inbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
         self.gnss_outbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
@@ -56,12 +53,13 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.gnss_protocol_parser_provider = self.create_protocol_parser_provider()
         self.gnss_protocol_serializer_provider = self.create_protocol_serializer_provider()
 
-        self.gnss_service = GnssService(
+        self.gnss_service = GnssService( # pylint: disable=no-member
             gnss_client=self.gnss_client,
             classifier=self.gnss_protocol_classifier,
             reader_provider=self.gnss_protocol_reader_provider,
             parser_provider=self.gnss_protocol_parser_provider,
-            serializer_provider=self.gnss_protocol_serializer_provider)
+            serializer_provider=self.gnss_protocol_serializer_provider
+        ).with_events()
 
         self.gnss_service_runner = GnssServiceRunner(
             gnss_service=self.gnss_service,
@@ -84,10 +82,10 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         except asyncio.exceptions.CancelledError:
             if self.signal and self.signal_frame:
                 signal_name = str(signal.Signals(self.signal)).removeprefix('Signals.') # pylint: disable=no-member
-                logger.warning(f'Received termination signal \'{signal_name}\', exiting gracefully')
+                #logger.warning(f'Received termination signal \'{signal_name}\', exiting gracefully')
                 return 0
 
-            logger.exception('Running tasks unexpectedly cancelled')
+            #logger.exception('Running tasks unexpectedly cancelled')
             return 1
 
     def subscribe_signals(self):
@@ -106,15 +104,6 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.signal_frame = frame
         if self.tasks:
             self.tasks.cancel()
-
-    def patch_libraries(self):
-        """ Monkey patch parsing/reading libraries """
-        # NOTE patch NMEASentence to include byte
-        # serialization for uniform message API
-        @add_method(pynmea2.NMEASentence)
-        def serialize(self): # pylint: disable=unused-variable
-            """ Serialize NMEA message to bytes with trailing new line """
-            return bytearray(self.render(newline=True), 'ascii')
 
     def create_gnss_client(self):
         """ Create a GNSS client """
