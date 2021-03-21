@@ -4,6 +4,7 @@
 import signal
 import sys
 import asyncio
+from xhoundpi.time import StopWatch
 
 # external imports
 import structlog
@@ -31,6 +32,8 @@ from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
 from .gnss_service_decorators import with_events # pylint: disable=unused-import
 from .events import AppEvent
+from .metric import (LatencyMetric,
+                    SuccessCounterMetric,)
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -44,34 +47,10 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.tasks = None
 
         self.subscribe_signals()
-
-        self.gnss_inbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
-        self.gnss_outbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
-
-        self.gnss_client = self.create_gnss_client()
-        self.gnss_protocol_classifier = self.create_protocol_classifier()
-        self.gnss_protocol_reader_provider = self.create_protocol_reader_provider()
-        self.gnss_protocol_parser_provider = self.create_protocol_parser_provider()
-        self.gnss_protocol_serializer_provider = self.create_protocol_serializer_provider()
-
-        self.gnss_service = GnssService( # pylint: disable=no-member
-            gnss_client=self.gnss_client,
-            classifier=self.gnss_protocol_classifier,
-            reader_provider=self.gnss_protocol_reader_provider,
-            parser_provider=self.gnss_protocol_parser_provider,
-            serializer_provider=self.gnss_protocol_serializer_provider
-        ).with_events(logger)
-
-        self.gnss_service_runner = GnssServiceRunner(
-            gnss_service=self.gnss_service,
-            inbound_queue=self.gnss_inbound_queue,
-            outbound_queue=self.gnss_outbound_queue)
-
-        # TODO temporary shortcircuit that pumps all
-        # inbound messages back into the outbound queue
-        self.message_pump = AsyncPump(
-            input_queue=self.gnss_inbound_queue,
-            output_queue=self.gnss_outbound_queue)
+        self.setup_metrics()
+        self.setup_queues()
+        self.setup_gnss_service()
+        self.setup_msg_pump()
 
     async def run(self):
         """ Run and wait for all tasks """
@@ -85,7 +64,6 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
                 signal_name = str(signal.Signals(self.signal)).removeprefix('Signals.') # pylint: disable=no-member
                 logger.warning(AppEvent(f'Received signal \'{signal_name}\', exiting now'))
                 return 0
-
             logger.exception(AppEvent('Running tasks unexpectedly cancelled'))
             return 1
 
@@ -105,6 +83,44 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.signal_frame = frame
         if self.tasks:
             self.tasks.cancel()
+
+    # pylint: disable=line-too-long
+    def setup_metrics(self):
+        """ Setup program metrics """
+        self.metric_hooks = []
+        self.gnss_service_read_counter = SuccessCounterMetric('GnssReadCounter', self.metric_hooks)
+        self.gnss_service_write_counter = SuccessCounterMetric('GnssWriteCounter', self.metric_hooks)
+        self.gnss_service_read_latency = LatencyMetric('GnssReadLatency', StopWatch(), self.metric_hooks)
+        self.gnss_service_write_latency = LatencyMetric('GnssWriteLatency', StopWatch(), self.metric_hooks)
+
+    def setup_queues(self):
+        """ Setup program queues """
+        self.gnss_inbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
+        self.gnss_outbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
+
+    def setup_gnss_service(self):
+        """ Ensure all GNSS service dependencies are setup """
+        self.gnss_client = self.create_gnss_client()
+        self.gnss_protocol_classifier = self.create_protocol_classifier()
+        self.gnss_protocol_reader_provider = self.create_protocol_reader_provider()
+        self.gnss_protocol_parser_provider = self.create_protocol_parser_provider()
+        self.gnss_protocol_serializer_provider = self.create_protocol_serializer_provider()
+        self.gnss_service = (GnssService( # pylint: disable=no-member
+            gnss_client=self.gnss_client,
+            classifier=self.gnss_protocol_classifier,
+            reader_provider=self.gnss_protocol_reader_provider,
+            parser_provider=self.gnss_protocol_parser_provider,
+            serializer_provider=self.gnss_protocol_serializer_provider)
+            .with_events(logger=logger)
+            .with_metrics(
+                rcounter=self.gnss_service_read_counter,
+                wcounter=self.gnss_service_write_counter,
+                rlatency=self.gnss_service_read_latency,
+                wlatency=self.gnss_service_write_latency))
+        self.gnss_service_runner = GnssServiceRunner(
+            gnss_service=self.gnss_service,
+            inbound_queue=self.gnss_inbound_queue,
+            outbound_queue=self.gnss_outbound_queue)
 
     def create_gnss_client(self):
         """ Create a GNSS client """
@@ -158,3 +174,9 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             ProtocolClass.UBX : gnss_ubx_serializer,
             ProtocolClass.NMEA : gnss_nmea_serializer
         })
+
+    def setup_msg_pump(self):
+        """ Temporary msg pump """
+        self.message_pump = AsyncPump(
+            input_queue=self.gnss_inbound_queue,
+            output_queue=self.gnss_outbound_queue)
