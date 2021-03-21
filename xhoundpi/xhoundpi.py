@@ -16,6 +16,7 @@ import pyubx2
 # extensions and decorators (patch types on load)
 import xhoundpi.gnss_service_decorators # pylint: disable=unused-import
 import xhoundpi.gnss_client_decorators # pylint: disable=unused-import
+import xhoundpi.queue_decorators # pylint: disable=unused-import
 
 # local imports
 from .time import StopWatch
@@ -35,6 +36,7 @@ from .proto_serializer import (ProtocolSerializerProvider,
                               NMEAProtocolSerializer,)
 from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
+from .processor import NullProcessor
 from .events import (AppEvent,
                     MetricsReport,)
 from .metric import (LatencyMetric,
@@ -59,6 +61,7 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.setup_metrics_logger()
         self.setup_queues()
         self.setup_gnss_service()
+        self.setup_processors()
         self.setup_msg_pump()
 
     async def run(self):
@@ -141,6 +144,7 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         """ Setup program queues """
         self.gnss_inbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
         self.gnss_outbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
+        self.gnss_processed_queue = asyncio.queues.Queue(self.config.buffer_capacity)
 
     def setup_gnss_service(self):
         """ Ensure all GNSS service dependencies are setup """
@@ -226,10 +230,22 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             ProtocolClass.NMEA : gnss_nmea_serializer
         })
 
+    def setup_processors(self):
+        """ Setup GNSS processors pipeline """
+        self.processors = NullProcessor()
+        self.processors_pipeline = AsyncPump(
+             # pylint: disable=no-member
+            input_queue=(self.gnss_inbound_queue
+                .with_transform(self.processors.process)
+                .with_transform(lambda result: result[1])),
+            output_queue=self.gnss_processed_queue)
+        self.tasks.append(asyncio.create_task(
+            self.processors_pipeline.run(), name='processors_pipeline'))
+
     def setup_msg_pump(self):
         """ Temporary msg pump """
         self.message_pump = AsyncPump(
-            input_queue=self.gnss_inbound_queue,
+            input_queue=self.gnss_processed_queue,
             output_queue=self.gnss_outbound_queue)
         self.tasks.append(asyncio.create_task(
             self.message_pump.run(), name='message_pump'))
