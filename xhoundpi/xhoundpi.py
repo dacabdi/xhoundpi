@@ -1,6 +1,7 @@
 """ xHoundPi program module facade """
 
 # standard libs
+from asyncio import tasks
 import signal
 import sys
 import asyncio
@@ -50,7 +51,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
 
     def __init__(self, config):
         self.config = config
-        self.tasks = None
+        self.tasks = []
+        self.tasks_gather = None
         self.setup_signals()
         self.setup_metrics()
         self.setup_metrics_logger()
@@ -60,12 +62,9 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
 
     async def run(self):
         """ Run and wait for all tasks """
-        self.tasks = asyncio.gather(
-            self.gnss_service_runner.run(),
-            self.message_pump.run(),
-            self.metrics_logger)
+        self.tasks_gather = asyncio.gather(*self.tasks)
         try:
-            await self.tasks
+            await self.tasks_gather
         except asyncio.exceptions.CancelledError:
             if self.signal and self.signal_frame:
                 signal_name = str(signal.Signals(self.signal)).removeprefix('Signals.') # pylint: disable=no-member
@@ -91,8 +90,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         # https://stackoverflow.com/questions/4604634/which-functions-are-re-entrant-in-python-for-signal-library-processing
         self.signal = sig
         self.signal_frame = frame
-        if self.tasks:
-            self.tasks.cancel()
+        if self.tasks_gather:
+            self.tasks_gather.cancel()
 
     # pylint: disable=line-too-long
     def setup_metrics(self):
@@ -108,13 +107,19 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         ])
 
     def setup_metrics_logger(self):
+        """ Setup periodic metrics logger """
         async def periodic_report():
             logger.info(MetricsReport(
-                frequency=1,
+                frequency=self.config.metrics_logger_freq,
                 report_id=uuid.uuid4(),
                 metrics=self.metrics.mappify()))
-            await asyncio.sleep(1)
-        self.metrics_logger = loop_forever_async(periodic_report)
+            await asyncio.sleep(self.config.metrics_logger_freq)
+        self.metrics_logger = (loop_forever_async(periodic_report)
+            if self.config.metrics_logger_freq != 0
+            else None)
+        if self.metrics_logger:
+            self.tasks.append(asyncio.create_task(
+                self.metrics_logger, name='metrics_logger'))
 
     def setup_queues(self):
         """ Setup program queues """
@@ -145,6 +150,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             gnss_service=self.gnss_service,
             inbound_queue=self.gnss_inbound_queue,
             outbound_queue=self.gnss_outbound_queue)
+        self.tasks.append(asyncio.create_task(
+            self.gnss_service_runner.run(), name='gnss_service'))
 
     def create_gnss_client(self):
         """ Create a GNSS client """
@@ -208,3 +215,5 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.message_pump = AsyncPump(
             input_queue=self.gnss_inbound_queue,
             output_queue=self.gnss_outbound_queue)
+        self.tasks.append(asyncio.create_task(
+            self.message_pump.run(), name='message_pump'))
