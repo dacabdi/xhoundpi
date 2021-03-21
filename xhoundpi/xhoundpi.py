@@ -17,6 +17,7 @@ import pyubx2
 import xhoundpi.gnss_service_decorators # pylint: disable=unused-import
 import xhoundpi.gnss_client_decorators # pylint: disable=unused-import
 import xhoundpi.queue_decorators # pylint: disable=unused-import
+import xhoundpi.processor_decorators # pylint: disable=unused-import
 
 # local imports
 from .time import StopWatch
@@ -123,6 +124,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             SuccessCounterMetric('gnss_service_write_counter', self.metric_hooks),
             LatencyMetric('gnss_service_read_latency', StopWatch(), self.metric_hooks),
             LatencyMetric('gnss_service_write_latency', StopWatch(), self.metric_hooks),
+            SuccessCounterMetric('gnss_processors_counter', self.metric_hooks),
+            LatencyMetric('gnss_processors_latency', StopWatch(), self.metric_hooks),
         ])
 
     def setup_metrics_logger(self):
@@ -232,7 +235,12 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
 
     def setup_processors(self):
         """ Setup GNSS processors pipeline """
-        self.processors = NullProcessor()
+        self.processors = (NullProcessor()
+            # pylint: disable=no-member
+            .with_events(logger=logger)
+            .with_metrics(
+                counter=self.metrics.gnss_processors_counter,
+                latency=self.metrics.gnss_processors_latency))
         self.processors_pipeline = AsyncPump(
              # pylint: disable=no-member
             input_queue=(self.gnss_inbound_queue
