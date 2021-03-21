@@ -6,7 +6,8 @@ import unittest
 from unittest.mock import Mock, call
 from xhoundpi.metric import (LatencyMetric,
                             CounterMetric,
-                            SuccessCounterMetric)
+                            ValueMetric,
+                            SuccessCounterMetric,)
 
 from .time_utils import FakeStopWatch
 
@@ -96,6 +97,28 @@ class test_CounterMetric(unittest.TestCase): # pylint: disable=invalid-name
         metric.increase()
         hook.assert_called_with('counter1', 2)
         self.assertEqual(metric.value, 2)
+
+class test_ValueMetric(unittest.TestCase): # pylint: disable=invalid-name
+
+    def test_value_add_subtract(self):
+        hook = Mock()
+        metric = ValueMetric('value1', [hook])
+        # NOTE value metrics notify the hook with initial
+        # value to ensure priming metric collectors
+        hook.assert_called_once_with('value1', 0)
+        self.assertEqual(metric.value, 0)
+        metric.add(10)
+        hook.assert_called_with('value1', 10)
+        self.assertEqual(metric.value, 10)
+        metric.subtract(3)
+        hook.assert_called_with('value1', 7)
+        self.assertEqual(metric.value, 7)
+        metric.subtract(10)
+        hook.assert_called_with('value1', -3)
+        self.assertEqual(metric.value, -3)
+        metric.add(3)
+        hook.assert_called_with('value1', 0)
+        self.assertEqual(metric.value, 0)
 
 class test_SuccessCounterMetric(unittest.TestCase): # pylint: disable=invalid-name
 

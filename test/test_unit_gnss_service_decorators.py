@@ -5,13 +5,12 @@
 # pylint: disable=invalid-name
 
 import io
-from unittest.result import failfast
 import uuid
 import unittest
 
-from unittest.mock import Mock, patch
-from typing import Callable, Tuple
+from typing import Tuple
 from dataclasses import dataclass
+from unittest.mock import Mock, patch
 
 import structlog
 from structlog.testing import capture_logs

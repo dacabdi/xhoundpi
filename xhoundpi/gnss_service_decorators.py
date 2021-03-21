@@ -2,8 +2,8 @@
 
 import logging
 import uuid
+
 from typing import Tuple
-from xhoundpi.metric import LatencyMetric, SuccessCounterMetric
 
 from .proto_class import ProtocolClass
 from .events.common import ZERO_UUID
@@ -12,6 +12,8 @@ from .status import Status
 from .gnss_service_iface import IGnssService
 from .message import Message
 from .monkey_patching import add_method
+from .metric import (LatencyMetric,
+                    SuccessCounterMetric)
 
 @add_method(IGnssService)
 def with_traces(self, trace_provider):

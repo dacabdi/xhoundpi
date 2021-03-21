@@ -79,6 +79,26 @@ class CounterMetric(MetricBase):
         self._call_hooks()
         return self.value
 
+class ValueMetric(MetricBase):
+    """ Value based metric """
+
+    def __init__(self, dimension: str, hooks = List[Callable]):
+        super().__init__(dimension, hooks)
+        self._value = 0
+        self._call_hooks()
+
+    def add(self, value):
+        """ Add to internal value """
+        self._value += value
+        self._call_hooks()
+        return self.value
+
+    def subtract(self, value):
+        """ Substract from internal value """
+        self._value -= value
+        self._call_hooks()
+        return self.value
+
 class SuccessCounterMetric(MetricBase):
     """ Success/failure operation counter metric """
 
