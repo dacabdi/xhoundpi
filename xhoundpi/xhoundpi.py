@@ -42,6 +42,7 @@ from .metric import (LatencyMetric,
                     SuccessCounterMetric,
                     MetricsCollection)
 from .async_ext import loop_forever_async
+from .monkey_patching import add_method
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -53,6 +54,7 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.tasks = []
         self.tasks_gather = None
         self.setup_signals()
+        self.patch_libraries()
         self.setup_metrics()
         self.setup_metrics_logger()
         self.setup_queues()
@@ -91,6 +93,21 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.signal_frame = frame
         if self.tasks_gather:
             self.tasks_gather.cancel()
+
+    def patch_libraries(self):
+        """ Patch libraries to solve incompatibilities and feature limitations """
+        # NOTE pynmea2.NMEASentence does not properly handle the serialization
+        # of PUBX (u-blox propietary sentences) sentences type, this patch
+        # addresses the issue. We opened an issue towards the library.
+        # see ref: https://github.com/Knio/pynmea2/issues/121
+        # @dacabdi might try to upstream the fix to the library owner
+        @add_method(pynmea2.NMEASentence)
+        def serialize(self): # pylint: disable=unused-variable
+            data = self.render(checksum=False, dollar=False)
+            if hasattr(self, 'manufacturer') and self.manufacturer == 'UBX':
+                data = f'{data[:4]},{self.sentence_type[-2:]},{data[4:]}'
+            data += '*%02X\r\n' % pynmea2.NMEASentence.checksum(data)
+            return bytearray('$' + data, encoding='ascii')
 
     # pylint: disable=line-too-long
     def setup_metrics(self):
@@ -203,7 +220,7 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         gnss_ubx_serializer = UBXProtocolSerializer(
             lambda message: message.payload.serialize())
         gnss_nmea_serializer = NMEAProtocolSerializer(
-            lambda message: bytearray(message.payload.render(newline=True), 'ascii'))
+            lambda message: message.payload.serialize())
         return ProtocolSerializerProvider({
             ProtocolClass.UBX : gnss_ubx_serializer,
             ProtocolClass.NMEA : gnss_nmea_serializer

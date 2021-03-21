@@ -123,11 +123,13 @@ class Simulator():
                 await asyncio.sleep(0.5)
             with open(self.options.gnssoutput, 'br') as gnssoutput,\
                 open(self.options.gnssinput, 'br') as gnssinput:
+                gnssinput.seek(0, 0)
                 expected = gnssinput.read()
                 expected_size = len(expected)
                 logger.info(f'Expected output size is {expected_size} bytes')
                 unmatched = True
                 while unmatched:
+                    gnssoutput.seek(0, 0)
                     current = gnssoutput.read()
                     if current.startswith(expected):
                         logger.info('Test succeeded to match output.')
@@ -151,7 +153,7 @@ class Simulator():
         if self.options.parse_gnss_input:
             logger.info('Parsing capture file for GNSS input')
             gnss_input_path += '.hex'
-            with open(self.options.gnssinput, 'r') as capture,\
+            with open(self.options.gnssinput, 'r', encoding='utf8') as capture,\
                 open(gnss_input_path, 'wb') as gnss_input:
                 parser(capture, gnss_input)
         logger.info(f'GNSS binary input file path \'{gnss_input_path}\'')
