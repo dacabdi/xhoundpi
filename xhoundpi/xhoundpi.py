@@ -4,6 +4,7 @@
 import signal
 import sys
 import asyncio
+import uuid
 
 # external imports
 import structlog
@@ -34,10 +35,13 @@ from .proto_serializer import (ProtocolSerializerProvider,
                               NMEAProtocolSerializer,)
 from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
-from .events import AppEvent
+from .events import (AppEvent,
+                    MetricsReport,)
 from .metric import (LatencyMetric,
                     ValueMetric,
-                    SuccessCounterMetric,)
+                    SuccessCounterMetric,
+                    MetricsCollection)
+from .async_ext import loop_forever_async
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -49,6 +53,7 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.tasks = None
         self.setup_signals()
         self.setup_metrics()
+        self.setup_metrics_logger()
         self.setup_queues()
         self.setup_gnss_service()
         self.setup_msg_pump()
@@ -57,7 +62,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         """ Run and wait for all tasks """
         self.tasks = asyncio.gather(
             self.gnss_service_runner.run(),
-            self.message_pump.run())
+            self.message_pump.run(),
+            self.metrics_logger)
         try:
             await self.tasks
         except asyncio.exceptions.CancelledError:
@@ -92,12 +98,23 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
     def setup_metrics(self):
         """ Setup program metrics """
         self.metric_hooks = []
-        self.gnss_client_read_bytes = ValueMetric('GnssReadBytes', self.metric_hooks)
-        self.gnss_client_written_bytes = ValueMetric('GnssWrittenBytes', self.metric_hooks)
-        self.gnss_service_read_counter = SuccessCounterMetric('GnssReadCounter', self.metric_hooks)
-        self.gnss_service_write_counter = SuccessCounterMetric('GnssWriteCounter', self.metric_hooks)
-        self.gnss_service_read_latency = LatencyMetric('GnssReadLatency', StopWatch(), self.metric_hooks)
-        self.gnss_service_write_latency = LatencyMetric('GnssWriteLatency', StopWatch(), self.metric_hooks)
+        self.metrics = MetricsCollection([
+            ValueMetric('gnss_client_read_bytes', self.metric_hooks),
+            ValueMetric('gnss_client_written_bytes', self.metric_hooks),
+            SuccessCounterMetric('gnss_service_read_counter', self.metric_hooks),
+            SuccessCounterMetric('gnss_service_write_counter', self.metric_hooks),
+            LatencyMetric('gnss_service_read_latency', StopWatch(), self.metric_hooks),
+            LatencyMetric('gnss_service_write_latency', StopWatch(), self.metric_hooks),
+        ])
+
+    def setup_metrics_logger(self):
+        async def periodic_report():
+            logger.info(MetricsReport(
+                frequency=1,
+                report_id=uuid.uuid4(),
+                metrics=self.metrics.mappify()))
+            await asyncio.sleep(1)
+        self.metrics_logger = loop_forever_async(periodic_report)
 
     def setup_queues(self):
         """ Setup program queues """
@@ -119,10 +136,11 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             serializer_provider=self.gnss_protocol_serializer_provider)
             .with_events(logger=logger)
             .with_metrics(
-                rcounter=self.gnss_service_read_counter,
-                wcounter=self.gnss_service_write_counter,
-                rlatency=self.gnss_service_read_latency,
-                wlatency=self.gnss_service_write_latency))
+                # pylint: disable=no-member
+                rcounter=self.metrics.gnss_service_read_counter,
+                wcounter=self.metrics.gnss_service_write_counter,
+                rlatency=self.metrics.gnss_service_read_latency,
+                wlatency=self.metrics.gnss_service_write_latency))
         self.gnss_service_runner = GnssServiceRunner(
             gnss_service=self.gnss_service,
             inbound_queue=self.gnss_inbound_queue,
@@ -133,8 +151,9 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         gnss_serial = self.create_gnss_serial()
         return (GnssClient(gnss_serial) # pylint: disable=no-member
             .with_metrics(
-                cbytes_read=self.gnss_client_read_bytes,
-                cbytes_written=self.gnss_client_written_bytes))
+                # pylint: disable=no-member
+                cbytes_read=self.metrics.gnss_client_read_bytes,
+                cbytes_written=self.metrics.gnss_client_written_bytes))
 
     def create_gnss_serial(self):
         """ Resolves the GNSS serial com based on configuration """
