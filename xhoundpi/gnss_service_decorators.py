@@ -3,6 +3,7 @@
 import logging
 import uuid
 from typing import Tuple
+from xhoundpi.metric import LatencyMetric, SuccessCounterMetric
 
 from .proto_class import ProtocolClass
 from .events.common import ZERO_UUID
@@ -21,6 +22,15 @@ def with_traces(self, trace_provider):
 def with_events(self, logger):
     """ Provides decorated GNSS service with event logs """
     return GnssServiceWithEvents(self, logger)
+
+@add_method(IGnssService)
+def with_metrics(self,
+    rcounter: SuccessCounterMetric,
+    wcounter: SuccessCounterMetric,
+    rlatency: LatencyMetric,
+    wlatency: LatencyMetric):
+    """ Provides decorated GNSS service with metrics """
+    return GnssServiceWithMetrics(self, rcounter, wcounter, rlatency, wlatency)
 
 class GnssServiceWithTraces(IGnssService):
     """ IGnssService decorator for traces """
@@ -141,6 +151,51 @@ class GnssServiceWithEvents(IGnssService):
 
     def __setattr__(self, name, value):
         if name in ('_inner', '_logger'):
+            self.__dict__[name] = value
+        else:
+            setattr(self.__dict__['_inner'], name, value)
+
+    def __delattr__(self, name):
+        delattr(self.__dict__['_inner'], name)
+
+class GnssServiceWithMetrics(IGnssService):
+    """ IGnssService decorator for metrics """
+
+    # pylint: disable=too-many-arguments
+    def __init__(self, inner: IGnssService,
+        rcounter: SuccessCounterMetric,
+        wcounter: SuccessCounterMetric,
+        rlatency: LatencyMetric,
+        wlatency: LatencyMetric):
+        self._inner = inner
+        self._rcounter = rcounter
+        self._wcounter = wcounter
+        self._rlatency = rlatency
+        self._wlatency = wlatency
+
+    async def read_message(self) -> Tuple[Status, Message]:
+        """ Reads, classifies, and parses input from the GNSS
+        client stream with latency and success metrics """
+        with self._rlatency:
+            status, message = await self._inner.read_message()
+        self._rcounter.increase(is_success=status.ok)
+        return status, message
+
+    async def write_message(self, message: Message) -> Tuple[Status, int]:
+        """ Writes messages as byte strings to the GNSS
+        client stream with latency and success metrics """
+        with self._wlatency:
+            status, cbytes = await self._inner.write_message(message)
+        self._wcounter.increase(is_success=status.ok)
+        return status, cbytes
+
+    # Live intercept properties and methods access
+
+    def __getattr__(self, name):
+        return getattr(self.__dict__['_inner'], name)
+
+    def __setattr__(self, name, value):
+        if name in ('_inner', '_rcounter', '_wcounter', '_rlatency', '_wlatency'):
             self.__dict__[name] = value
         else:
             setattr(self.__dict__['_inner'], name, value)
