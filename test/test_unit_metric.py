@@ -137,32 +137,32 @@ class test_SuccessCounterMetric(unittest.TestCase): # pylint: disable=invalid-na
 
         # NOTE counters notify the hook with initial
         # value to ensure priming metric collectors
-        hook.assert_has_calls([call('counter1_Success', 0), call('counter1_Failure', 0)])
+        hook.assert_has_calls([call('counter1_success', 0), call('counter1_failure', 0)])
         self.assertEqual(metric.success, 0)
         self.assertEqual(metric.failure, 0)
         self.assertEqual(metric.total, 0)
 
         metric.increase(is_success=True)
-        hook.assert_called_with('counter1_Success', 1)
+        hook.assert_called_with('counter1_success', 1)
         self.assertEqual(metric.success, 1)
         self.assertEqual(metric.failure, 0)
         self.assertEqual(metric.total, 1)
 
         metric.increase(is_success=False)
-        hook.assert_called_with('counter1_Failure', 1)
+        hook.assert_called_with('counter1_failure', 1)
         self.assertEqual(metric.success, 1)
         self.assertEqual(metric.failure, 1)
         self.assertEqual(metric.total, 2)
 
         metric.increase(is_success=True)
-        hook.assert_called_with('counter1_Success', 2)
+        hook.assert_called_with('counter1_success', 2)
         self.assertEqual(metric.success, 2)
         self.assertEqual(metric.failure, 1)
         self.assertEqual(metric.total, 3)
 
         self.assertEqual(metric.mappify(), {
-            'counter1_Success': 2,
-            'counter1_Failure': 1,
+            'counter1_success': 2,
+            'counter1_failure': 1,
         })
 
 class StubMetric:

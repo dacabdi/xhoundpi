@@ -105,8 +105,8 @@ class ValueMetric(MetricBase):
 class SuccessCounterMetric(MetricBase):
     """ Success/failure operation counter metric """
 
-    SUCCESS_SUFFIX='Success'
-    FAILURE_SUFFIX='Failure'
+    SUCCESS_SUFFIX='success'
+    FAILURE_SUFFIX='failure'
 
     def __init__(self, dimension: str, hooks = List[Callable]):
         super().__init__(dimension, hooks)

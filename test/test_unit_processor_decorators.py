@@ -5,10 +5,11 @@
 
 import unittest
 import uuid
-import structlog
 from typing import Tuple
-from unittest.mock import Mock, patch
 from dataclasses import dataclass
+from unittest.mock import Mock, patch
+
+import structlog
 from structlog.testing import capture_logs
 
 import xhoundpi.processor_decorators # pylint: disable=unused-import
@@ -246,7 +247,7 @@ class test_ProcessorWithMetrics(unittest.TestCase):
             counter=counter,
             latency=latency,)
 
-    def make_result(self, status: Status):
+    def make_result(self, status: Status): # pylint: disable=no-self-use
         return (status, Message(
             message_id=uuid.UUID('12345678-1234-5678-1234-567812345678'),
             proto=ProtocolClass.UBX,
@@ -256,8 +257,8 @@ class test_ProcessorWithMetrics(unittest.TestCase):
         self.assertEqual(tdata.counter.success, success)
         self.assertEqual(tdata.counter.failure, failure)
         self.assertEqual(tdata.latency.value, latency)
-        tdata.hook.assert_any_call(f'{tdata.counter.dimension}_Success', success)
-        tdata.hook.assert_any_call(f'{tdata.counter.dimension}_Failure', failure)
+        tdata.hook.assert_any_call(f'{tdata.counter.dimension}_success', success)
+        tdata.hook.assert_any_call(f'{tdata.counter.dimension}_failure', failure)
         tdata.hook.assert_any_call(f'{tdata.latency.dimension}', latency)
 
     def test_process_success(self):
