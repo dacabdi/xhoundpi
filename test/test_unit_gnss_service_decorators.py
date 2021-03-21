@@ -7,8 +7,10 @@
 import io
 import uuid
 import unittest
-from unittest.mock import patch
+
 from typing import Tuple
+from dataclasses import dataclass
+from unittest.mock import Mock, patch
 
 import structlog
 from structlog.testing import capture_logs
@@ -22,9 +24,11 @@ from xhoundpi.async_ext import run_sync
 from xhoundpi.message import Message
 from xhoundpi.proto_class import ProtocolClass
 from xhoundpi.gnss_service_iface import IGnssService
+from xhoundpi.metric import LatencyMetric, SuccessCounterMetric
 
 import xhoundpi.gnss_service_decorators # pylint: disable=unused-import
 
+from .time_utils import FakeStopWatch
 from .log_utils import setup_test_event_logger
 
 def setUpModule():
@@ -228,6 +232,110 @@ class test_GnssServiceWithEvents(unittest.TestCase):
                 'schema_ver' : 1
             }
         ])
+
+@dataclass
+class TestData:
+    service: StubGnssService
+    decorated: IGnssService
+    hook: Mock
+    rcounter: SuccessCounterMetric
+    wcounter: SuccessCounterMetric
+    stopwatch: FakeStopWatch
+    rlatency: LatencyMetric
+    wlatency: LatencyMetric
+
+class test_GnssServiceWithMetrics(unittest.TestCase):
+
+    def create_and_decorate(self):
+        self.maxDiff = None
+        service = StubGnssService()
+        hook = Mock()
+        rcounter = SuccessCounterMetric('gnss_read_counter', [hook])
+        wcounter = SuccessCounterMetric('gnss_write_counter', [hook])
+        stopwatch = FakeStopWatch()
+        stopwatch.elapsed = 0.5
+        rlatency = LatencyMetric('gnss_read_latency', stopwatch, [hook])
+        wlatency = LatencyMetric('gnss_write_latency', stopwatch, [hook])
+        decorated = service.with_metrics( # pylint: disable=no-member
+            rcounter,
+            wcounter,
+            rlatency,
+            wlatency)
+        return TestData(
+            service=service,
+            decorated=decorated,
+            hook=hook,
+            rcounter=rcounter,
+            wcounter=wcounter,
+            stopwatch=stopwatch,
+            rlatency=rlatency,
+            wlatency=wlatency)
+
+    def make_read_result(self, is_ok: bool): # pylint: disable=no-self-use
+        return (Status(None if is_ok else RuntimeError('That\'s all folks')),
+                Message(message_id=None, proto=None, payload=None))
+
+    def make_write_result(self, is_ok: bool): # pylint: disable=no-self-use
+        return (Status(None if is_ok else RuntimeError('That\'s all folks')), 1)
+
+    # pylint: disable=too-many-arguments
+    def assertCounters(self, tdata: TestData, rsuccess, rfailure, wsuccess, wfailure):
+        self.assertEqual(tdata.rcounter.success, rsuccess)
+        self.assertEqual(tdata.rcounter.failure, rfailure)
+        self.assertEqual(tdata.wcounter.success, wsuccess)
+        self.assertEqual(tdata.wcounter.failure, wfailure)
+        tdata.hook.assert_any_call(f'{tdata.rcounter.dimension}_Success', rsuccess)
+        tdata.hook.assert_any_call(f'{tdata.rcounter.dimension}_Failure', rfailure)
+        tdata.hook.assert_any_call(f'{tdata.wcounter.dimension}_Success', wsuccess)
+        tdata.hook.assert_any_call(f'{tdata.wcounter.dimension}_Failure', wfailure)
+
+    def test_read_success(self):
+        tdata = self.create_and_decorate()
+        tdata.service.return_read = self.make_read_result(is_ok=True)
+
+        self.assertCounters(tdata, 0, 0, 0, 0)
+        self.assertEqual(tdata.rlatency.value, float('inf'))
+        status, message = run_sync(tdata.decorated.read_message())
+        self.assertEqual((status, message), self.make_read_result(is_ok=True))
+        self.assertCounters(tdata, 1, 0, 0, 0)
+        self.assertEqual(tdata.rlatency.value, 0.5)
+        tdata.hook.assert_any_call('gnss_read_latency', 0.5)
+
+    def test_read_failure(self):
+        tdata = self.create_and_decorate()
+        tdata.service.return_read = self.make_read_result(is_ok=False)
+
+        self.assertCounters(tdata, 0, 0, 0, 0)
+        self.assertEqual(tdata.rlatency.value, float('inf'))
+        status, message = run_sync(tdata.decorated.read_message())
+        self.assertEqual((status, message), self.make_read_result(is_ok=False))
+        self.assertCounters(tdata, 0, 1, 0, 0)
+        self.assertEqual(tdata.rlatency.value, 0.5)
+        tdata.hook.assert_any_call('gnss_read_latency', 0.5)
+
+    def test_write_success(self):
+        tdata = self.create_and_decorate()
+        tdata.service.return_written = self.make_write_result(is_ok=True)
+
+        self.assertCounters(tdata, 0, 0, 0, 0)
+        self.assertEqual(tdata.wlatency.value, float('inf'))
+        status, cbytes = run_sync(tdata.decorated.write_message(Message(None, None, None)))
+        self.assertEqual((status, cbytes), self.make_write_result(is_ok=True))
+        self.assertCounters(tdata, 0, 0, 1, 0)
+        self.assertEqual(tdata.wlatency.value, 0.5)
+        tdata.hook.assert_any_call('gnss_write_latency', 0.5)
+
+    def test_write_failure(self):
+        tdata = self.create_and_decorate()
+        tdata.service.return_written = self.make_write_result(is_ok=False)
+
+        self.assertCounters(tdata, 0, 0, 0, 0)
+        self.assertEqual(tdata.wlatency.value, float('inf'))
+        status, cbytes = run_sync(tdata.decorated.write_message(Message(None, None, None)))
+        self.assertEqual((status, cbytes), self.make_write_result(is_ok=False))
+        self.assertCounters(tdata, 0, 0, 0, 1)
+        self.assertEqual(tdata.wlatency.value, 0.5)
+        tdata.hook.assert_any_call('gnss_write_latency', 0.5)
 
 class test_GnssServiceWithTraces(unittest.TestCase):
 
