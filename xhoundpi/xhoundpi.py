@@ -1,7 +1,6 @@
 """ xHoundPi program module facade """
 
 # standard libs
-from asyncio import tasks
 import signal
 import sys
 import asyncio
