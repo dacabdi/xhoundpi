@@ -15,6 +15,6 @@ def setup_argparser():
         dest='preserve_parsed_input', help="skip deleting parsed capture")
     config.add_argument('--preserve-output', action='store_true',
         dest='preserve_output', help="skip output files cleanup")
-    config.add_argument('--test-timeout', metavar='SECONDS', dest='test_timeout',
+    config.add_argument('--test-timeout', metavar='SECONDS', dest='test_timeout', type=int,
         default=5, help='time to wait for smoke test to succeed (in secs)')
     return config
