@@ -250,12 +250,12 @@ class test_GnssServiceWithMetrics(unittest.TestCase):
         self.maxDiff = None
         service = StubGnssService()
         hook = Mock()
-        rcounter = SuccessCounterMetric('GnssReadCounter', [hook])
-        wcounter = SuccessCounterMetric('GnssWriteCounter', [hook])
+        rcounter = SuccessCounterMetric('gnss_read_counter', [hook])
+        wcounter = SuccessCounterMetric('gnss_write_counter', [hook])
         stopwatch = FakeStopWatch()
         stopwatch.elapsed = 0.5
-        rlatency = LatencyMetric('GnssReadLatency', stopwatch, [hook])
-        wlatency = LatencyMetric('GnssWriteLatency', stopwatch, [hook])
+        rlatency = LatencyMetric('gnss_read_latency', stopwatch, [hook])
+        wlatency = LatencyMetric('gnss_write_latency', stopwatch, [hook])
         decorated = service.with_metrics( # pylint: disable=no-member
             rcounter,
             wcounter,
@@ -299,7 +299,7 @@ class test_GnssServiceWithMetrics(unittest.TestCase):
         self.assertEqual((status, message), self.make_read_result(is_ok=True))
         self.assertCounters(tdata, 1, 0, 0, 0)
         self.assertEqual(tdata.rlatency.value, 0.5)
-        tdata.hook.assert_any_call('GnssReadLatency', 0.5)
+        tdata.hook.assert_any_call('gnss_read_latency', 0.5)
 
     def test_read_failure(self):
         tdata = self.create_and_decorate()
@@ -311,7 +311,7 @@ class test_GnssServiceWithMetrics(unittest.TestCase):
         self.assertEqual((status, message), self.make_read_result(is_ok=False))
         self.assertCounters(tdata, 0, 1, 0, 0)
         self.assertEqual(tdata.rlatency.value, 0.5)
-        tdata.hook.assert_any_call('GnssReadLatency', 0.5)
+        tdata.hook.assert_any_call('gnss_read_latency', 0.5)
 
     def test_write_success(self):
         tdata = self.create_and_decorate()
@@ -323,7 +323,7 @@ class test_GnssServiceWithMetrics(unittest.TestCase):
         self.assertEqual((status, cbytes), self.make_write_result(is_ok=True))
         self.assertCounters(tdata, 0, 0, 1, 0)
         self.assertEqual(tdata.wlatency.value, 0.5)
-        tdata.hook.assert_any_call('GnssWriteLatency', 0.5)
+        tdata.hook.assert_any_call('gnss_write_latency', 0.5)
 
     def test_write_failure(self):
         tdata = self.create_and_decorate()
@@ -335,7 +335,7 @@ class test_GnssServiceWithMetrics(unittest.TestCase):
         self.assertEqual((status, cbytes), self.make_write_result(is_ok=False))
         self.assertCounters(tdata, 0, 0, 0, 1)
         self.assertEqual(tdata.wlatency.value, 0.5)
-        tdata.hook.assert_any_call('GnssWriteLatency', 0.5)
+        tdata.hook.assert_any_call('gnss_write_latency', 0.5)
 
 class test_GnssServiceWithTraces(unittest.TestCase):
 

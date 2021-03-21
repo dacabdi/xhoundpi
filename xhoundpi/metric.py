@@ -23,19 +23,22 @@ class MetricBase:
         """ Get metric value """
         return self._value
 
-    def _call_hooks(self):
+    def mappify(self):
+        """ Convert the metric into a dictionary """
         if isinstance(self.value, collections.Mapping):
-            self._call_hooks_multidim(self.value)
-            return
-        self._call_hooks_single_dim(self.dimension, self.value)
+            return self.value
+        return {self.dimension: self.value}
+
+    def _call_hooks(self):
+        for key, value in self.mappify().items():
+            self._call_hooks_single_dim(key, value)
 
     def _call_hooks_single_dim(self, dimension: str, value: Any):
         for hook in self.__hooks:
             hook(dimension, value)
 
-    def _call_hooks_multidim(self, mapping: Mapping):
-        for key, value in mapping.items():
-            self._call_hooks_single_dim(key, value)
+    def __str__(self):
+        return str(self.mappify())
 
 class LatencyMetric(MetricBase):
     """ Operation latency metric with context manager semantics """
@@ -142,3 +145,21 @@ class SuccessCounterMetric(MetricBase):
         self._value[dimension] += 1
         self._call_hooks_single_dim(dimension, self._value[dimension])
         return self.value
+
+class MetricsCollection:
+    """ Metrics container with manipulation helpers """
+
+    def __init__(self, metrics: Iterable[MetricBase]):
+        self._metrics = metrics
+        for metric in metrics:
+            setattr(self, metric.dimension, metric)
+
+    def mappify(self) -> Mapping:
+        """ Convert a metrics set into a map of dimensions to values """
+        result = {}
+        for metric in self._metrics:
+            result |= metric.mappify()
+        return result
+
+    def __str__(self) -> str:
+        return str(self.mappify())

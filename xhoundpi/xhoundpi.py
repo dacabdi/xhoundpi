@@ -4,7 +4,6 @@
 import signal
 import sys
 import asyncio
-from xhoundpi.time import StopWatch
 
 # external imports
 import structlog
@@ -13,7 +12,12 @@ import structlog
 import pynmea2
 import pyubx2
 
+# extensions and decorators (patch types on load)
+import xhoundpi.gnss_service_decorators # pylint: disable=unused-import
+import xhoundpi.gnss_client_decorators # pylint: disable=unused-import
+
 # local imports
+from .time import StopWatch
 from .serial import StubSerial
 from .queue_pump import AsyncPump
 from .gnss_client import GnssClient
@@ -30,9 +34,9 @@ from .proto_serializer import (ProtocolSerializerProvider,
                               NMEAProtocolSerializer,)
 from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
-from .gnss_service_decorators import with_events # pylint: disable=unused-import
 from .events import AppEvent
 from .metric import (LatencyMetric,
+                    ValueMetric,
                     SuccessCounterMetric,)
 
 logger = structlog.get_logger('xhoundpi')
@@ -42,11 +46,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
 
     def __init__(self, config):
         self.config = config
-        self.signal = None
-        self.signal_frame = None
         self.tasks = None
-
-        self.subscribe_signals()
+        self.setup_signals()
         self.setup_metrics()
         self.setup_queues()
         self.setup_gnss_service()
@@ -67,13 +68,16 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             logger.exception(AppEvent('Running tasks unexpectedly cancelled'))
             return 1
 
-    def subscribe_signals(self):
+    def setup_signals(self):
         """ Subscribe to signals """
+        self.signal = None
+        self.signal_frame = None
         signal.signal(signal.SIGINT, self.signal_handler)
         if sys.platform == 'win32':
             signal.signal(signal.SIGBREAK, self.signal_handler) # pylint: disable=no-member
         signal.signal(signal.SIGTERM, self.signal_handler)
 
+    # pylint: disable=attribute-defined-outside-init
     def signal_handler(self, sig, frame):
         """ Handle signals """
         # NOTE do not add non-reentrant functions to this
@@ -88,6 +92,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
     def setup_metrics(self):
         """ Setup program metrics """
         self.metric_hooks = []
+        self.gnss_client_read_bytes = ValueMetric('GnssReadBytes', self.metric_hooks)
+        self.gnss_client_written_bytes = ValueMetric('GnssWrittenBytes', self.metric_hooks)
         self.gnss_service_read_counter = SuccessCounterMetric('GnssReadCounter', self.metric_hooks)
         self.gnss_service_write_counter = SuccessCounterMetric('GnssWriteCounter', self.metric_hooks)
         self.gnss_service_read_latency = LatencyMetric('GnssReadLatency', StopWatch(), self.metric_hooks)
@@ -125,7 +131,10 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
     def create_gnss_client(self):
         """ Create a GNSS client """
         gnss_serial = self.create_gnss_serial()
-        return GnssClient(gnss_serial)
+        return (GnssClient(gnss_serial) # pylint: disable=no-member
+            .with_metrics(
+                cbytes_read=self.gnss_client_read_bytes,
+                cbytes_written=self.gnss_client_written_bytes))
 
     def create_gnss_serial(self):
         """ Resolves the GNSS serial com based on configuration """

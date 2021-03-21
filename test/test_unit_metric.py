@@ -7,7 +7,8 @@ from unittest.mock import Mock, call
 from xhoundpi.metric import (LatencyMetric,
                             CounterMetric,
                             ValueMetric,
-                            SuccessCounterMetric,)
+                            SuccessCounterMetric,
+                            MetricsCollection,)
 
 from .time_utils import FakeStopWatch
 
@@ -36,6 +37,8 @@ class test_LatencyMetric(unittest.TestCase): # pylint: disable=invalid-name
         self.assertEqual(metric.value, 20.0)
         hook.assert_called_with('latency1', 20.0)
 
+        self.assertEqual(metric.mappify(), {'latency1': 20.0})
+
     def test_latency_as_context_manager(self):
         stopwatch = FakeStopWatch()
         hook = Mock()
@@ -58,6 +61,8 @@ class test_LatencyMetric(unittest.TestCase): # pylint: disable=invalid-name
         self.assertEqual(metric.dimension, 'latency1')
         self.assertEqual(metric.value, 20.0)
         hook.assert_called_with('latency1', 20.0)
+
+        self.assertEqual(metric.mappify(), {'latency1': 20.0})
 
     def test_latency_as_context_manager_bubbles_exception(self):
         stopwatch = FakeStopWatch()
@@ -82,6 +87,8 @@ class test_LatencyMetric(unittest.TestCase): # pylint: disable=invalid-name
         self.assertEqual(metric.value, 20.0)
         hook.assert_called_with('latency1', 20.0)
 
+        self.assertEqual(metric.mappify(), {'latency1': 20.0})
+
 class test_CounterMetric(unittest.TestCase): # pylint: disable=invalid-name
 
     def test_counter(self):
@@ -97,6 +104,7 @@ class test_CounterMetric(unittest.TestCase): # pylint: disable=invalid-name
         metric.increase()
         hook.assert_called_with('counter1', 2)
         self.assertEqual(metric.value, 2)
+        self.assertEqual(metric.mappify(), {'counter1': 2})
 
 class test_ValueMetric(unittest.TestCase): # pylint: disable=invalid-name
 
@@ -119,6 +127,7 @@ class test_ValueMetric(unittest.TestCase): # pylint: disable=invalid-name
         metric.add(3)
         hook.assert_called_with('value1', 0)
         self.assertEqual(metric.value, 0)
+        self.assertEqual(metric.mappify(), {'value1': 0})
 
 class test_SuccessCounterMetric(unittest.TestCase): # pylint: disable=invalid-name
 
@@ -150,3 +159,54 @@ class test_SuccessCounterMetric(unittest.TestCase): # pylint: disable=invalid-na
         self.assertEqual(metric.success, 2)
         self.assertEqual(metric.failure, 1)
         self.assertEqual(metric.total, 3)
+
+        self.assertEqual(metric.mappify(), {
+            'counter1_Success': 2,
+            'counter1_Failure': 1,
+        })
+
+class StubMetric:
+
+    def __init__(self, dimension, mapping):
+        self._dimension = dimension
+        self._mapping = mapping
+
+    @property
+    def dimension(self):
+        return self._dimension
+
+    def mappify(self):
+        return self._mapping
+
+class test_MetricsCollection(unittest.TestCase): # pylint: disable=invalid-name
+
+    def test_metrics_collection(self):
+        metric1 = StubMetric('metric1', {'dim1': 0.3, 'dim2': 19.3})
+        metric2 = StubMetric('metric2', {'dim3': 0.2, 'dim4': 3.4})
+        metric3 = StubMetric('metric3', {'dim5': 20 })
+
+        collection = MetricsCollection([metric1, metric2, metric3])
+
+        # pylint: disable=no-member
+        self.assertEqual(collection.metric1, metric1)
+        self.assertEqual(collection.metric2, metric2)
+        self.assertEqual(collection.metric3, metric3)
+        self.assertEqual(collection.mappify(), {
+            'dim1': 0.3,
+            'dim2': 19.3,
+            'dim3': 0.2,
+            'dim4': 3.4,
+            'dim5': 20
+        })
+        self.assertEqual(str(collection), "{"
+            "'dim1': 0.3, "
+            "'dim2': 19.3, "
+            "'dim3': 0.2, "
+            "'dim4': 3.4, "
+            "'dim5': 20"
+        "}")
+
+    def test_metrics_collection_empty(self):
+        collection = MetricsCollection([])
+        self.assertEqual(collection.mappify(), {})
+        self.assertEqual(str(collection), '{}')
