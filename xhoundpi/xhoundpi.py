@@ -235,8 +235,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
 
     def setup_processors(self):
         """ Setup GNSS processors pipeline """
+        # pylint: disable=no-member
         self.processors = (NullProcessor()
-            # pylint: disable=no-member
             .with_events(logger=logger)
             .with_metrics(
                 counter=self.metrics.gnss_processors_counter,
