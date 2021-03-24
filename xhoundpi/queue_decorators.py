@@ -1,6 +1,7 @@
 """ asyncio Queue decorators """
 
 import asyncio
+from typing import Awaitable
 
 from .monkey_patching import add_method
 
@@ -26,7 +27,10 @@ class AsyncQueueWithGetTransform(asyncio.queues.Queue):
     async def get(self):
         """ Get the item async, apply transform, and return """
         item = await self._inner.get()
-        return self._transform(item)
+        result = self._transform(item)
+        if isinstance(result, Awaitable):
+            return await result
+        return result
 
     def get_nowait(self):
         """ Get the item sync, apply transform, and return """

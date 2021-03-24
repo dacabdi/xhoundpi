@@ -234,7 +234,7 @@ class test_GnssServiceWithEvents(unittest.TestCase):
         ])
 
 @dataclass
-class TestData:
+class TestData: # pylint: disable=too-many-instance-attributes
     service: StubGnssService
     decorated: IGnssService
     hook: Mock
@@ -284,10 +284,10 @@ class test_GnssServiceWithMetrics(unittest.TestCase):
         self.assertEqual(tdata.rcounter.failure, rfailure)
         self.assertEqual(tdata.wcounter.success, wsuccess)
         self.assertEqual(tdata.wcounter.failure, wfailure)
-        tdata.hook.assert_any_call(f'{tdata.rcounter.dimension}_Success', rsuccess)
-        tdata.hook.assert_any_call(f'{tdata.rcounter.dimension}_Failure', rfailure)
-        tdata.hook.assert_any_call(f'{tdata.wcounter.dimension}_Success', wsuccess)
-        tdata.hook.assert_any_call(f'{tdata.wcounter.dimension}_Failure', wfailure)
+        tdata.hook.assert_any_call(f'{tdata.rcounter.dimension}_success', rsuccess)
+        tdata.hook.assert_any_call(f'{tdata.rcounter.dimension}_failure', rfailure)
+        tdata.hook.assert_any_call(f'{tdata.wcounter.dimension}_success', wsuccess)
+        tdata.hook.assert_any_call(f'{tdata.wcounter.dimension}_failure', wfailure)
 
     def test_read_success(self):
         tdata = self.create_and_decorate()
