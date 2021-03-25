@@ -5,7 +5,6 @@
 # pylint: disable=invalid-name
 
 import unittest
-from pynmea2.nmea import NMEASentence
 import pyubx2
 import pynmea2
 
@@ -14,11 +13,7 @@ from xhoundpi.monkey_patching import add_method
 # patch NMEASentence to include byte serialization for uniform message API
 @add_method(pynmea2.NMEASentence)
 def serialize(self):
-    data = self.render(checksum=False, dollar=False)
-    if hasattr(self, 'manufacturer') and self.manufacturer == 'UBX':
-        data = data[:4] + f',{self.sentence_type[-2:]},' + data[4:]
-    data += '*%02X\r\n' % NMEASentence.checksum(data)
-    return bytearray('$' + data, encoding='ascii')
+    return bytearray(self.render(newline=True), 'ascii')
 
 # NOTE we do not own the parser libraries and these tests are a PoC.
 # Do not expect exhaustive coverage of the API surface, these libs
@@ -139,7 +134,7 @@ class test_pynmea2(unittest.TestCase):
         sentence = pynmea2.parse(frame.decode())
 
         self.assertEqual(sentence.manufacturer, 'UBX')
-        self.assertEqual(sentence.sentence_type, 'UBX03')
+        self.assertEqual(sentence.ubx_type, '03')
         self.assertEqual(sentence.serialize(), frame)
 
     def test_parser_supports_ubx_vendor_sentence(self):
@@ -156,7 +151,7 @@ class test_pynmea2(unittest.TestCase):
 
         sentence = pynmea2.parse(frame.decode())
         self.assertEqual(sentence.manufacturer, 'UBX')
-        self.assertEqual(sentence.sentence_type, 'UBX00')
+        self.assertEqual(sentence.ubx_type, '00')
         self.assertEqual(sentence.serialize(), frame)
 
     def test_set_fields_and_rebuild(self):
@@ -172,10 +167,10 @@ class test_pynmea2(unittest.TestCase):
             '2C 30 2A 34 42 0D 0A                            ')
 
         sentence = pynmea2.parse(frame.decode())
-        #sentence.data[sentence.name_to_idx('lat')] == '2938.52571'
+        # lat == '2938.52571'
         sentence.data[sentence.name_to_idx['lat']] = '2939.52571'
         self.assertEqual(sentence.manufacturer, 'UBX')
-        self.assertEqual(sentence.sentence_type, 'UBX00')
+        self.assertEqual(sentence.ubx_type, '00')
         # for the conversions use https://www.scadacore.com/tools/programming-calculators/online-hex-converter/
         self.assertEqual(sentence.serialize(), bytes.fromhex(
             '                               24 50 55 42 58 2C'
