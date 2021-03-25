@@ -48,6 +48,41 @@ class test_pyubx2(unittest.TestCase):
         msg = pyubx2.UBXReader.parse(frame)
         self.assertEqual(msg.serialize(), bytes.fromhex('B5 62 01 03 10 00 10 0A B9 1D 03 DF 02 08 FE 01 00 00 D7 EF 11 00 C6 F1'))
 
+    def test_get_fields_and_rebuild(self):
+        frame = bytes.fromhex(
+            'B5 62 01 14 24 00 00 00 00 00 F8 0D B9 1D 14 4E'
+            'E3 CE 09 07 AB 11 7F 45 00 00 E6 BB 00 00 23 29'
+            'FE FC 38 99 01 00 59 69 02 00 34 63            ')
+        # lat == 296421129
+        msg = pyubx2.UBXReader.parse(frame)
+        data = msg.__dict__
+        data['lat'] = 296421129
+        msg = pyubx2.UBXMessage(msg.msg_cls, msg.msg_id, msg._mode, **data)
+        self.assertEqual(msg.serialize(), bytes.fromhex(
+            'B5 62 01 14 24 00 00 00 00 00 F8 0D B9 1D 14 4E'
+            'E3 CE 09 07 AB 11 7F 45 00 00 E6 BB 00 00 23 29'
+            'FE FC 38 99 01 00 59 69 02 00 34 63            '))
+
+    def test_get_fields_modify_and_rebuild(self):
+        frame = bytes.fromhex(
+            'B5 62 01 14 24 00 00 00 00 00 F8 0D B9 1D 14 4E'
+            'E3 CE 09 07 AB 11 7F 45 00 00 E6 BB 00 00 23 29'
+            'FE FC 38 99 01 00 59 69 02 00 34 63            ')
+        # lat == -823964140
+        msg = pyubx2.UBXReader.parse(frame)
+        data = msg.__dict__
+        data['lon'] = -923964140
+        msg = pyubx2.UBXMessage(msg.msg_cls, msg.msg_id, msg._mode, **data)
+        self.assertEqual(msg.lon, -923964140) # pylint: disable=no-member
+        # for the conversions use https://www.scadacore.com/tools/programming-calculators/online-hex-converter/
+        self.assertEqual(msg.serialize(), bytes.fromhex(
+            'B5 62 01 14 24 00' # header + class + id + length
+            '00 00 00 00 F8 0D B9 1D'
+            '14 6D ED C8' # lon == -923964140
+            '09 07 AB 11 7F 45 00 00 E6 BB 00 00 23 29'
+            'FE FC 38 99 01 00 59 69 02 00'
+            '57 16')) # checksum also changed
+
 class test_pynmea2(unittest.TestCase):
 
     def test_parse(self):
@@ -120,7 +155,34 @@ class test_pynmea2(unittest.TestCase):
             '2C 30 2A 34 42 0D 0A                            ')
 
         sentence = pynmea2.parse(frame.decode())
-
         self.assertEqual(sentence.manufacturer, 'UBX')
         self.assertEqual(sentence.sentence_type, 'UBX00')
         self.assertEqual(sentence.serialize(), frame)
+
+    def test_set_fields_and_rebuild(self):
+        self.maxDiff = None
+        frame = bytes.fromhex(
+            '                               24 50 55 42 58 2C'
+            '30 30 2C 31 38 33 32 34  36 2E 30 30 2C 32 39 33'
+            '38 2E 35 32 35 37 31 2C  4E 2C 30 38 32 32 33 2E'
+            '37 37 39 31 32 2C 57 2C  2D 33 2E 30 37 38 2C 44'
+            '33 2C 35 2E 37 2C 31 35  2C 30 2E 31 39 39 2C 32'
+            '36 36 2E 34 39 2C 30 2E  30 30 37 2C 2C 30 2E 38'
+            '38 2C 32 2E 30 36 2C 31  2E 35 31 2C 31 35 2C 30'
+            '2C 30 2A 34 42 0D 0A                            ')
+
+        sentence = pynmea2.parse(frame.decode())
+        #sentence.data[sentence.name_to_idx('lat')] == '2938.52571'
+        sentence.data[sentence.name_to_idx['lat']] = '2939.52571'
+        self.assertEqual(sentence.manufacturer, 'UBX')
+        self.assertEqual(sentence.sentence_type, 'UBX00')
+        # for the conversions use https://www.scadacore.com/tools/programming-calculators/online-hex-converter/
+        self.assertEqual(sentence.serialize(), bytes.fromhex(
+            '                               24 50 55 42 58 2C'
+            '30 30 2C 31 38 33 32 34  36 2E 30 30 2C 32 39 33'
+            '39 2e 35 32 35 37 31 2C  4E 2C 30 38 32 32 33 2E'
+            '37 37 39 31 32 2C 57 2C  2D 33 2E 30 37 38 2C 44'
+            '33 2C 35 2E 37 2C 31 35  2C 30 2E 31 39 39 2C 32'
+            '36 36 2E 34 39 2C 30 2E  30 30 37 2C 2C 30 2E 38'
+            '38 2C 32 2E 30 36 2C 31  2E 35 31 2C 31 35 2C 30'
+            '2C 30 2A 34 41 0D 0A                            '))
