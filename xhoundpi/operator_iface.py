@@ -1,7 +1,9 @@
 """ Message operators """
 
 from abc import ABC, abstractmethod
+from typing import Tuple
 
+from .status import Status
 from .message import Message
 
 class IMessageOperator(ABC):
@@ -10,7 +12,7 @@ class IMessageOperator(ABC):
     """
 
     @abstractmethod
-    def operate(self, message: Message) -> Message:
+    def operate(self, message: Message) -> Tuple[Status, Message]:
         """
         Operate on the message and return the transformed version
         """

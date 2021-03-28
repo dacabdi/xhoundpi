@@ -1,5 +1,8 @@
 """ Message operators """
 
+from typing import Tuple
+
+from .status import Status
 from .message import Message
 from .message_editor import IMessageEditor
 from .operator_iface import IMessageOperator
@@ -23,7 +26,7 @@ class NMEAOffsetOperator(IMessageOperator):
         self.__lat = lat_offset
         self.__lon = lon_offset
 
-    def operate(self, message: Message) -> Message:
+    def operate(self, message: Message) -> Tuple[Status, Message]:
         """
         Operate on the message and return the transformed version
         """
@@ -55,7 +58,7 @@ class UBXOffsetOperator(IMessageOperator):
         self.__lat = lat_offset
         self.__lon = lon_offset
 
-    def operate(self, message: Message) -> Message:
+    def operate(self, message: Message) -> Tuple[Status, Message]:
         """
         Operate on the message and return the transformed version
         """
@@ -84,7 +87,7 @@ class UBXHiResOffsetOperator(IMessageOperator):
         self.__lat = lat_offset
         self.__lon = lon_offset
 
-    def operate(self, message: Message) -> Message:
+    def operate(self, message: Message) -> Tuple[Status, Message]:
         """
         Operate on the message and return the transformed hi res version
         """
@@ -96,6 +99,6 @@ class UBXHiResOffsetOperator(IMessageOperator):
         return self.__editor.set_fields(message, {
             'lat': tlat,
             'lon': tlon,
-            'latHp': tlon_hp,
-            'lonHp': tlat_hp
+            'latHp': tlat_hp,
+            'lonHp': tlon_hp
         })

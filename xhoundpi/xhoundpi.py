@@ -10,8 +10,9 @@ import uuid
 import structlog
 
 # parsing libs
-import pynmea2
 import pyubx2
+import pynmea2
+import pynmea2.nmea_utils
 
 # extensions and decorators (patch types on load)
 import xhoundpi.gnss_service_decorators # pylint: disable=unused-import
@@ -37,7 +38,19 @@ from .proto_serializer import (ProtocolSerializerProvider,
                               NMEAProtocolSerializer,)
 from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
-from .processor import NullProcessor
+from .data_formatter import (NMEADataFormatter,
+                             UBXDataFormatter)
+from .message_editor import (NMEAMessageEditor,
+                            UBXMessageEditor)
+from .operator import (NMEAOffsetOperator,
+                      UBXOffsetOperator,
+                      UBXHiResOffsetOperator,)
+from .operator_provider import CoordinateOperationProvider
+from .message_policy_provider import OnePolicyProvider
+from .message_policy import HasLocationPolicy
+from .processor import (CompositeProcessor,
+                       NullProcessor,
+                       GenericProcessor,)
 from .events import (AppEvent,
                     MetricsReport,)
 from .metric import (LatencyMetric,
@@ -219,11 +232,40 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
     def setup_processors(self):
         """ Setup GNSS processors pipeline """
         # pylint: disable=no-member
-        self.processors = (NullProcessor()
-            .with_events(logger=logger)
-            .with_metrics(
-                counter=self.metrics.gnss_processors_counter,
-                latency=self.metrics.gnss_processors_latency))
+        self.processors = CompositeProcessor([
+
+            NullProcessor()
+                .with_events(logger=logger)
+                .with_metrics(
+                    counter=self.metrics.gnss_processors_counter,
+                    latency=self.metrics.gnss_processors_latency),
+
+            GenericProcessor(
+                policy_provider=OnePolicyProvider(HasLocationPolicy()),
+                operator_provider=CoordinateOperationProvider(
+                    nmea_operator=NMEAOffsetOperator(
+                        msg_editor=NMEAMessageEditor(),
+                        data_formatter=NMEADataFormatter(pynmea2.nmea_utils.dm_to_sd),
+                        lat_offset=0.,
+                        lon_offset=0.),
+                    ubx_operator=UBXOffsetOperator(
+                        msg_editor=UBXMessageEditor(),
+                        data_formatter=UBXDataFormatter(),
+                        lat_offset=0.,
+                        lon_offset=0.),
+                    ubx_hires_operator=UBXHiResOffsetOperator(
+                        msg_editor=UBXMessageEditor(),
+                        data_formatter=UBXDataFormatter(),
+                        lat_offset=0.,
+                        lon_offset=0.),))
+                    # TODO improve logging when using generic processor
+                .with_events(logger=logger)
+                .with_metrics(
+                    # TODO use separate metrics
+                    counter=self.metrics.gnss_processors_counter,
+                    latency=self.metrics.gnss_processors_latency),
+
+        ])
         self.processors_pipeline = AsyncPump(
              # pylint: disable=no-member
             input_queue=(self.gnss_inbound_queue

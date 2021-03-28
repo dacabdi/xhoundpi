@@ -41,7 +41,7 @@ class test_GenericProcessor(unittest.TestCase):
         policy_provider = Mock()
         policy_provider.get_policy = Mock(return_value=policy)
         operator = Mock()
-        operator.operate = Mock(return_value='new message')
+        operator.operate = Mock(return_value=(Status.OK(), 'new message'))
         operator_provider = Mock()
         operator_provider.get_operator = Mock(return_value=operator)
         processor = GenericProcessor(
@@ -63,7 +63,7 @@ class test_GenericProcessor(unittest.TestCase):
         policy_provider = Mock()
         policy_provider.get_policy = Mock(return_value=policy)
         operator = Mock()
-        operator.operate = Mock(return_value='new message')
+        operator.operate = Mock(return_value=(Status.OK(), 'new message'))
         operator_provider = Mock()
         operator_provider.get_operator = Mock(return_value=operator)
         processor = GenericProcessor(
@@ -85,7 +85,7 @@ class test_GenericProcessor(unittest.TestCase):
         policy_provider = Mock()
         policy_provider.get_policy = Mock(side_effect=Exception('Error!'))
         operator = Mock()
-        operator.operate = Mock(return_value='new message')
+        operator.operate = Mock(return_value=(Status.OK(), 'new message'))
         operator_provider = Mock()
         operator_provider.get_operator = Mock(return_value=operator)
         processor = GenericProcessor(
@@ -108,7 +108,7 @@ class test_GenericProcessor(unittest.TestCase):
         policy_provider = Mock()
         policy_provider.get_policy = Mock(return_value=policy)
         operator = Mock()
-        operator.operate = Mock(return_value='new message')
+        operator.operate = Mock(return_value=(Status.OK(), 'new message'))
         operator_provider = Mock()
         operator_provider.get_operator = Mock(side_effect=Exception('Failed!'))
         processor = GenericProcessor(

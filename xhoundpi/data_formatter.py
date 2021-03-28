@@ -1,10 +1,22 @@
 """ Format converters for message fields """
 
 import math
-from typing import Callable, Tuple
+import re
+
+from decimal import * # pylint: disable=wildcard-import,unused-wildcard-import
+from typing import Tuple
 
 from .direction import (CoordAxis,
                        Direction)
+
+c = getcontext()
+c.traps[Overflow] = True
+c.traps[DivisionByZero] = True
+c.traps[InvalidOperation] = True
+c.traps[FloatOperation] = True
+c.traps[Inexact] = True
+c.rounding=ROUND_DOWN
+getcontext().prec = 24
 
 class NMEADataFormatter:
     """
@@ -14,26 +26,18 @@ class NMEADataFormatter:
 
     LO_PRES = 5
     HI_PRES = 7
+    DEC_1 = Decimal('1')
     FORMAT = '{{degs:0{degs_width}n}}{{mins:0{mins_width}.{prec}f}}'
 
-    def __init__(self, degmins_to_decdeg: Callable):
-        self.__degmins_to_decdeg = degmins_to_decdeg
-
-    def degmins_to_decdeg(self, degmins: str, direction: Direction) -> float:
+    def degmins_to_decdeg(self, degmins: str, direction: Direction) -> Decimal:
         """
         Converts a geographic co-ordinate given in
         (d)ddmm.mmmmm(mm) format to signed decimal degrees
-
-        Args:
-            degmins (str): a geographic co-ordinate given in (d)ddmm.mmmmm(mm)
-            direction (Direction): used to sign the decimal degress
-        Returns:
-            decimal degrees (float)
         """
-        decdeg = self.__degmins_to_decdeg(degmins)
-        return -decdeg if direction in (Direction.S, Direction.W) else decdeg
+        decdeg = Decimal(self._degmins_to_decdeg(degmins))
+        return decdeg.copy_negate() if direction in (Direction.S, Direction.W) else decdeg
 
-    def decdeg_to_degmins(self, dec_deg: float, axis: CoordAxis, hipres: bool = False
+    def decdeg_to_degmins(self, dec_deg: Decimal, axis: CoordAxis, hipres: bool = False
     ) -> Tuple[str, Direction]:
         """
         Converts a geographic co-ordinate given in
@@ -43,7 +47,7 @@ class NMEADataFormatter:
         return template.format(degs=degs, mins=mins), direction
 
     @classmethod
-    def _get_data(cls, dec_deg: float, axis: CoordAxis, hipres: bool
+    def _get_data(cls, dec_deg: Decimal, axis: CoordAxis, hipres: bool
     ) -> Tuple[str, Direction]:
         if axis is CoordAxis.LON:
             direction = Direction.E if dec_deg >= 0 else Direction.W
@@ -56,10 +60,26 @@ class NMEADataFormatter:
             degs_width=deg_length,
             mins_width=3 + precision,
             prec=precision)
-        mins, degs = math.modf(abs(dec_deg))
-        if degs != 0. and math.log10(degs) > deg_length:
-            raise ValueError('Too many digits in decimal degrees result')
+        degs, mins = divmod(dec_deg, cls.DEC_1)
+        degs = degs.copy_abs()
+        mins = mins.copy_abs()
+        with localcontext() as ctx:
+            # NOTE the log10 is very unlikely to yield an exact value
+            ctx.traps[Inexact] = False
+            if not degs.is_zero() and degs.log10() > deg_length:
+                raise ValueError('Too many digits in decimal degrees result')
         return template, direction, int(degs), mins * 60
+
+    @classmethod
+    #pylint: disable=invalid-name
+    def _degmins_to_decdeg(cls, dm: str) -> Decimal:
+        if not dm or dm == '0':
+            return Decimal(0)
+        d, m = re.match(r'^(\d+)(\d\d\.\d+)$', dm).groups()
+        with localcontext() as ctx:
+            # NOTE we cannot expect exactitude in this operation
+            ctx.traps[Inexact] = False
+            return Decimal(d) + Decimal(m) / Decimal(60)
 
     @classmethod
     def is_highpres(cls, value: str):
@@ -77,20 +97,22 @@ class UBXDataFormatter:
 
     BASE_RES = 7
     HIGH_RES = 9
+    DEC_1 = Decimal('1')
 
-    def integer_to_decdeg(self, base: int, hires: int = 0) -> float:
+    def integer_to_decdeg(self, base: int, hires: int = 0) -> Decimal:
         """
         Converts an UBX integer geographic
         co-ordinate into signed decimal degrees
         """
-        return base * 10 ** -self.BASE_RES + hires * 10 ** -self.HIGH_RES
+        base_dec  = Decimal(base).scaleb(-self.BASE_RES)
+        hires_dec = Decimal(hires).scaleb(-self.HIGH_RES)
+        return base_dec + hires_dec
 
-    def decdeg_to_integer(self, decdeg: float) -> Tuple[int, int]:
+    def decdeg_to_integer(self, decdeg: Decimal) -> Tuple[int, int]:
         """
         Converts signed decimal degrees
         into an UBX integer geographic co-ordinate
         """
-        value = decdeg * 10 ** self.BASE_RES
-        frac, base = math.modf(value)
-        hi_res = frac * 10 ** (self.HIGH_RES - self.BASE_RES)
-        return int(base), int(hi_res)
+        base, frac = divmod(decdeg.scaleb(self.BASE_RES), self.DEC_1)
+        hi_res, _ = divmod(frac.scaleb(self.HIGH_RES - self.BASE_RES), self.DEC_1)
+        return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
