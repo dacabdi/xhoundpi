@@ -36,3 +36,13 @@ class Status:
                  or self.error.args == o.error.args)
             and self.metadata == o.metadata
         )
+
+    def __str__(self):
+        return f'ok={self.ok}, error={repr(self.error)}, metadata={self.metadata}'
+
+    def __repr__(self) -> str:
+        return '<%s.%s(%s) object at %s>' % (
+            self.__class__.__module__,
+            self.__class__.__name__,
+            str(self),
+            hex(id(self)))

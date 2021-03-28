@@ -51,3 +51,55 @@ class test_Status(unittest.TestCase):
         self.assertNotEqual(status1, status4)
         self.assertEqual(status_none1, status_none2)
         self.assertNotEqual(status_none1, status1)
+
+    def test_str(self):
+        status1 = Status(Exception('This parrot is gone to meet its maker'), {'x':3})
+        status2 = Status(None, {'x':1})
+        status3 = Status(None, None)
+
+        self.assertEqual(
+            "ok=False, "
+            "error=Exception('This parrot is gone to meet its maker'), "
+            "metadata={'x': 3}",
+            str(status1))
+
+        self.assertEqual(
+            "ok=True, "
+            "error=None, "
+            "metadata={'x': 1}",
+            str(status2))
+
+        self.assertEqual(
+            "ok=True, "
+            "error=None, "
+            "metadata={}",
+            str(status3))
+
+    def test_repr(self):
+        status1 = Status(Exception('This parrot is gone to meet its maker'), {'x':3})
+        status2 = Status(None, {'x':1})
+        status3 = Status(None, None)
+
+        self.assertEqual(
+            "<xhoundpi.status.Status"
+            "(ok=False, "
+            "error=Exception('This parrot is gone to meet its maker'), "
+            "metadata={'x': 3}) "
+            f"object at {hex(id(status1))}>",
+            repr(status1))
+
+        self.assertEqual(
+            "<xhoundpi.status.Status"
+            "(ok=True, "
+            "error=None, "
+            "metadata={'x': 1}) "
+            f"object at {hex(id(status2))}>",
+            repr(status2))
+
+        self.assertEqual(
+            "<xhoundpi.status.Status"
+            "(ok=True, "
+            "error=None, "
+            "metadata={}) "
+            f"object at {hex(id(status3))}>",
+            repr(status3))
