@@ -18,3 +18,17 @@ class MessageProtocolPolicyProvider(IMessagePolicyProvider):
         the message based on the protocol
         """
         return self.__mapping[message.proto]
+
+class OnePolicyProvider(IMessagePolicyProvider):
+    """
+    Message policy provider that always provides the same policy
+    """
+
+    def __init__(self, policy: IMessagePolicy):
+        self.__policy = policy
+
+    def get_policy(self, message: Message) -> IMessagePolicy:
+        """
+        Returns the configured policy
+        """
+        return self.__policy

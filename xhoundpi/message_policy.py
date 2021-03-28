@@ -30,5 +30,9 @@ class HasLocationPolicy(IMessagePolicy):
         """
         Message qualifies if it contains latitude and longitude information
         """
-        return (hasattr(message.payload, 'lat',
-                hasattr(message.payload, 'lon')))
+        try:
+            _ = message.payload.lat
+            _ = message.payload.lon
+            return True
+        except AttributeError:
+            return False
