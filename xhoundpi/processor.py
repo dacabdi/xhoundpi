@@ -30,13 +30,17 @@ class GenericProcessor(IProcessor):
         indicates that the message must be processed, the operation is obtained
         from the operation provider and applied to the message. If failed,
         will return the original message and the status """
+        result = message
+        metadata = {'qualified' : False}
         try:
             policy = self.__policy_provider.get_policy(message)
             if policy.qualifies(message):
+                metadata['qualified'] = True
                 operator = self.__operator_provider.get_operator(message)
-                return Status.OK(), operator.operate(message)
+                result = operator.operate(message)
+            return Status.OK(metadata=metadata), result
         except Exception as ex: # pylint: disable=broad-except
-            return Status(ex), message
+            return Status(ex, metadata=metadata), result
 
 class CompositeProcessor(IProcessor):
     """ Applies a series of processes in sequence """
@@ -52,7 +56,10 @@ class CompositeProcessor(IProcessor):
         """
         proccessed = message
         for proc in self.__operators:
-            status, proccessed = await proc.process(message)
-            if not status.ok:
-                return status, message
+            try:
+                status, proccessed = await proc.process(proccessed)
+                if not status.ok:
+                    return status, message
+            except Exception as ex: # pylint: disable=broad-except
+                return Status(ex), message
         return Status.OK(), proccessed

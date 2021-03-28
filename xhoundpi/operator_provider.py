@@ -6,7 +6,7 @@ from .message import Message
 from .operator_iface import IMessageOperator
 from .operator_provider_iface import IMessageOperatorProvider
 
-class MessageLocationOperationProvider(IMessageOperatorProvider):
+class CoordinateOperationProvider(IMessageOperatorProvider):
     """
     Message operator provider based on location type and location operation
     """
@@ -29,8 +29,7 @@ class MessageLocationOperationProvider(IMessageOperatorProvider):
             return self.__nmea_opeator
         if message.proto == ProtocolClass.UBX:
             # pylint: disable=using-constant-test
-            if (hasattr(message.payload, 'lonHp'),
-                hasattr(message.payload, 'latHp')):
+            if (hasattr(message.payload, 'lonHp') and hasattr(message.payload, 'latHp')):
                 return self.__ubx_hires_operator
             return self.__ubx_operator
-        raise ValueError('Cannot provide operator for protocol class \'{message.proto}\'')
+        raise ValueError(f'Cannot provide operator for protocol class \'{message.proto}\'')

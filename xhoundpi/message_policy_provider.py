@@ -4,7 +4,7 @@ from .message import Message
 from .message_policy_iface import IMessagePolicy
 from .message_policy_provider_iface import IMessagePolicyProvider
 
-class MessageProtocolPolicyProvider(IMessagePolicyProvider):
+class ProtocolPolicyProvider(IMessagePolicyProvider):
     """
     Message policy provider based on protocol
     """

@@ -8,7 +8,7 @@ from .data_formatter import (NMEADataFormatter,
 from .direction import (CoordAxis,
                        Direction)
 
-class NMEAOffsetOperation(IMessageOperator):
+class NMEAOffsetOperator(IMessageOperator):
     """
     Correct coordinates of a NMEA message by adding an offset
     """
@@ -40,7 +40,7 @@ class NMEAOffsetOperation(IMessageOperator):
             'lon_dir': tlon_d.name,
         })
 
-class UBXOffsetOperation(IMessageOperator):
+class UBXOffsetOperator(IMessageOperator):
     """
     Correct coordinates of a UBX message by adding an offset
     """
@@ -69,7 +69,7 @@ class UBXOffsetOperation(IMessageOperator):
             'lon': target_lon,
         })
 
-class UBXHiResOffsetOperation(IMessageOperator):
+class UBXHiResOffsetOperator(IMessageOperator):
     """
     Correct coordinates of a hi res UBX message by adding an offset
     """
