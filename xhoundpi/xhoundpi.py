@@ -242,8 +242,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
                     counter=self.metrics.gnss_processors_counter,
                     latency=self.metrics.gnss_processors_latency),
             self.make_offset_generic_processor('ZeroOffsetProcessor', zero_offset, zero_offset),
-            #self.make_offset_generic_processor('PositiveOffsetProcessor', pos_offset, pos_offset),
-            #self.make_offset_generic_processor('NegativeOffsetProcessor', neg_offset, neg_offset),
+            self.make_offset_generic_processor('PositiveOffsetProcessor', pos_offset, pos_offset),
+            self.make_offset_generic_processor('NegativeOffsetProcessor', neg_offset, neg_offset),
         ])
         self.processors_pipeline = AsyncPump(
              # pylint: disable=no-member
