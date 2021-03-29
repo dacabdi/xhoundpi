@@ -45,6 +45,7 @@ class test_GenericProcessor(unittest.TestCase):
         operator_provider = Mock()
         operator_provider.get_operator = Mock(return_value=operator)
         processor = GenericProcessor(
+            name='Processor1',
             policy_provider=policy_provider,
             operator_provider=operator_provider)
 
@@ -55,6 +56,7 @@ class test_GenericProcessor(unittest.TestCase):
         policy.qualifies.assert_called_once_with(msg)
         operator_provider.get_operator.assert_called_once_with(msg)
         operator.operate.assert_called_once_with(msg)
+        self.assertEqual(processor._name, 'Processor1') # pylint: disable=protected-access
 
     def test_policy_not_qualifies_process(self):
         msg = Message(uuid.UUID('{12345678-1234-5678-1234-567812345678}'), None, None)
@@ -67,6 +69,7 @@ class test_GenericProcessor(unittest.TestCase):
         operator_provider = Mock()
         operator_provider.get_operator = Mock(return_value=operator)
         processor = GenericProcessor(
+            name='Processor1',
             policy_provider=policy_provider,
             operator_provider=operator_provider)
 
@@ -77,6 +80,7 @@ class test_GenericProcessor(unittest.TestCase):
         policy.qualifies.assert_called_once_with(msg)
         operator_provider.get_operator.assert_not_called()
         operator.operate.assert_not_called()
+        self.assertEqual(processor._name, 'Processor1') # pylint: disable=protected-access
 
     def test_error_process_returns_original_msg(self):
         msg = Message(uuid.UUID('{12345678-1234-5678-1234-567812345678}'), None, None)
@@ -89,6 +93,7 @@ class test_GenericProcessor(unittest.TestCase):
         operator_provider = Mock()
         operator_provider.get_operator = Mock(return_value=operator)
         processor = GenericProcessor(
+            name='Processor1',
             policy_provider=policy_provider,
             operator_provider=operator_provider)
 
@@ -100,6 +105,7 @@ class test_GenericProcessor(unittest.TestCase):
         policy.qualifies.assert_not_called()
         operator_provider.get_operator.assert_not_called()
         operator.operate.assert_not_called()
+        self.assertEqual(processor._name, 'Processor1') # pylint: disable=protected-access
 
     def test_error_process_returns_original_msg2(self):
         msg = Message(uuid.UUID('{12345678-1234-5678-1234-567812345678}'), None, None)
@@ -112,6 +118,7 @@ class test_GenericProcessor(unittest.TestCase):
         operator_provider = Mock()
         operator_provider.get_operator = Mock(side_effect=Exception('Failed!'))
         processor = GenericProcessor(
+            name='Processor1',
             policy_provider=policy_provider,
             operator_provider=operator_provider)
 
@@ -123,6 +130,7 @@ class test_GenericProcessor(unittest.TestCase):
         policy.qualifies.assert_called_once_with(msg)
         operator_provider.get_operator.assert_called_once_with(msg)
         operator.operate.assert_not_called()
+        self.assertEqual(processor._name, 'Processor1') # pylint: disable=protected-access
 
 class test_CompositeProcessor(unittest.TestCase):
 

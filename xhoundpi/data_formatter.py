@@ -1,6 +1,5 @@
 """ Format converters for message fields """
 
-import math
 import re
 
 from decimal import * # pylint: disable=wildcard-import,unused-wildcard-import
@@ -87,7 +86,7 @@ class NMEADataFormatter:
         Determines if a geographic co-ordinate given in
         (d)ddmm.mmmmm(mm) format is NMEA high precision mode
         """
-        return len(value) - value.find('.') == 7
+        return len(value) - value.find('.') > 7
 
 class UBXDataFormatter:
     """
@@ -104,7 +103,7 @@ class UBXDataFormatter:
         Converts an UBX integer geographic
         co-ordinate into signed decimal degrees
         """
-        base_dec  = Decimal(base).scaleb(-self.BASE_RES)
+        base_dec  = Decimal(base ).scaleb(-self.BASE_RES)
         hires_dec = Decimal(hires).scaleb(-self.HIGH_RES)
         return base_dec + hires_dec
 
@@ -116,3 +115,6 @@ class UBXDataFormatter:
         base, frac = divmod(decdeg.scaleb(self.BASE_RES), self.DEC_1)
         hi_res, _ = divmod(frac.scaleb(self.HIGH_RES - self.BASE_RES), self.DEC_1)
         return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
+
+    def minimize_correction(self, base: int, hires: int):
+        return 0, 0

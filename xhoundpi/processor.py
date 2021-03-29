@@ -20,8 +20,10 @@ class GenericProcessor(IProcessor):
     policies and operation providers set during initialization """
 
     def __init__(self,
+        name: str,
         policy_provider: IMessagePolicyProvider,
         operator_provider: IMessageOperatorProvider):
+        self._name = name
         self.__policy_provider = policy_provider
         self.__operator_provider = operator_provider
 

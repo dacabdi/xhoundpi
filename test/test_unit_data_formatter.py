@@ -14,7 +14,7 @@ from xhoundpi.direction import (Direction,
 from xhoundpi.data_formatter import (NMEADataFormatter,
                                     UBXDataFormatter)
 
-class test_NMEADataFormatter(unittest.TestCase):
+class test_NMEADataFormatter(unittest.TestCase): # pylint: disable=too-many-public-methods
 
     # degmins_to_decdeg
 
@@ -150,6 +150,20 @@ class test_NMEADataFormatter(unittest.TestCase):
         result = converter.decdeg_to_degmins(Decimal('-0.00000001'), CoordAxis.LAT, hipres=True)
         self.assertEqual(result, ('0000.0000006', Direction.S))
 
+    # is_highpres
+
+    def test_degmins_to_decdeg_is_highpres(self):
+        converter = NMEADataFormatter()
+        self.assertEqual(converter.is_highpres('9999.9999'),  False)
+        self.assertEqual(converter.is_highpres('9999.99999'),  False)
+        self.assertEqual(converter.is_highpres('9999.999999'),  False)
+        self.assertEqual(converter.is_highpres('9999.9999999'),  True)
+        self.assertEqual(converter.is_highpres('9999.99999999'),  True)
+        self.assertEqual(converter.is_highpres('999.99999999'),  True)
+        self.assertEqual(converter.is_highpres('99.99999999'),  True)
+        self.assertEqual(converter.is_highpres('9.99999999'),  True)
+        self.assertEqual(converter.is_highpres('.99999999'),  True)
+
 class test_UBXDataFormatter(unittest.TestCase):
 
     # ubx lat/lon integer field -> decimal degrees
@@ -252,3 +266,26 @@ class test_UBXDataFormatter(unittest.TestCase):
         converter = UBXDataFormatter()
         result = converter.decdeg_to_integer(Decimal('214.7483647990'))
         self.assertEqual(result, (2147483647, 99))
+
+    # minimize hi precision correction
+
+    def test_minimize_correction(self):
+        converter = UBXDataFormatter()
+
+        # real life case
+        self.assertEqual(( 296421107, -8 ), converter.minimize_correction(296421106,  92))
+        self.assertEqual(( 296421107, -8 ), converter.minimize_correction(296421107, -8 ))
+
+        # + / +
+        self.assertEqual(( 100000000,   0), converter.minimize_correction(100000000,  0 ))
+        self.assertEqual(( 100000000,  49), converter.minimize_correction(100000000,  49))
+        self.assertEqual(( 100000000,  50), converter.minimize_correction(100000000,  50))
+        self.assertEqual(( 100000000,  51), converter.minimize_correction(100000001, -49))
+        self.assertEqual(( 100000000,  99), converter.minimize_correction(100000001, -1 ))
+
+        # - / +
+        self.assertEqual((-100000000,   0), converter.minimize_correction(-100000000,  0 ))
+        self.assertEqual((-100000000,  49), converter.minimize_correction(-100000000,  49))
+        self.assertEqual((-100000000,  50), converter.minimize_correction(-100000000,  50))
+        self.assertEqual((-100000000,  51), converter.minimize_correction(-100000001, -49))
+        self.assertEqual((-100000000,  99), converter.minimize_correction(-100000001, -1 ))

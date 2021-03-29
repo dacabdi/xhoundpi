@@ -1,5 +1,6 @@
 """ Message operators """
 
+from decimal import Decimal
 from typing import Tuple
 
 from .status import Status
@@ -19,8 +20,8 @@ class NMEAOffsetOperator(IMessageOperator):
     def __init__(self,
         msg_editor: IMessageEditor,
         data_formatter: NMEADataFormatter,
-        lat_offset: float,
-        lon_offset: float):
+        lat_offset: Decimal,
+        lon_offset: Decimal):
         self.__editor = msg_editor
         self.__formatter = data_formatter
         self.__lat = lat_offset
@@ -51,8 +52,8 @@ class UBXOffsetOperator(IMessageOperator):
     def __init__(self,
         msg_editor: IMessageEditor,
         data_formatter: UBXDataFormatter,
-        lat_offset: float,
-        lon_offset: float):
+        lat_offset: Decimal,
+        lon_offset: Decimal):
         self.__editor = msg_editor
         self.__formatter = data_formatter
         self.__lat = lat_offset
@@ -77,11 +78,12 @@ class UBXHiResOffsetOperator(IMessageOperator):
     Correct coordinates of a hi res UBX message by adding an offset
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         msg_editor: IMessageEditor,
         data_formatter: UBXDataFormatter,
-        lat_offset: float,
-        lon_offset: float):
+        lat_offset: Decimal,
+        lon_offset: Decimal):
         self.__editor = msg_editor
         self.__formatter = data_formatter
         self.__lat = lat_offset
