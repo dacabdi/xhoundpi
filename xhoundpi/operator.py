@@ -98,6 +98,8 @@ class UBXHiResOffsetOperator(IMessageOperator):
         lon = self.__formatter.integer_to_decdeg(ubx.lon, ubx.lonHp)
         tlat, tlat_hp = self.__formatter.decdeg_to_integer(lat + self.__lat)
         tlon, tlon_hp = self.__formatter.decdeg_to_integer(lon + self.__lon)
+        tlat, tlat_hp = self.__formatter.minimize_correction(tlat, tlat_hp)
+        tlon, tlon_hp = self.__formatter.minimize_correction(tlon, tlon_hp)
         return self.__editor.set_fields(message, {
             'lat': tlat,
             'lon': tlon,

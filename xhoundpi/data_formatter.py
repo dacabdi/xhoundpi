@@ -116,5 +116,20 @@ class UBXDataFormatter:
         hi_res, _ = divmod(frac.scaleb(self.HIGH_RES - self.BASE_RES), self.DEC_1)
         return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
 
-    def minimize_correction(self, base: int, hires: int):
-        return 0, 0
+    def minimize_correction(self, base: int, hires: int) -> Tuple[int, int]:
+        """
+        Comply with UBX correction minization
+        """
+        if abs(hires) > 50:
+            sign = self._sign(base)
+            if sign != self._sign(hires):
+                raise ValueError('Operation not defined for not matching signs')
+            base += sign
+            hires -= 100 * sign
+        return base, hires
+
+    @classmethod
+    def _sign(cls, val: int) -> int:
+        return -1 if val < 0 else 1
+
+

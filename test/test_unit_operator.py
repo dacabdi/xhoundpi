@@ -130,6 +130,7 @@ class test_UBXHiResOffsetOperator(unittest.TestCase):
         formatter = Mock()
         formatter.integer_to_decdeg = Mock(return_value=1.0)
         formatter.decdeg_to_integer = Mock(return_value=(100, 99))
+        formatter.minimize_correction = Mock(return_value=(101, -1))
         editor = Mock()
         editor.set_fields = Mock(return_value='new message')
         msg = Message(message_id=None, proto=None, payload=UBXPayload())
@@ -145,12 +146,13 @@ class test_UBXHiResOffsetOperator(unittest.TestCase):
         formatter.integer_to_decdeg.assert_called_with(111, 33)
         formatter.decdeg_to_integer.assert_any_call(1.5)
         formatter.decdeg_to_integer.assert_called_with(1.2)
+        formatter.minimize_correction.assert_called_with(100, 99)
         editor.set_fields.assert_called_once_with(
             Message(message_id=None, proto=None, payload=UBXPayload()),
             {
-                'lat': 100,
-                'lon': 100,
-                'lonHp': 99,
-                'latHp': 99
+                'lat': 101,
+                'lon': 101,
+                'lonHp': -1,
+                'latHp': -1
             })
         self.assertEqual(result, 'new message')

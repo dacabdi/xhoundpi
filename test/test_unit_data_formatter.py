@@ -280,12 +280,25 @@ class test_UBXDataFormatter(unittest.TestCase):
         self.assertEqual(( 100000000,   0), converter.minimize_correction(100000000,  0 ))
         self.assertEqual(( 100000000,  49), converter.minimize_correction(100000000,  49))
         self.assertEqual(( 100000000,  50), converter.minimize_correction(100000000,  50))
-        self.assertEqual(( 100000000,  51), converter.minimize_correction(100000001, -49))
-        self.assertEqual(( 100000000,  99), converter.minimize_correction(100000001, -1 ))
+        self.assertEqual(( 100000001, -49), converter.minimize_correction(100000000,  51))
+        self.assertEqual(( 100000001, -1 ), converter.minimize_correction(100000000,  99))
 
-        # - / +
+        # - / -
         self.assertEqual((-100000000,   0), converter.minimize_correction(-100000000,  0 ))
-        self.assertEqual((-100000000,  49), converter.minimize_correction(-100000000,  49))
-        self.assertEqual((-100000000,  50), converter.minimize_correction(-100000000,  50))
-        self.assertEqual((-100000000,  51), converter.minimize_correction(-100000001, -49))
-        self.assertEqual((-100000000,  99), converter.minimize_correction(-100000001, -1 ))
+        self.assertEqual((-100000000, -49), converter.minimize_correction(-100000000, -49))
+        self.assertEqual((-100000000, -50), converter.minimize_correction(-100000000, -50))
+        self.assertEqual((-100000001,  49), converter.minimize_correction(-100000000, -51))
+        self.assertEqual((-100000001,  1 ), converter.minimize_correction(-100000000, -99))
+
+    def test_minimize_correction_gt50_diff_sign_raises(self):
+        converter = UBXDataFormatter()
+
+        with self.assertRaises(ValueError) as context:
+            converter.minimize_correction(-100000000, 51)
+        self.assertEqual('Operation not defined for not matching signs',
+            str(context.exception))
+
+        with self.assertRaises(ValueError) as context:
+            converter.minimize_correction(100000000, -51)
+        self.assertEqual('Operation not defined for not matching signs',
+            str(context.exception))

@@ -95,18 +95,6 @@ class test_Functional_OffsetProcessor(unittest.TestCase):
 
     def test_ubx_hires_zero_offset3(self):
         self.maxDiff = None
-        # NOTE :warning:
-        # Although the processor is simply adding zero to the input
-        # the results are not identical. UBX allows the high precision
-        # and low precision fields to have opposite signs. This is
-        # a behavior that we cannot reproduce, mainly because
-        # we do not know what are the rules for one or the other.
-        # Possibly, the high precision field is accomodated to be
-        # the smallest value possible, so that the main value is closest
-        # to precision even in absence of the hi pres field
-        # lat = 296421107  -08
-        # lat = 296421106   92
-        # both are same value
         frame = bytes.fromhex(
             '                               B5 62 01 14 24 00'
             '00 00 00 00 E0 11 B9 1D  E1 4D E3 CE F3 06 AB 11'
