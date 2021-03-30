@@ -260,6 +260,10 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         lat_offset: decimal.Decimal,
         lon_offset: decimal.Decimal):
         # pylint: disable=no-member
+        """
+        Composes a generic processor
+        that uses fixed offsets operators
+        """
         return (GenericProcessor(
                 name=name,
                 policy_provider=OnePolicyProvider(HasLocationPolicy()),
