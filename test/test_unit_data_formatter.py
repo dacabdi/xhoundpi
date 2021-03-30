@@ -27,14 +27,21 @@ class test_NMEADataFormatter(unittest.TestCase): # pylint: disable=too-many-publ
 
     def test_degmins_to_decdeg_and_direction_sign_hires_inexact(self):
         converter = NMEADataFormatter()
-        self.assertEqual(converter.degmins_to_decdeg('1212.1234567', Direction.N),  Decimal(  '12.2020576116666666666666'))
-        self.assertEqual(converter.degmins_to_decdeg('1212.1234567', Direction.S),  Decimal( '-12.2020576116666666666666'))
-        self.assertEqual(converter.degmins_to_decdeg('12312.1234567', Direction.E), Decimal( '123.202057611666666666666'))
-        self.assertEqual(converter.degmins_to_decdeg('12312.1234567', Direction.W), Decimal('-123.202057611666666666666'))
+        self.assertEqual(converter.degmins_to_decdeg('1212.1234567', Direction.N),  Decimal(  '12.2020576116666666666667'))
+        self.assertEqual(converter.degmins_to_decdeg('1212.1234567', Direction.S),  Decimal( '-12.2020576116666666666667'))
+        self.assertEqual(converter.degmins_to_decdeg('12312.1234567', Direction.E), Decimal( '123.202057611666666666667'))
+        self.assertEqual(converter.degmins_to_decdeg('12312.1234567', Direction.W), Decimal('-123.202057611666666666667'))
+
+    def test_degmins_to_decdeg_and_direction_sign_hires_inexact_below_half_norounding(self):
+        converter = NMEADataFormatter()
+        self.assertEqual(converter.degmins_to_decdeg('1212.1234565', Direction.N),  Decimal(  '12.2020576083333333333333'))
+        self.assertEqual(converter.degmins_to_decdeg('1212.1234565', Direction.S),  Decimal( '-12.2020576083333333333333'))
+        self.assertEqual(converter.degmins_to_decdeg('12312.1234565', Direction.E), Decimal( '123.202057608333333333333'))
+        self.assertEqual(converter.degmins_to_decdeg('12312.1234565', Direction.W), Decimal('-123.202057608333333333333'))
 
     def test_degmins_to_decdeg_inexact_24res(self):
         converter = NMEADataFormatter()
-        self.assertEqual(converter.degmins_to_decdeg('0004.00000', Direction.N),  Decimal('0.0666666666666666666666666'))
+        self.assertEqual(converter.degmins_to_decdeg('0004.00000', Direction.N),  Decimal('0.0666666666666666666666667'))
 
     def test_degmins_to_decdeg_zero(self):
         converter = NMEADataFormatter()
@@ -45,24 +52,24 @@ class test_NMEADataFormatter(unittest.TestCase): # pylint: disable=too-many-publ
 
     def test_degmins_to_decdeg_near_zero(self):
         converter = NMEADataFormatter()
-        self.assertEqual(converter.degmins_to_decdeg('0000.00001', Direction.N),  Decimal('1.66666666666666666666666E-7'))
-        self.assertEqual(converter.degmins_to_decdeg('0000.00001', Direction.S),  Decimal('-1.66666666666666666666666E-7'))
-        self.assertEqual(converter.degmins_to_decdeg('00000.00001', Direction.E),  Decimal('1.66666666666666666666666E-7'))
-        self.assertEqual(converter.degmins_to_decdeg('00000.00001', Direction.W),  Decimal('-1.66666666666666666666666E-7'))
+        self.assertEqual(converter.degmins_to_decdeg('0000.00001', Direction.N),  Decimal('1.66666666666666666666667E-7'))
+        self.assertEqual(converter.degmins_to_decdeg('0000.00001', Direction.S),  Decimal('-1.66666666666666666666667E-7'))
+        self.assertEqual(converter.degmins_to_decdeg('00000.00001', Direction.E),  Decimal('1.66666666666666666666667E-7'))
+        self.assertEqual(converter.degmins_to_decdeg('00000.00001', Direction.W),  Decimal('-1.66666666666666666666667E-7'))
 
     def test_degmins_to_decdeg_near_zero_hires(self):
         converter = NMEADataFormatter()
-        self.assertEqual(converter.degmins_to_decdeg('0000.0000001', Direction.N),  Decimal('1.66666666666666666666666E-9'))
-        self.assertEqual(converter.degmins_to_decdeg('0000.0000001', Direction.S),  Decimal('-1.66666666666666666666666E-9'))
-        self.assertEqual(converter.degmins_to_decdeg('00000.0000001', Direction.E),  Decimal('1.66666666666666666666666E-9'))
-        self.assertEqual(converter.degmins_to_decdeg('00000.0000001', Direction.W),  Decimal('-1.66666666666666666666666E-9'))
+        self.assertEqual(converter.degmins_to_decdeg('0000.0000001', Direction.N),  Decimal('1.66666666666666666666667E-9'))
+        self.assertEqual(converter.degmins_to_decdeg('0000.0000001', Direction.S),  Decimal('-1.66666666666666666666667E-9'))
+        self.assertEqual(converter.degmins_to_decdeg('00000.0000001', Direction.E),  Decimal('1.66666666666666666666667E-9'))
+        self.assertEqual(converter.degmins_to_decdeg('00000.0000001', Direction.W),  Decimal('-1.66666666666666666666667E-9'))
 
     def test_degmins_to_decdeg_max(self):
         converter = NMEADataFormatter()
         self.assertEqual(converter.degmins_to_decdeg('9999.99999', Direction.N),  Decimal('100.6666665'))
         self.assertEqual(converter.degmins_to_decdeg('9999.99999', Direction.S),  Decimal('-100.6666665'))
-        self.assertEqual(converter.degmins_to_decdeg('99999.99999', Direction.E),  Decimal('1000.6666665'))
-        self.assertEqual(converter.degmins_to_decdeg('99999.99999', Direction.W),  Decimal('-1000.6666665'))
+        self.assertEqual(converter.degmins_to_decdeg('99999.99999', Direction.E), Decimal('1000.6666665'))
+        self.assertEqual(converter.degmins_to_decdeg('99999.99999', Direction.W), Decimal('-1000.6666665'))
 
     def test_degmins_to_decdeg_max_hires(self):
         converter = NMEADataFormatter()
@@ -163,6 +170,48 @@ class test_NMEADataFormatter(unittest.TestCase): # pylint: disable=too-many-publ
         self.assertEqual(converter.is_highpres('99.99999999'),  True)
         self.assertEqual(converter.is_highpres('9.99999999'),  True)
         self.assertEqual(converter.is_highpres('.99999999'),  True)
+
+    def test_round_trip(self):
+        converter = NMEADataFormatter()
+        decdeg = converter.degmins_to_decdeg('4916.45000', Direction.N)
+        degmin = converter.decdeg_to_degmins(decdeg, CoordAxis.LAT)
+        self.assertEqual(('4916.45000', Direction.N), degmin)
+
+    def test_round_trip_zero(self):
+        converter = NMEADataFormatter()
+        decdeg = converter.degmins_to_decdeg('0000.00000', Direction.N)
+        degmin = converter.decdeg_to_degmins(decdeg, CoordAxis.LAT)
+        self.assertEqual(('0000.00000', Direction.N), degmin)
+
+    def test_round_trip_near_zero(self):
+        converter = NMEADataFormatter()
+        decdeg = converter.degmins_to_decdeg('0000.00001', Direction.N)
+        degmin = converter.decdeg_to_degmins(decdeg, CoordAxis.LAT)
+        self.assertEqual(('0000.00001', Direction.N), degmin)
+        decdeg = converter.degmins_to_decdeg('0000.00001', Direction.S)
+        degmin = converter.decdeg_to_degmins(decdeg, CoordAxis.LAT)
+        self.assertEqual(('0000.00001', Direction.S), degmin)
+        decdeg = converter.degmins_to_decdeg('00000.00001', Direction.E)
+        degmin = converter.decdeg_to_degmins(decdeg, CoordAxis.LON)
+        self.assertEqual(('00000.00001', Direction.E), degmin)
+        decdeg = converter.degmins_to_decdeg('00000.00001', Direction.W)
+        degmin = converter.decdeg_to_degmins(decdeg, CoordAxis.LON)
+        self.assertEqual(('00000.00001', Direction.W), degmin)
+
+    def test_round_trip_near_zero_hires(self):
+        converter = NMEADataFormatter()
+        decdeg = converter.degmins_to_decdeg('0000.0000001', Direction.N)
+        degmin = converter.decdeg_to_degmins(decdeg, CoordAxis.LAT, hipres=True)
+        self.assertEqual(('0000.0000001', Direction.N), degmin)
+        decdeg = converter.degmins_to_decdeg('0000.0000001', Direction.S)
+        degmin = converter.decdeg_to_degmins(decdeg, CoordAxis.LAT, hipres=True)
+        self.assertEqual(('0000.0000001', Direction.S), degmin)
+        decdeg = converter.degmins_to_decdeg('00000.0000001', Direction.E)
+        degmin = converter.decdeg_to_degmins(decdeg, CoordAxis.LON, hipres=True)
+        self.assertEqual(('00000.0000001', Direction.E), degmin)
+        decdeg = converter.degmins_to_decdeg('00000.0000001', Direction.W)
+        degmin = converter.decdeg_to_degmins(decdeg, CoordAxis.LON, hipres=True)
+        self.assertEqual(('00000.0000001', Direction.W), degmin)
 
 class test_UBXDataFormatter(unittest.TestCase):
 

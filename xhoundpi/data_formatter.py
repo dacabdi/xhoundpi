@@ -14,7 +14,7 @@ c.traps[DivisionByZero] = True
 c.traps[InvalidOperation] = True
 c.traps[FloatOperation] = True
 c.traps[Inexact] = True
-c.rounding=ROUND_DOWN
+c.rounding=ROUND_HALF_EVEN
 getcontext().prec = 24
 
 class NMEADataFormatter:
@@ -41,6 +41,16 @@ class NMEADataFormatter:
         """
         Converts a geographic co-ordinate given in
         signed decimal degrees to (d)ddmm.mmmmm(m*) format
+
+        NOTE there is no official documentation that states that
+        the NMEA format will be fixed and always include trailing
+        and leading zeros. Apparently any format is admissible,
+        We will be compiling here sources that indicate which format
+        each hardware source seems to use. For now, we assume all leading
+        and trailing zeros are kept.
+
+        ublox devices:
+            https://portal.u-blox.com/s/question/0D52p00008HKDHLCA5/are-the-latitude-and-longitude-values-in-the-gpgga-message-fixed-format-or-variable
         """
         template, direction, degs, mins = self._get_data(dec_deg, axis, hipres)
         return template.format(degs=degs, mins=mins), direction
@@ -63,11 +73,14 @@ class NMEADataFormatter:
         degs = degs.copy_abs()
         mins = mins.copy_abs()
         with localcontext() as ctx:
-            # NOTE the log10 is very unlikely to yield an exact value
+            # NOTE
+            # 1. the log10 is very unlikely to yield an exact value
+            # 2. the mins * 60 operation can also be inexact, just provide enough precision
             ctx.traps[Inexact] = False
             if not degs.is_zero() and degs.log10() > deg_length:
                 raise ValueError('Too many digits in decimal degrees result')
-        return template, direction, int(degs), mins * 60
+            mins *= 60
+        return template, direction, int(degs), mins
 
     @classmethod
     #pylint: disable=invalid-name
@@ -131,5 +144,3 @@ class UBXDataFormatter:
     @classmethod
     def _sign(cls, val: int) -> int:
         return -1 if val < 0 else 1
-
-

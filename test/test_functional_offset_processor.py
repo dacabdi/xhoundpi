@@ -219,3 +219,35 @@ class test_Functional_OffsetProcessor(unittest.TestCase):
             '00 00 F8 A2 96 01 EA 01 00 00 80 A8 12 01 B0 00'
             '00 00 6C 18 42 3E 00 00 00 00 00 00 00 00 72 FA').hex(' ').upper()) # checksum
 
+    def test_nmea_pubx_zero_offset(self):
+        self.maxDiff = None
+        sentence = pynmea2.NMEASentence.parse(
+                '$PUBX,00,183246.00,'
+                '2938.52571,N,'
+                '08223.77912,W,'
+                '-3.078,D3,5.7,15,0.199,266.49,0.007,,0.88,2.06,1.51,15,0,0*'
+                '4B')
+        msg = Message(
+            message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}'),
+            proto=ProtocolClass.NMEA,
+            payload=sentence)
+        processor = self.setup_processor(Decimal('0'), Decimal('0'))
+        result = run_sync(processor.process(msg))
+        self.assertEqual(result[1].payload.render(),
+            '$PUBX,00,183246.00,'
+            '2938.52571,N,'
+            '08223.77912,W,'
+            '-3.078,D3,5.7,15,0.199,266.49,0.007,,0.88,2.06,1.51,15,0,0*'
+            '4B')
+
+    def test_nmea_zero_offset(self):
+        self.maxDiff = None
+        sentence = pynmea2.NMEASentence.parse('$GPGLL,4916.45000,N,12311.12000,W,225444,A')
+        msg = Message(
+            message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}'),
+            proto=ProtocolClass.NMEA,
+            payload=sentence)
+        processor = self.setup_processor(Decimal('0'), Decimal('0'))
+        result = run_sync(processor.process(msg))
+        self.assertEqual(result[1].payload.render(),
+            '$GPGLL,4916.45000,N,12311.12000,W,225444,A*31')
