@@ -30,7 +30,7 @@ class ProcessorWithEvents(IProcessor):
     """ IProcessor decorator for event logs """
 
     def __init__(self, inner: IProcessor, trace_provider):
-        self.__class__.__name__ = inner.__class__.__name__
+        self._name = inner._name if hasattr(inner, '_name') else inner.__class__.__name__
         self._inner = inner
         self._logger = trace_provider
 
@@ -46,7 +46,7 @@ class ProcessorWithEvents(IProcessor):
         self._logger.info(ProcessorAction(
             opcode=ProcessorOp.BeginProcess,
             success=True,
-            processor_id=self.__class__.__name__,
+            processor_id=self._name,
             activity_id=activity_id,
             message_id=message.message_id,
             protocol=message.proto,))
@@ -63,7 +63,7 @@ class ProcessorWithEvents(IProcessor):
         self._logger.log(level, ProcessorAction(
             opcode=ProcessorOp.EndProcess,
             success=success,
-            processor_id=self.__class__.__name__,
+            processor_id=self._name,
             activity_id=activity_id,
             message_id=message.message_id,
             protocol=message.proto,
@@ -75,7 +75,7 @@ class ProcessorWithEvents(IProcessor):
         return getattr(self.__dict__['_inner'], name)
 
     def __setattr__(self, name, value):
-        if name in ('_inner', '_logger'):
+        if name in ('_inner', '_logger', '_name'):
             self.__dict__[name] = value
         else:
             setattr(self.__dict__['_inner'], name, value)

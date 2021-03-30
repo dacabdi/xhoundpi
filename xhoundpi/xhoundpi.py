@@ -5,13 +5,14 @@ import signal
 import sys
 import asyncio
 import uuid
+import decimal
 
 # external imports
 import structlog
 
 # parsing libs
-import pynmea2
 import pyubx2
+import pynmea2
 
 # extensions and decorators (patch types on load)
 import xhoundpi.gnss_service_decorators # pylint: disable=unused-import
@@ -37,7 +38,19 @@ from .proto_serializer import (ProtocolSerializerProvider,
                               NMEAProtocolSerializer,)
 from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
-from .processor import NullProcessor
+from .data_formatter import (NMEADataFormatter,
+                             UBXDataFormatter)
+from .message_editor import (NMEAMessageEditor,
+                            UBXMessageEditor)
+from .operator import (NMEAOffsetOperator,
+                      UBXOffsetOperator,
+                      UBXHiResOffsetOperator,)
+from .operator_provider import CoordinateOperationProvider
+from .message_policy_provider import OnePolicyProvider
+from .message_policy import HasLocationPolicy
+from .processor import (CompositeProcessor,
+                       NullProcessor,
+                       GenericProcessor,)
 from .events import (AppEvent,
                     MetricsReport,)
 from .metric import (LatencyMetric,
@@ -219,11 +232,19 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
     def setup_processors(self):
         """ Setup GNSS processors pipeline """
         # pylint: disable=no-member
-        self.processors = (NullProcessor()
-            .with_events(logger=logger)
-            .with_metrics(
-                counter=self.metrics.gnss_processors_counter,
-                latency=self.metrics.gnss_processors_latency))
+        zero_offset = decimal.Decimal('0')
+        pos_offset = decimal.Decimal('0.0005')
+        neg_offset = decimal.Decimal('-0.0005')
+        self.processors = CompositeProcessor([
+            NullProcessor()
+                .with_events(logger=logger)
+                .with_metrics(
+                    counter=self.metrics.gnss_processors_counter,
+                    latency=self.metrics.gnss_processors_latency),
+            self.make_offset_generic_processor('ZeroOffsetProcessor', zero_offset, zero_offset),
+            self.make_offset_generic_processor('PositiveOffsetProcessor', pos_offset, pos_offset),
+            self.make_offset_generic_processor('NegativeOffsetProcessor', neg_offset, neg_offset),
+        ])
         self.processors_pipeline = AsyncPump(
              # pylint: disable=no-member
             input_queue=(self.gnss_inbound_queue
@@ -232,6 +253,41 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             output_queue=self.gnss_processed_queue)
         self.tasks.append(asyncio.create_task(
             self.processors_pipeline.run(), name='processors_pipeline'))
+
+    def make_offset_generic_processor(
+        self,
+        name: str,
+        lat_offset: decimal.Decimal,
+        lon_offset: decimal.Decimal):
+        # pylint: disable=no-member
+        """
+        Composes a generic processor
+        that uses fixed offsets operators
+        """
+        return (GenericProcessor(
+                name=name,
+                policy_provider=OnePolicyProvider(HasLocationPolicy()),
+                operator_provider=CoordinateOperationProvider(
+                    nmea_operator=NMEAOffsetOperator(
+                        msg_editor=NMEAMessageEditor(),
+                        data_formatter=NMEADataFormatter(),
+                        lat_offset=lat_offset,
+                        lon_offset=lon_offset),
+                    ubx_operator=UBXOffsetOperator(
+                        msg_editor=UBXMessageEditor(),
+                        data_formatter=UBXDataFormatter(),
+                        lat_offset=lat_offset,
+                        lon_offset=lon_offset),
+                    ubx_hires_operator=UBXHiResOffsetOperator(
+                        msg_editor=UBXMessageEditor(),
+                        data_formatter=UBXDataFormatter(),
+                        lat_offset=lat_offset,
+                        lon_offset=lon_offset),))
+                .with_events(logger=logger)
+                .with_metrics(
+                    # TODO use separate metrics
+                    counter=self.metrics.gnss_processors_counter,
+                    latency=self.metrics.gnss_processors_latency))
 
     def setup_msg_pump(self):
         """ Temporary msg pump """
