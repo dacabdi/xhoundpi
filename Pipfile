@@ -17,6 +17,9 @@ colorama = "*"
 unittest-xml-reporting = "*"
 junit2html = "*"
 coverage = "*"
+pillow = "*"
+numpy = "*"
+pygame = "*"
 
 [packages]
 configargparse = "*"

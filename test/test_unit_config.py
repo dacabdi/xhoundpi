@@ -7,7 +7,7 @@
 import unittest
 from xhoundpi.config import setup_configparser
 
-class test_config(unittest.TestCase):
+class test_Config(unittest.TestCase):
 
     def test_config_defaults(self):
         parser = setup_configparser()

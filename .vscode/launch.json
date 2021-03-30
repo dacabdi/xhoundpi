@@ -6,9 +6,7 @@
             "type": "python",
             "request": "launch",
             "module": "xhoundpi",
-            "args": [
-                "--config", "xhoundpi.config",
-            ],
+            "args": [],
         },
         {
             "name": "Debug Tests",
@@ -28,6 +26,19 @@
                 "--parse-gnss-input",
                 "./data/mixed_nmea_ubx_sample.cap",
                 "./data/gnss_out.bin"
+            ],
+        },
+        {
+            "name": "Panel POC",
+            "type": "python",
+            "request": "launch",
+            "module": "tools.panel_poc",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [
+                "--verbose",
+                "128",
+                "64"
             ],
         },
         {
