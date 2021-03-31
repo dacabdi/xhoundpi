@@ -9,6 +9,8 @@ import decimal
 
 # external imports
 import structlog
+import numpy as np
+from PIL import Image, ImageFont, ImageOps, ImageDraw
 
 # parsing libs
 import pyubx2
@@ -19,6 +21,10 @@ import xhoundpi.gnss_service_decorators # pylint: disable=unused-import
 import xhoundpi.gnss_client_decorators # pylint: disable=unused-import
 import xhoundpi.queue_decorators # pylint: disable=unused-import
 import xhoundpi.processor_decorators # pylint: disable=unused-import
+
+# submodules
+from .display.framebuffer import FrameBuffer
+from .display.pygame_display import PyGameDisplay
 
 # local imports
 from .time import StopWatch
@@ -69,6 +75,7 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.tasks = []
         self.tasks_gather = None
         self.setup_signals()
+        self.setup_display()
         self.setup_metrics()
         self.setup_metrics_logger()
         self.setup_queues()
@@ -109,19 +116,79 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         if self.tasks_gather:
             self.tasks_gather.cancel()
 
+    def setup_display(self):
+        """
+        Configure display
+        """
+        if self.config.display_driver == 'none':
+            self.frame_buff = None
+            self.display = None
+        else:
+            self.setup_frame_buffer()
+            if self.config.display_driver == 'pygame':
+                self.setup_display_pygame()
+            else:
+                raise NotImplementedError(
+                    "Currently only 'none' and 'pygame'"
+                    "display modes are supported")
+
+    def setup_frame_buffer(self):
+        """
+        Setup frame buffer
+        """
+        geometry = (self.config.display_height,
+                    self.config.display_width)
+        self.frame_buff = FrameBuffer(*geometry)
+
+    def setup_display_pygame(self):
+        """
+        Configure and start pygame fake display
+        """
+        self.display = PyGameDisplay(self.frame_buff)
+        self.tasks.append(self.display.mainloop())
+
+    def update_frame(self, message):
+        if hasattr(message.payload, 'lat') and hasattr(message.payload, 'lon'):
+            geometry = (self.config.display_width, self.config.display_height)
+            text_im = self._make_text(geometry, f'lat:{message.payload.lat}\nlon:{message.payload.lon}')
+            self.frame_buff.canvas[0:geometry[0],0:geometry[1]] = text_im.transpose()
+            self.frame_buff.update()
+
+    def _make_text(self, geometry, text):
+        image = Image.new('L', geometry, color='black')
+        font = ImageFont.truetype('consolab.ttf', 24)
+        draw = ImageDraw.Draw(image)
+        draw.text((0,0), text, font=font, fill=255, align='left')
+        return np.array(image)
+        #img = Image.new('L', geometry, color=0)
+        #img_w, img_h = img.size
+        #mask = font.getmask(text, mode='L')
+        #mask_w, mask_h = mask.size
+        #draw = ImageDraw.Draw(img)
+        #draw.text((0,0), text, font=font, fill=255)
+        #return np.array(img)
+
     # pylint: disable=line-too-long
     def setup_metrics(self):
         """ Setup program metrics """
         self.metric_hooks = []
         self.metrics = MetricsCollection([
+            # gnss service
             ValueMetric('gnss_client_read_bytes', self.metric_hooks),
             ValueMetric('gnss_client_written_bytes', self.metric_hooks),
             SuccessCounterMetric('gnss_service_read_counter', self.metric_hooks),
             SuccessCounterMetric('gnss_service_write_counter', self.metric_hooks),
             LatencyMetric('gnss_service_read_latency', StopWatch(), self.metric_hooks),
             LatencyMetric('gnss_service_write_latency', StopWatch(), self.metric_hooks),
-            SuccessCounterMetric('gnss_processors_counter', self.metric_hooks),
-            LatencyMetric('gnss_processors_latency', StopWatch(), self.metric_hooks),
+            # processors
+            SuccessCounterMetric('null_processor_counter', self.metric_hooks),
+            SuccessCounterMetric('zero_offset_processor_counter', self.metric_hooks),
+            SuccessCounterMetric('positive_offset_processor_counter', self.metric_hooks),
+            SuccessCounterMetric('negative_offset_processor_counter', self.metric_hooks),
+            LatencyMetric('null_processor_latency', self.metric_hooks),
+            LatencyMetric('zero_offset_processor_latency', self.metric_hooks),
+            LatencyMetric('positive_offset_processor_latency', self.metric_hooks),
+            LatencyMetric('negative_offset_processor_latency', self.metric_hooks),
         ])
 
     def setup_metrics_logger(self):
@@ -143,7 +210,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         """ Setup program queues """
         self.gnss_inbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
         self.gnss_outbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
-        self.gnss_processed_queue = asyncio.queues.Queue(self.config.buffer_capacity)
+        self.gnss_processed_queue = (asyncio.queues.Queue(self.config.buffer_capacity)
+            .with_callback(self.update_frame))
 
     def setup_gnss_service(self):
         """ Ensure all GNSS service dependencies are setup """
@@ -239,11 +307,26 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             NullProcessor()
                 .with_events(logger=logger)
                 .with_metrics(
-                    counter=self.metrics.gnss_processors_counter,
-                    latency=self.metrics.gnss_processors_latency),
-            self.make_offset_generic_processor('ZeroOffsetProcessor', zero_offset, zero_offset),
-            self.make_offset_generic_processor('PositiveOffsetProcessor', pos_offset, pos_offset),
-            self.make_offset_generic_processor('NegativeOffsetProcessor', neg_offset, neg_offset),
+                    counter=self.metrics.null_processor_counter,
+                    latency=self.metrics.null_processor_latency),
+            self.make_offset_generic_processor(
+                name='ZeroOffsetProcessor',
+                lat_offset=zero_offset,
+                lon_offset=zero_offset,
+                counter=self.metrics.zero_offset_processor_counter,
+                latency=self.metrics.zero_offset_processor_latency),
+            self.make_offset_generic_processor(
+                name='PositiveOffsetProcessor',
+                lat_offset=pos_offset,
+                lon_offset=pos_offset,
+                counter=self.metrics.positive_offset_processor_counter,
+                latency=self.metrics.positive_offset_processor_latency),
+            self.make_offset_generic_processor(
+                name='NegativeOffsetProcessor',
+                lat_offset=neg_offset,
+                lon_offset=neg_offset,
+                counter=self.metrics.negative_offset_processor_counter,
+                latency=self.metrics.negative_offset_processor_latency),
         ])
         self.processors_pipeline = AsyncPump(
              # pylint: disable=no-member
@@ -258,7 +341,9 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self,
         name: str,
         lat_offset: decimal.Decimal,
-        lon_offset: decimal.Decimal):
+        lon_offset: decimal.Decimal,
+        counter: SuccessCounterMetric,
+        latency: LatencyMetric):
         # pylint: disable=no-member
         """
         Composes a generic processor
@@ -286,8 +371,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
                 .with_events(logger=logger)
                 .with_metrics(
                     # TODO use separate metrics
-                    counter=self.metrics.gnss_processors_counter,
-                    latency=self.metrics.gnss_processors_latency))
+                    counter=counter,
+                    latency=latency))
 
     def setup_msg_pump(self):
         """ Temporary msg pump """

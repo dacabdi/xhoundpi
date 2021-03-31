@@ -19,6 +19,9 @@ class test_Config(unittest.TestCase):
         self.assertEqual(config.gnss_mock_input, 'data/gnss_mock_input.hex')
         self.assertEqual(config.gnss_mock_output, 'data/gnss_mock_output.hex')
         self.assertEqual(config.metrics_logger_freq, 1)
+        self.assertEqual(config.display_driver, 'none')
+        self.assertEqual(config.display_height, 64)
+        self.assertEqual(config.display_width, 256)
 
     def test_config_cli_overrides_long_version(self):
         parser = setup_configparser()
@@ -30,6 +33,9 @@ class test_Config(unittest.TestCase):
             '--gnss-mock-output /tmp/gnss-mock-out.bin',
             '--log-config-file configlog.yml',
             '--metrics-logger-freq 3',
+            '--display-driver', 'pygame',
+            '--display-height', '32',
+            '--display-width', '128',
             ]), config_file_contents='')
         self.assertEqual(config.config, '/etc/xhound/xhound.conf')
         self.assertEqual(config.buffer_capacity, 10)
@@ -38,6 +44,9 @@ class test_Config(unittest.TestCase):
         self.assertEqual(config.gnss_mock_output, '/tmp/gnss-mock-out.bin')
         self.assertEqual(config.log_config_file, 'configlog.yml')
         self.assertEqual(config.metrics_logger_freq, 3)
+        self.assertEqual(config.display_driver, 'pygame')
+        self.assertEqual(config.display_height, 32)
+        self.assertEqual(config.display_width, 128)
 
     def test_config_overrides_allsources(self):
         parser = setup_configparser()

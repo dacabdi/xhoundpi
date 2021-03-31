@@ -17,7 +17,7 @@ from structlog.testing import capture_logs
 
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleExportSpanProcessor
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
 
 from xhoundpi.status import Status
 from xhoundpi.async_ext import run_sync
@@ -345,7 +345,7 @@ class test_GnssServiceWithTraces(unittest.TestCase):
         output = io.StringIO()
         formatter = lambda span: span.name
         trace.set_tracer_provider(TracerProvider())
-        trace.get_tracer_provider().add_span_processor(SimpleExportSpanProcessor(ConsoleSpanExporter(out=output, formatter=formatter)))
+        trace.get_tracer_provider().add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter(out=output, formatter=formatter)))
 
         tracer = trace.get_tracer("test_tracer")
 

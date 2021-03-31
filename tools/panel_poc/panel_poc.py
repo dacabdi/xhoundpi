@@ -7,8 +7,11 @@ import sys
 import os
 import asyncio
 
-from .fakepanel import FakePanel
-from tools.panel_poc.pygame_panel import render
+import numpy as np
+from PIL import Image, ImageFont, ImageOps
+
+from xhoundpi.display.pygame_display import PyGameDisplay
+from xhoundpi.display.framebuffer import FrameBuffer
 
 logger = logging.getLogger()
 
@@ -20,7 +23,10 @@ class PanelPoc():
         self._tasks = []
         self._tasks_gather = None
         self._setup_signals()
-        #self._panel = FakePanel("tools/panel_poc/welcome.bmp")
+        self._frame = FrameBuffer(
+            height=options.display_height,
+            width=options.display_width)
+        self._display = PyGameDisplay(self._frame)
 
     def _setup_signals(self):
         """ Subscribe to signals """
@@ -34,7 +40,8 @@ class PanelPoc():
     async def run(self):
         """ Run display POC """
         self._pre_run()
-        self._tasks.append(render())
+        self._tasks.append(self._display.mainloop())
+        self._tasks.append(self._update_frame_loop())
         self._tasks_gather = asyncio.gather(*self._tasks)
         try:
             await self._tasks_gather
@@ -58,7 +65,6 @@ class PanelPoc():
         logger.debug(f'Environment variables "{os.environ}"')
 
     def _post_run(self):
-
         pass
 
     def _signal_handler(self, sig, frame): # pylint: disable=unused-argument
@@ -68,3 +74,24 @@ class PanelPoc():
         self._signal_frame = frame
         if self._tasks_gather:
             self._tasks_gather.cancel()
+
+    async def _update_frame_loop(self):
+        while True:
+            self._frame.canvas[0:] = np.random.rand(
+                self._frame.width,
+                self._frame.height)  * 255
+            self._frame.canvas[0:64,0:64] = self._make_text()
+            self._frame.update()
+            await asyncio.sleep(1/60)
+
+    def _make_text(self):
+        img = Image.new('L', (64, 64), color=0)
+        img_w, img_h = img.size
+        font = ImageFont.truetype('arial.ttf', 16)
+        mask = font.getmask('text', mode='L')
+        mask_w, mask_h = mask.size
+        d = Image.core.draw(img.im, 0)
+        d.draw_bitmap(((img_w - mask_w)/2, (img_h - mask_h)/2), mask, 255)
+        img = img.rotate(90)
+        img = ImageOps.flip(img)
+        return np.array(img)

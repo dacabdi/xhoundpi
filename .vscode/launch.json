@@ -6,7 +6,13 @@
             "type": "python",
             "request": "launch",
             "module": "xhoundpi",
-            "args": [],
+            "args": [
+                "--mock-gnss",
+                "--gnss-mock-input",
+                "./data/nmea_capture_sample.cap.hex",
+                "--gnss-mock-output",
+                "./gnss_out.hex"
+            ],
         },
         {
             "name": "Debug Tests",

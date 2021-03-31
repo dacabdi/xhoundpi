@@ -22,4 +22,10 @@ def setup_configparser() -> configargparse.ArgumentParser:
     parser.add('--metrics-logger-freq', default=1, dest='metrics_logger_freq',
         type=int, help='frequency, in seconds, with which all '
         'metrics will be sent to the logger (set to 0 to disable metrics logger)')
+    parser.add('--display-driver', dest='display_driver', type=str, default='pygame',
+        help='display driver')
+    parser.add('--display-height', dest='display_height', type=int, default=64,
+        help='display height in pixels')
+    parser.add('--display-width', dest='display_width', type=int, default=256,
+        help='display width in pixels')
     return parser
