@@ -111,7 +111,7 @@ class Panel():
     def _make_text(self):
         img = Image.new(self._mode.pilmode, (64, 48), color='black')
         img_w, img_h = img.size
-        font = ImageFont.truetype('arial.ttf', 16)
+        font = ImageFont.truetype('fonts/clacon.ttf', 18)
         mask = font.getmask('text', mode=self._mode.pilmode)
         mask_w, mask_h = mask.size
         draw = Image.core.draw(img.im, 0)

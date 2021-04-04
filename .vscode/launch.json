@@ -54,7 +54,7 @@
                 "--mode",
                 "rgb",
                 "--driver",
-                "gif"
+                "pygame"
             ],
         },
         {

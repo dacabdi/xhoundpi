@@ -176,7 +176,7 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
 
     def _make_text(self, geometry: Geometry, text):
         image = Image.new(self.display_mode.pilmode, geometry.col_major, color='black')
-        font = ImageFont.truetype('consolab.ttf', 16)
+        font = ImageFont.truetype('fonts/clacon.ttf', 18)
         draw = ImageDraw.Draw(image)
         draw.text((0,0), text, font=font, fill='red', align='left')
         return np.array(image)
