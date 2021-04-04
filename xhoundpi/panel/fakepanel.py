@@ -2,9 +2,41 @@
 
 import asyncio
 import numpy as np
+
 import pygame
+from PIL import Image
 
 from .framebuffer import FrameBuffer
+
+class GifDisplay:
+    """
+    Gif output display
+    """
+
+    def __init__(self, mode, frame: FrameBuffer):
+        # pylint: disable=no-member
+        self._mode = mode
+        self._frame = frame
+        self._images = []
+        self._active = True
+        self._frame.subscribe(self.render)
+
+    def render(self, frame):
+        """
+        Render frame onto screen
+        """
+        if self._active:
+            self._append_frame(frame)
+
+    def _append_frame(self, frame: np.ndarray):
+        image = Image.fromarray(frame, mode=self._mode.pilmode)
+        self._images.append(image)
+        self._images[0].save('display.gif',
+               save_all=True,
+               append_images=self._images[1:],
+               optimize=True,
+               duration=33,
+               loop=0)
 
 class PyGameDisplay:
     """

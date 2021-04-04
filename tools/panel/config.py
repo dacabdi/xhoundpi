@@ -15,4 +15,6 @@ def setup_argparser():
         help='display depth mode, valid values are "rgb", "grayscale", and "1bit"')
     config.add_argument('--scale', dest='scale', type=int, default=4,
         help='display scaling for fake displays')
+    config.add_argument('--driver', dest='driver', type=str, default='pygame',
+        help='type of display to drive')
     return config

@@ -25,7 +25,8 @@ import xhoundpi.processor_decorators # pylint: disable=unused-import
 # submodules
 from .panel.geometry import Geometry
 from .panel.framebuffer import FrameBuffer
-from .panel.fakepanel import PyGameDisplay
+from .panel.fakepanel import (GifDisplay,
+                             PyGameDisplay,)
 
 # local imports
 from .config import display_mode
@@ -127,13 +128,15 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             self.display = None
         else:
             self.setup_frame_buffer()
+            self.gnss_processed_queue = (self.gnss_processed_queue
+                .with_callback(self.update_frame))
             if self.config.display_driver == 'pygame':
                 self.setup_display_pygame()
-                self.gnss_processed_queue = (self.gnss_processed_queue
-                    .with_callback(self.update_frame))
+            elif self.config.display_driver == 'gif':
+                self.setup_display_gif()
             else:
                 raise NotImplementedError(
-                    "Currently only 'none' and 'pygame'"
+                    "Currently only 'none', 'gif', and 'pygame'"
                     "display modes are supported")
 
     def setup_frame_buffer(self):
@@ -154,6 +157,12 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         """
         self.display = PyGameDisplay(self.frame_buff)
         self.tasks.append(self.display.mainloop())
+
+    def setup_display_gif(self):
+        """
+        Configure and setup a GIF output display
+        """
+        self.display = GifDisplay(self.display_mode, self.frame_buff)
 
     def update_frame(self, message):
         """ POC method to update frame, used as a callback after changes """

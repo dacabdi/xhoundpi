@@ -13,7 +13,9 @@
                 "--gnss-mock-output",
                 "./gnss_out.hex",
                 "--display-mode",
-                "1bit"
+                "rgb",
+                "--display-driver",
+                "gif"
             ],
         },
         {
@@ -50,7 +52,9 @@
                 "--display-width",
                 "128",
                 "--mode",
-                "1bit"
+                "rgb",
+                "--driver",
+                "gif"
             ],
         },
         {

@@ -96,6 +96,7 @@ jobs:
             .coverage
             coverage.xml
             coverage-html/
+            display.gif
           if-no-files-found: error
 
       - name: Publish unit test results

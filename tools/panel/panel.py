@@ -10,9 +10,10 @@ import asyncio
 import numpy as np
 from PIL import Image, ImageFont
 
+from xhoundpi.config import display_mode
 from xhoundpi.panel.util import copyto_withpos
 from xhoundpi.panel.geometry import Geometry
-from xhoundpi.panel.fakepanel import PyGameDisplay
+from xhoundpi.panel.fakepanel import GifDisplay, PyGameDisplay
 from xhoundpi.panel.framebuffer import FrameBuffer
 
 logger = logging.getLogger()
@@ -26,14 +27,14 @@ class Panel():
         self._tasks = []
         self._tasks_gather = None
         self._setup_signals()
-        self._setup_mode()
+        self._mode = display_mode(options.mode)
         self._geometry = Geometry(
             rows=options.display_height,
             cols=options.display_width,
-            channels=self._channels,
-            depth=self._depth)
+            channels=self._mode.channels,
+            depth=self._mode.depth)
         self._frame = FrameBuffer(self._geometry)
-        self._display = PyGameDisplay(self._frame, scale=options.scale)
+        self._setup_display()
 
     def _setup_signals(self):
         """ Subscribe to signals """
@@ -44,28 +45,21 @@ class Panel():
             signal.signal(signal.SIGBREAK, self._signal_handler) # pylint: disable=no-member
         signal.signal(signal.SIGTERM, self._signal_handler)
 
-    def _setup_mode(self):
-        if self._options.mode == 'rgb':
-            self._pilmode = 'RGB'
-            self._depth = 8
-            self._channels = 3
-        elif self._options.mode == 'grayscale':
-            self._pilmode = 'L'
-            self._depth = 8
-            self._channels = 1
-        elif self._options.mode == '1bit':
-            self._pilmode = '1'
-            self._depth = 1
-            self._channels = 1
+    def _setup_display(self):
+        driver = self._options.driver
+        if driver == 'pygame':
+            self._display = PyGameDisplay(self._frame, scale=self._options.scale)
+            self._tasks.append(self._display.mainloop())
+        elif driver  == 'gif':
+            self._display = GifDisplay(self._mode, self._frame)
         else:
-            raise ValueError(f'Mode {self._options.mode}'
-                'not supported. Please use "rgb", "grayscale",'
-                'or "1bit" modes')
+            raise NotImplementedError(
+                "Currently only 'gif' and 'pygame'"
+                "display modes are supported")
 
     async def run(self):
         """ Run display POC """
         self._pre_run()
-        self._tasks.append(self._display.mainloop())
         self._tasks.append(self._update_frame_loop())
         self._tasks_gather = asyncio.gather(*self._tasks)
         try:
@@ -115,11 +109,11 @@ class Panel():
             await asyncio.sleep(1/60)
 
     def _make_text(self):
-        img = Image.new(self._pilmode, (64, 48), color='black')
+        img = Image.new(self._mode.pilmode, (64, 48), color='black')
         img_w, img_h = img.size
         font = ImageFont.truetype('arial.ttf', 16)
-        mask = font.getmask('text', mode=self._pilmode)
+        mask = font.getmask('text', mode=self._mode.pilmode)
         mask_w, mask_h = mask.size
         draw = Image.core.draw(img.im, 0)
-        draw.draw_bitmap(((img_w - mask_w)/2, (img_h - mask_h)/2), mask, 2 ** self._depth - 1)
+        draw.draw_bitmap(((img_w - mask_w)/2, (img_h - mask_h)/2), mask, 2 ** self._mode.depth - 1)
         return np.array(img)

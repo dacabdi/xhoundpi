@@ -23,7 +23,7 @@ class Simulator():
         '--mock-gnss '
         '--gnss-mock-input {gnss_input} '
         '--gnss-mock-output {gnss_output} '
-        '--display-driver none')
+        '--display-driver gif')
 
     def __init__(self, options):
         self.options = options
