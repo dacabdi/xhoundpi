@@ -30,6 +30,7 @@ opentelemetry-api = "*"
 opentelemetry-sdk = "*"
 structlog = "*"
 pyyaml = "*"
+frozendict = "*"
 
 [requires]
 python_version = "3.9"

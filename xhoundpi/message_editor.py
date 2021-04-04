@@ -17,8 +17,10 @@ class NMEAMessageEditor(IMessageEditor):
         try:
             self._set_fields(message.payload, fields)
             error = None
-        except Exception as ex: # pylint: disable=broad-except
-            error = ex
+        except KeyError as ex:
+            error = AttributeError(
+                f"NMEA sentence '{message.payload.identifier()}' "
+                f"does not contain field '{ex.args[0]}'")
         return Status(error), message
 
     # pylint: disable=no-self-use
@@ -34,7 +36,7 @@ class UBXMessageEditor(IMessageEditor):
         try:
             self._set_fields(message, fields)
             error = None
-        except Exception as ex: # pylint: disable=broad-except
+        except AttributeError as ex:
             error = ex
         return Status(error), message
 

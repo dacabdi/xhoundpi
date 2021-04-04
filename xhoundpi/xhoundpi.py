@@ -6,11 +6,12 @@ import sys
 import asyncio
 import uuid
 import decimal
+from xhoundpi.config import display_mode
 
 # external imports
 import structlog
 import numpy as np
-from PIL import Image, ImageFont, ImageOps, ImageDraw
+from PIL import Image, ImageFont, ImageDraw
 
 # parsing libs
 import pyubx2
@@ -23,8 +24,9 @@ import xhoundpi.queue_decorators # pylint: disable=unused-import
 import xhoundpi.processor_decorators # pylint: disable=unused-import
 
 # submodules
-from .display.framebuffer import FrameBuffer
-from .display.pygame_display import PyGameDisplay
+from .panel.geometry import Geometry
+from .panel.framebuffer import FrameBuffer
+from .panel.fakepanel import PyGameDisplay
 
 # local imports
 from .time import StopWatch
@@ -136,9 +138,13 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         """
         Setup frame buffer
         """
-        geometry = (self.config.display_height,
-                    self.config.display_width)
-        self.frame_buff = FrameBuffer(*geometry)
+        self.display_mode = display_mode(self.config.display_mode)
+        self.display_geometry = Geometry(
+            rows=self.config.display_height,
+            cols=self.config.display_width,
+            channels=self.display_mode.channels,
+            depth=self.display_mode.depth)
+        self.frame_buff = FrameBuffer(self.display_geometry)
 
     def setup_display_pygame(self):
         """
@@ -148,25 +154,20 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.tasks.append(self.display.mainloop())
 
     def update_frame(self, message):
-        if hasattr(message.payload, 'lat') and hasattr(message.payload, 'lon'):
-            geometry = (self.config.display_width, self.config.display_height)
-            text_im = self._make_text(geometry, f'lat:{message.payload.lat}\nlon:{message.payload.lon}')
-            self.frame_buff.canvas[0:geometry[0],0:geometry[1]] = text_im.transpose()
+        if HasLocationPolicy().qualifies(message):
+            geometry = self.frame_buff.geometry
+            text_im = self._make_text(geometry,
+                f'lat:{message.payload.lat}\n'
+                f'lon:{message.payload.lon}')
+            np.copyto(self.frame_buff.canvas, text_im)
             self.frame_buff.update()
 
-    def _make_text(self, geometry, text):
-        image = Image.new('L', geometry, color='black')
-        font = ImageFont.truetype('consolab.ttf', 24)
+    def _make_text(self, geometry: Geometry, text):
+        image = Image.new(self.display_mode.pilmode, geometry.col_major, color='black')
+        font = ImageFont.truetype('consolab.ttf', 16)
         draw = ImageDraw.Draw(image)
-        draw.text((0,0), text, font=font, fill=255, align='left')
+        draw.text((0,0), text, font=font, fill='red', align='left')
         return np.array(image)
-        #img = Image.new('L', geometry, color=0)
-        #img_w, img_h = img.size
-        #mask = font.getmask(text, mode='L')
-        #mask_w, mask_h = mask.size
-        #draw = ImageDraw.Draw(img)
-        #draw.text((0,0), text, font=font, fill=255)
-        #return np.array(img)
 
     # pylint: disable=line-too-long
     def setup_metrics(self):

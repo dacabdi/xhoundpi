@@ -27,16 +27,6 @@ class StubSerial(ISerial):
             else rx
         self.__transport_tx = tx
 
-    def open(self):
-        """ Open the tx and rx transport streams """
-        self.__transport_rx.open(mode='rb')
-        self.__transport_tx.open(mode='+wb')
-
-    def close(self):
-        """ Close the tx and rx transport streams """
-        self.__transport_rx.close()
-        self.__transport_tx.close()
-
     def read(self, size=1):
         """ Read n bytes from the stream
         NOTE: this stub will cause an infinite

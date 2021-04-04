@@ -18,6 +18,11 @@ class test_NMEADataFormatter(unittest.TestCase): # pylint: disable=too-many-publ
 
     # degmins_to_decdeg
 
+    def test_degmins_to_decdeg_0_or_None(self):
+        converter = NMEADataFormatter()
+        self.assertEqual(converter.degmins_to_decdeg('0', Direction.N),  Decimal(  '0'))
+        self.assertEqual(converter.degmins_to_decdeg(None, Direction.S),  Decimal( '0'))
+
     def test_degmins_to_decdeg_and_direction_sign(self):
         converter = NMEADataFormatter()
         self.assertEqual(converter.degmins_to_decdeg('1212.12345', Direction.N),  Decimal(  '12.2020575'))

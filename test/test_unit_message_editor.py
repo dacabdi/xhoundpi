@@ -180,3 +180,17 @@ class test_NMEAMessageEditor(unittest.TestCase):
             '36 36 2E 34 39 2C 30 2E  30 30 37 2C 2C 30 2E 38'
             '38 2C 32 2E 30 36 2C 31  2E 35 31 2C 31 35 2C 30'
             '2C 30 2A 34 31 0D 0A                            '))
+
+    def test_should_fail_if_field_does_not_exist(self):
+        self.maxDiff = None
+        editor = NMEAMessageEditor()
+        msg = Message(
+            message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}'),
+            proto=ProtocolClass.NMEA,
+            payload=pynmea2.NMEASentence.parse(self.common_frame.decode()))
+
+        self.assertEqual(msg.payload.lon, '08223.77912')
+        status, msg = editor.set_fields(msg, {'longitud': '12223.77912'})
+        self.assertFalse(status.ok)
+        self.assertEqual(status, Status(AttributeError("NMEA sentence 'PUBX' does not contain field 'longitud'")))
+        self.assertEqual(msg.payload.serialize(), self.common_frame)

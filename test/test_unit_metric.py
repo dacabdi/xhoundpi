@@ -38,6 +38,7 @@ class test_LatencyMetric(unittest.TestCase): # pylint: disable=invalid-name
         hook.assert_called_with('latency1', 20.0)
 
         self.assertEqual(metric.mappify(), {'latency1': 20.0})
+        self.assertEqual(str(metric), "{'latency1': 20.0}")
 
     def test_latency_as_context_manager(self):
         stopwatch = FakeStopWatch()
@@ -105,6 +106,7 @@ class test_CounterMetric(unittest.TestCase): # pylint: disable=invalid-name
         hook.assert_called_with('counter1', 2)
         self.assertEqual(metric.value, 2)
         self.assertEqual(metric.mappify(), {'counter1': 2})
+        self.assertEqual(str(metric), "{'counter1': 2}")
 
 class test_ValueMetric(unittest.TestCase): # pylint: disable=invalid-name
 
@@ -128,6 +130,7 @@ class test_ValueMetric(unittest.TestCase): # pylint: disable=invalid-name
         hook.assert_called_with('value1', 0)
         self.assertEqual(metric.value, 0)
         self.assertEqual(metric.mappify(), {'value1': 0})
+        self.assertEqual(str(metric), "{'value1': 0}")
 
 class test_SuccessCounterMetric(unittest.TestCase): # pylint: disable=invalid-name
 
@@ -164,6 +167,8 @@ class test_SuccessCounterMetric(unittest.TestCase): # pylint: disable=invalid-na
             'counter1_success': 2,
             'counter1_failure': 1,
         })
+
+        self.assertEqual(str(metric), "{'counter1_success': 2, 'counter1_failure': 1}")
 
 class StubMetric:
 

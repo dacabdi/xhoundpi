@@ -17,6 +17,7 @@ class StubGnssClient(IGnssClient):
     def __init__(self, data: bytes):
         self.on_read_data = data
         self.last_written = None
+        self.some_internal_prop = 'test'
 
     def read(self, size) -> bytes:
         return self.on_read_data
@@ -59,3 +60,17 @@ class test_GnssClientWithMetrics(unittest.TestCase):
         self.assertEqual(client.last_written, b'\x01\x02\x03')
         self.assertEqual(written.value, 4)
         hook.assert_called_with('gnss_client_written_bytes', 4)
+
+    def test_access_to_decorated_object_props(self):
+        client = StubGnssClient(b'\xff')
+        hook = Mock()
+        read = ValueMetric('gnss_client_read_bytes', [hook])
+        written = ValueMetric('gnss_client_written_bytes', [hook])
+        decorated = client.with_metrics(cbytes_read=read, cbytes_written=written) # pylint: disable=no-member
+
+        self.assertTrue(hasattr(decorated, 'some_internal_prop'))
+        self.assertEqual('test', decorated.some_internal_prop)
+        decorated.some_internal_prop = 'changed'
+        self.assertEqual('changed', decorated.some_internal_prop)
+        del decorated.some_internal_prop
+        self.assertFalse(hasattr(decorated, 'some_internal_prop'))

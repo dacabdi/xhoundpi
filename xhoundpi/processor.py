@@ -42,7 +42,7 @@ class GenericProcessor(IProcessor):
                 status, result = operator.operate(message)
                 if status.ok:
                     return Status.OK(metadata=metadata), result
-                return Status(result.error, metadata=metadata), message
+                return Status(status.error, metadata=(status.metadata | metadata)), message
             return Status.OK(metadata=metadata), message
         except Exception as ex: # pylint: disable=broad-except
             return Status(ex, metadata=metadata), message

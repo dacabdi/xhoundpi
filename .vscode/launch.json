@@ -11,7 +11,9 @@
                 "--gnss-mock-input",
                 "./data/nmea_capture_sample.cap.hex",
                 "--gnss-mock-output",
-                "./gnss_out.hex"
+                "./gnss_out.hex",
+                "--display-mode",
+                "1bit"
             ],
         },
         {
@@ -38,13 +40,17 @@
             "name": "Panel POC",
             "type": "python",
             "request": "launch",
-            "module": "tools.panel_poc",
+            "module": "tools.panel",
             "console": "integratedTerminal",
-            "justMyCode": false,
+            "justMyCode": true,
             "args": [
                 "--verbose",
+                "--display-height",
+                "64",
+                "--display-width",
                 "128",
-                "64"
+                "--mode",
+                "1bit"
             ],
         },
         {

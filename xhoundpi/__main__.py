@@ -13,9 +13,9 @@ import structlog
 
 # local imports
 from .config import setup_configparser
-from .xhoundpi import XHoundPi
 from .bound_logger_event import BoundLoggerEvents
 from .events import AppEvent
+from .xhoundpi import XHoundPi
 
 logger = structlog.get_logger('xhoundpi')
 

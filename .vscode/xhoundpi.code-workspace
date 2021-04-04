@@ -1,19 +1,10 @@
 {
-	"folders": [
-		{
-			"path": ".."
-		}
-	],
-	"settings": {
-		"python.testing.unittestEnabled": true
-	},
-	"extensions": {
-		"recommendations": [
-			"shardulm94.trailing-spaces",
-			"ms-python.python",
-			"ms-python.vscode-pylance",
-			"eamodio.gitlens",
-			"ms-vscode.hexeditor"
-		]
-	}
+    "folders": [
+        {
+            "path": ".."
+        }
+    ],
+    "settings": {
+        "python.testing.unittestEnabled": true
+    }
 }

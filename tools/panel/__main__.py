@@ -6,8 +6,8 @@ import logging
 import sys
 import asyncio
 
-from tools.panel_poc.config import setup_argparser
-from tools.panel_poc.panel_poc import PanelPoc
+from tools.panel.config import setup_argparser
+from tools.panel.panel import Panel
 
 BANNER = """
 ██   ██ ██   ██  ██████  ██    ██ ███    ██ ██████  ██████  ██ 
@@ -30,7 +30,7 @@ async def main_async():
     config = setup_argparser()
     options = config.parse_args()
 
-    await PanelPoc(options).run()
+    await Panel(options).run()
 
 def main():
     """ Entry point and async main scheduler """
