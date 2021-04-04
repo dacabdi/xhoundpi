@@ -100,7 +100,7 @@ class PyGameDisplay:
         # way of extending the 2d array into 3d array with repeated values
         if len(frame.shape) < 3:
             new_frame = np.zeros((frame.shape) + (3,), dtype=frame.dtype)
-            # pylint: consider-using-enumerate
+            # pylint: disable=consider-using-enumerate
             for i in range(len(new_frame)):
                 for j in range(len(new_frame[i])):
                     new_frame[i][j] = np.array([frame[i][j]])

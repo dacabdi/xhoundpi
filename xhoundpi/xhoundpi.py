@@ -156,6 +156,7 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.tasks.append(self.display.mainloop())
 
     def update_frame(self, message):
+        """ POC method to update frame, used as a callback after changes """
         if HasLocationPolicy().qualifies(message):
             geometry = self.frame_buff.geometry
             text_im = self._make_text(geometry,
@@ -339,6 +340,7 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.tasks.append(asyncio.create_task(
             self.processors_pipeline.run(), name='processors_pipeline'))
 
+    # pylint: disable=too-many-arguments, no-self-use
     def make_offset_generic_processor(
         self,
         name: str,

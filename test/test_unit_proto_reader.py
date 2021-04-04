@@ -160,6 +160,7 @@ class test_NMEAProtocolReader(unittest.TestCase):
             + '2C 33 37 2C 32 37 33 2C 33 37 2C 37 33 2C 34 33'
             + '2C 33 34 30 2C 31 36 2C 31 2A 37 39 0D 0A      '
             #msg3 (special, vendor extensions)
+            # pylint: disable=duplicate-code
             + '   50 55 42 58 2C 30 33 2C 33 32 2C 31 2C 2D 2C'
             + '31 37 32 2C 30 30 2C 2C 30 30 30 2C 33 2C 65 2C'
             + '31 39 38 2C 2D 31 2C 2C 30 30 30 2C 34 2C 55 2C'
@@ -206,6 +207,7 @@ class test_NMEAProtocolReader(unittest.TestCase):
             bytes.fromhex('24 47 4C 47 53 56 2C 31 2C 31 2C 30 32 2C 37 31'
                         + '2C 33 37 2C 32 37 33 2C 33 37 2C 37 33 2C 34 33'
                         + '2C 33 34 30 2C 31 36 2C 31 2A 37 39 0D 0A      '))
+        # pylint: disable=duplicate-code
         self.assertEqual(reader.read_frame(b'\x24', stream),
             bytes.fromhex('24 50 55 42 58 2C 30 33 2C 33 32 2C 31 2C 2D 2C'
                         + '31 37 32 2C 30 30 2C 2C 30 30 30 2C 33 2C 65 2C'

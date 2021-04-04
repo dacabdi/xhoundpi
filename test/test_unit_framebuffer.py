@@ -4,7 +4,6 @@
 # pylint: disable=line-too-long
 # pylint: disable=invalid-name
 
-from re import L
 import unittest
 from unittest.mock import Mock
 import numpy as np

@@ -20,6 +20,7 @@ logger = logging.getLogger()
 class Panel():
     """ xHoundPi Panel POC context handlers """
 
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, options):
         self._options = options
         self._tasks = []
@@ -119,6 +120,6 @@ class Panel():
         font = ImageFont.truetype('arial.ttf', 16)
         mask = font.getmask('text', mode=self._pilmode)
         mask_w, mask_h = mask.size
-        d = Image.core.draw(img.im, 0)
-        d.draw_bitmap(((img_w - mask_w)/2, (img_h - mask_h)/2), mask, 2 ** self._depth - 1)
+        draw = Image.core.draw(img.im, 0)
+        draw.draw_bitmap(((img_w - mask_w)/2, (img_h - mask_h)/2), mask, 2 ** self._depth - 1)
         return np.array(img)
