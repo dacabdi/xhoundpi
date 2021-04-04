@@ -6,7 +6,6 @@ import sys
 import asyncio
 import uuid
 import decimal
-from xhoundpi.config import display_mode
 
 # external imports
 import structlog
@@ -29,6 +28,7 @@ from .panel.framebuffer import FrameBuffer
 from .panel.fakepanel import PyGameDisplay
 
 # local imports
+from .config import display_mode
 from .time import StopWatch
 from .serial import StubSerial
 from .queue_pump import AsyncPump
