@@ -22,7 +22,8 @@ class Simulator():
         '-m xhoundpi '
         '--mock-gnss '
         '--gnss-mock-input {gnss_input} '
-        '--gnss-mock-output {gnss_output}')
+        '--gnss-mock-output {gnss_output} '
+        '--display-driver none')
 
     def __init__(self, options):
         self.options = options

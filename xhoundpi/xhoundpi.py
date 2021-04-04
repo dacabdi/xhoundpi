@@ -77,10 +77,10 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         self.tasks = []
         self.tasks_gather = None
         self.setup_signals()
-        self.setup_display()
+        self.setup_queues()
         self.setup_metrics()
         self.setup_metrics_logger()
-        self.setup_queues()
+        self.setup_display()
         self.setup_gnss_service()
         self.setup_processors()
         self.setup_msg_pump()
@@ -129,6 +129,8 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
             self.setup_frame_buffer()
             if self.config.display_driver == 'pygame':
                 self.setup_display_pygame()
+                self.gnss_processed_queue = (self.gnss_processed_queue
+                    .with_callback(self.update_frame))
             else:
                 raise NotImplementedError(
                     "Currently only 'none' and 'pygame'"
@@ -211,8 +213,7 @@ class XHoundPi: # pylint: disable=too-many-instance-attributes
         """ Setup program queues """
         self.gnss_inbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
         self.gnss_outbound_queue = asyncio.queues.Queue(self.config.buffer_capacity)
-        self.gnss_processed_queue = (asyncio.queues.Queue(self.config.buffer_capacity)
-            .with_callback(self.update_frame))
+        self.gnss_processed_queue = asyncio.queues.Queue(self.config.buffer_capacity)
 
     def setup_gnss_service(self):
         """ Ensure all GNSS service dependencies are setup """
