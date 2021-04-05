@@ -70,7 +70,8 @@ from .async_ext import loop_forever_async
 
 logger = structlog.get_logger('xhoundpi')
 
-class XHoundPi: # pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-instance-attributes,too-many-public-methods
+class XHoundPi:
     """ XHoundPi program class """
 
     def __init__(self, config):
