@@ -156,7 +156,7 @@ class XHoundPi:
         """
         Configure and start pygame fake display
         """
-        self.display = PyGameDisplay(self.frame_buff)
+        self.display = PyGameDisplay(self.frame_buff, scale=self.config.display_scale)
         self.tasks.append(self.display.mainloop())
 
     def setup_display_gif(self):
