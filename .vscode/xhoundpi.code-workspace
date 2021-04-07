@@ -5,6 +5,7 @@
         }
     ],
     "settings": {
-        "python.testing.unittestEnabled": true
+        "python.testing.unittestEnabled": true,
+        "python.pythonPath": ".venv/bin/python"
     }
 }

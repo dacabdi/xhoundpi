@@ -3,7 +3,7 @@
     "python.languageServer": "Pylance",
     "python.linting.enabled": true,
     "python.linting.lintOnSave": true,
-    "python.pythonPath": "d:\\repos\\xhoundpi\\.venv\\Scripts\\python.exe",
+    "python.pythonPath": ".venv/bin/python",
     "python.testing.unittestEnabled": true,
     "workbench.editorAssociations": [
         {
