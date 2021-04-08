@@ -39,6 +39,15 @@
             ],
         },
         {
+            "name": "Bluetooth Tools",
+            "type": "python",
+            "request": "launch",
+            "module": "tools.bluetooth",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [],
+        },
+        {
             "name": "Panel POC",
             "type": "python",
             "request": "launch",
