@@ -2,9 +2,9 @@
 # Updated for Python 3.6.8 on a Raspberry  Pi
 
 import time
+import sys
 import pexpect
 import subprocess
-import sys
 import logging
 
 logger = logging.getLogger("btctl")
@@ -35,6 +35,7 @@ class BluetootHctl:
             logger.error(e)
 
     def make_discoverable(self):
+        # test
         """Make device discoverable."""
         try:
             self.send("discoverable on")

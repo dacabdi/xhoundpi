@@ -1,9 +1,18 @@
 """ xHoundPi panel system proof of concept """
 # pylint: disable=logging-fstring-interpolation
+# pylint: disable=wrong-import-position
+
+# print debugging information
+# before loadint anything
+import os
+import sys
+import pprint
+pprint.pprint(os.getcwd())
+pprint.pprint(sys.path)
+pprint.pprint(dict(os.environ), width=1)
 
 # standard libs
 import logging
-import sys
 import asyncio
 
 from tools.panel.config import setup_argparser

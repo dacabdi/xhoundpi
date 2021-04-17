@@ -139,3 +139,8 @@ unittest-results*.html
 log/
 coverage-html/
 display.gif
+
+# ignore Pipfile.lock to
+# prevent cross-platform
+# issues
+Pipfile.lock

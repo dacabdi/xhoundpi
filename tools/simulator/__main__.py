@@ -1,9 +1,18 @@
 """ Simulate system runs """
 # pylint: disable=logging-fstring-interpolation
+# pylint: disable=wrong-import-position
+
+# print debugging information
+# before loadint anything
+import os
+import sys
+import pprint
+pprint.pprint(os.getcwd())
+pprint.pprint(sys.path)
+pprint.pprint(dict(os.environ), width=1)
 
 # standard libs
 import logging
-import sys
 
 from .config import setup_argparser
 from .simulator import Simulator

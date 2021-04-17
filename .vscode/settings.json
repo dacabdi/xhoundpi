@@ -1,9 +1,10 @@
 {
     "python.linting.pylintEnabled": true,
-    "python.languageServer": "Pylance",
     "python.linting.enabled": true,
     "python.linting.lintOnSave": true,
-    "python.pythonPath": ".venv/bin/python",
+    "python.envFile": ".env",
+    "python.venvPath": ".venv",
+    "python.languageServer": "Pylance",
     "python.testing.unittestEnabled": true,
     "workbench.editorAssociations": [
         {
@@ -15,4 +16,6 @@
             "filenamePattern": "*.hex"
         }
     ],
+    "yaml.format.singleQuote": true,
+    "vsintellicode.features.python.deepLearning": "enabled",
 }

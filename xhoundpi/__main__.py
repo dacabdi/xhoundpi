@@ -1,15 +1,23 @@
 """xHoundPi firmware execution module"""
+# pylint: disable=wrong-import-position
+
+# print debugging information
+# before loadint anything
+import os
+import sys
+import pprint
+pprint.pprint(os.getcwd())
+pprint.pprint(sys.path)
+pprint.pprint(dict(os.environ), width=1)
 
 # standard libs
 import asyncio
 import logging
 import logging.config
-import os
-import sys
 
 # external imports
-import yaml
 import structlog
+import yaml
 
 # local imports
 from .config import setup_configparser
@@ -26,11 +34,13 @@ async def main_async():
     parser = setup_configparser()
     config = parser.parse()
     parser.print_values()
-    print(vars(config))
+    pprint.pprint(vars(config))
 
     # setup loggers
     setup_logging(config.log_config_file)
-    logger.info(AppEvent(str), config=vars(config))
+    logger.info(AppEvent("configuration"), config=vars(config))
+    logger.info(f'Current working directory "{os.getcwd()}"')
+    logger.info(f'Environment variables "{dict(os.environ)}"')
 
     # create and run module
     return await XHoundPi(config).run()

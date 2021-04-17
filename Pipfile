@@ -32,7 +32,6 @@ opentelemetry-sdk = "*"
 structlog = "*"
 PyYAML = "*"
 frozendict = "*"
-PyBluez = "*"
 pyserial = "*"
 
 [requires]

@@ -18,6 +18,8 @@ class Simulator():
     """ xHoundPi Simulator context handlers """
 
     MODULE_CALL = (
+        'pipenv '
+        'run '
         'python '
         '-m xhoundpi '
         '--mock-gnss '

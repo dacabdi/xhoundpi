@@ -43,7 +43,7 @@ High precision GPS firmware for point surveyor xHound hardware modules based on 
    6. Run command `pipenv install --dev` and await for initialization to complete.
    7. Run `pipenv shell` to enter the `pipenv` shell for this environment.
 5. Verify by running tests and linter (see below in **Testing and validation**)
-6. Open workspace (e.g., `code .\.vscode\xhoundpi.code-workspace`)
+6. Open workspace (i.e., `code .` on the project root)
 
 ### Testing and validation
 #### Quick feedback loop
