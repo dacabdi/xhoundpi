@@ -2,14 +2,8 @@
 # pylint: disable=logging-fstring-interpolation
 # pylint: disable=wrong-import-position
 
-# print debugging information
-# before loadint anything
-import os
-import sys
-import pprint
-pprint.pprint(os.getcwd())
-pprint.pprint(sys.path)
-pprint.pprint(dict(os.environ), width=1)
+from xhoundpi.diagnostics import describe_environment
+print(describe_environment())
 
 # standard libs
 import logging
@@ -18,22 +12,10 @@ import asyncio
 from tools.panel.config import setup_argparser
 from tools.panel.panel import Panel
 
-BANNER = """
-██   ██ ██   ██  ██████  ██    ██ ███    ██ ██████  ██████  ██ 
- ██ ██  ██   ██ ██    ██ ██    ██ ████   ██ ██   ██ ██   ██ ██ 
-  ███   ███████ ██    ██ ██    ██ ██ ██  ██ ██   ██ ██████  ██ 
- ██ ██  ██   ██ ██    ██ ██    ██ ██  ██ ██ ██   ██ ██      ██ 
-██   ██ ██   ██  ██████   ██████  ██   ████ ██████  ██      ██
- _  _  _  _ |   _  _  _
-|_)(_|| |(/_|  |_)(_)(_
-|              |
-"""
-
 logger = logging.getLogger()
 
 async def main_async():
     """xHoundPi entry point"""
-    print(BANNER)
     setup_logger()
 
     config = setup_argparser()

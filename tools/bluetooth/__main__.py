@@ -2,36 +2,21 @@
 # pylint: disable=logging-fstring-interpolation
 # pylint: disable=wrong-import-position
 
-# print debugging information
-# before loadint anything
-import os
-import sys
-import pprint
-pprint.pprint(os.getcwd())
-pprint.pprint(sys.path)
-pprint.pprint(dict(os.environ), width=1)
+from xhoundpi.diagnostics import describe_environment
+print(describe_environment())
 
 # standard libs
+import os
 import logging
 import serial
 import bluetooth as bt
 
 from .config import setup_argparser
 
-BANNER = """
-██   ██ ██   ██  ██████  ██    ██ ███    ██ ██████  ██████  ██ 
- ██ ██  ██   ██ ██    ██ ██    ██ ████   ██ ██   ██ ██   ██ ██ 
-  ███   ███████ ██    ██ ██    ██ ██ ██  ██ ██   ██ ██████  ██ 
- ██ ██  ██   ██ ██    ██ ██    ██ ██  ██ ██ ██   ██ ██      ██ 
-██   ██ ██   ██  ██████   ██████  ██   ████ ██████  ██      ██
-BT Validation and tools
-"""
-
 logger = logging.getLogger()
 
 def main():
     """ Entry point for the BT validator """
-    print(BANNER)
     setup_logger()
 
     config = setup_argparser()

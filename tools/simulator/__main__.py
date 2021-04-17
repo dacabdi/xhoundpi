@@ -1,35 +1,36 @@
 """ Simulate system runs """
 # pylint: disable=logging-fstring-interpolation
-# pylint: disable=wrong-import-position
+# pylint: disable=wrong-import-position,wrong-import-order
 
-# print debugging information
-# before loadint anything
-import os
+# https://patorjk.com/software/taag/#p=display&f=Banner3-D&t=xHoundPi%20Simulator
+BANNER = """
+
+         .-"-.            _____
+        / 4 4 \\         / ____|
+        \\_ v _/        | |     __ _ _ __   __ _ _ __ _   _
+        //   \\         | |    / _` | '_ \\ / _` | '__| | | |
+       ((     ))       | |___| (_| | | | | (_| | |  | |_| |
+ =======""===""=======  \\_____\\__,_|_| |_|\\__,_|_|   \\__, |
+          |||                                         __/ |
+          '|'                                        |___/
+
+          xHoundPi's Simulator and Smoke Tester
+
+"""
+print(BANNER)
+from xhoundpi.diagnostics import describe_environment
+print(describe_environment())
+
 import sys
-import pprint
-pprint.pprint(os.getcwd())
-pprint.pprint(sys.path)
-pprint.pprint(dict(os.environ), width=1)
-
-# standard libs
 import logging
 
 from .config import setup_argparser
 from .simulator import Simulator
 
-BANNER = """
-██   ██ ██   ██  ██████  ██    ██ ███    ██ ██████  ██████  ██ 
- ██ ██  ██   ██ ██    ██ ██    ██ ████   ██ ██   ██ ██   ██ ██ 
-  ███   ███████ ██    ██ ██    ██ ██ ██  ██ ██   ██ ██████  ██ 
- ██ ██  ██   ██ ██    ██ ██    ██ ██  ██ ██ ██   ██ ██      ██ 
-██   ██ ██   ██  ██████   ██████  ██   ████ ██████  ██      ██
-"""
-
 logger = logging.getLogger()
 
 def main():
     """ Entry point for the simulator """
-    print(BANNER)
     setup_logger()
 
     config = setup_argparser()

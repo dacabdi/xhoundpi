@@ -18,8 +18,6 @@ class Simulator():
     """ xHoundPi Simulator context handlers """
 
     MODULE_CALL = (
-        'pipenv '
-        'run '
         'python '
         '-m xhoundpi '
         '--mock-gnss '
@@ -68,7 +66,9 @@ class Simulator():
             gnss_input=self.options.gnssinput,
             gnss_output=self.options.gnssoutput)
         logger.info(f'Starting xHoundPi with \'{cmd}\'')
-        self.xhoundpi_proc = subprocess.Popen(cmd.split(' '))
+        env = os.environ
+        env['PYTHONPATH'] = os.pathsep.join(sys.path)
+        self.xhoundpi_proc = subprocess.Popen(cmd.split(' '), env=env)
 
     def post_run(self):
         """ Send SIGINT, wait for process to exit, and cleanup environment """
