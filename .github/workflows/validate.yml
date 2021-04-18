@@ -75,9 +75,9 @@ jobs:
 
       # Simulate and smoke test
 
-      - name: Run smoke test simulation
+      - name: Run Canary (smoke test simulation)
         if: always()
-        run: pipenv run python -m tools.simulator --verbose --parse-gnss-input --test-timeout 120 ./data/smoke_test_data.cap ./gnss_output.bin
+        run: pipenv run python -m tools.canary --verbose --parse-gnss-input --test-timeout 120 ./data/smoke_test_data.cap ./gnss_output.bin
 
       # Linter
 

@@ -26,10 +26,10 @@
             "justMyCode": true
         },
         {
-            "name": "Simulator Smoke Test",
+            "name": "Canary Smoke Test",
             "type": "python",
             "request": "launch",
-            "module": "tools.simulator",
+            "module": "tools.canary",
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
@@ -39,10 +39,10 @@
             ],
         },
         {
-            "name": "Bluetooth Tools",
+            "name": "Serial benchmark",
             "type": "python",
             "request": "launch",
-            "module": "tools.bluetooth",
+            "module": "tools.yappy",
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [],

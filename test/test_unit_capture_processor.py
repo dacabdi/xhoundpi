@@ -7,7 +7,7 @@
 import unittest
 from io import StringIO, BytesIO
 
-from tools.capture_processor.parser import parser
+from tools.hermes.parser import parser
 
 class test_Parser(unittest.TestCase):
 

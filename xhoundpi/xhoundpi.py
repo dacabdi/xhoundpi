@@ -31,7 +31,7 @@ from .panel.fakepanel import (GifDisplay,
 # local imports
 from .config import display_mode
 from .time import StopWatch
-from .serial import StubSerial
+from .serial import StubSerialBinary
 from .queue_pump import AsyncPump
 from .gnss_client import GnssClient
 from .proto_class import ProtocolClass
@@ -267,7 +267,7 @@ class XHoundPi:
         if self.config.mock_gnss:
             transport_rx = open(self.config.gnss_mock_input, mode='rb')
             transport_tx = open(self.config.gnss_mock_output, mode='wb')
-            return StubSerial(transport_rx, transport_tx)
+            return StubSerialBinary(transport_rx, transport_tx)
         raise NotImplementedError("Currently only supporting GNSS input from mock file")
 
     def create_protocol_classifier(self): # pylint: disable=no-self-use

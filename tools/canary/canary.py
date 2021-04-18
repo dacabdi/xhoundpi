@@ -1,4 +1,4 @@
-""" xHoundPi Simulator module """
+""" xHoundPi Canary simulator and smoke testing module """
 # pylint: disable=logging-fstring-interpolation
 
 import logging
@@ -10,12 +10,13 @@ import asyncio
 import atexit
 
 from xhoundpi.async_ext import run_sync
-from tools.capture_processor.parser import parser
+from xhoundpi.diagnostics import env_vars
+from tools.hermes.parser import parser
 
 logger = logging.getLogger()
 
-class Simulator():
-    """ xHoundPi Simulator context handlers """
+class Canary():
+    """ Canary context handlers """
 
     MODULE_CALL = (
         'python '
@@ -43,26 +44,26 @@ class Simulator():
         return passed
 
     def is_running(self):
-        """ Check if simulator process is running already """
+        """ Check if simulated process is running already """
         return self.xhoundpi_proc is not None
 
     def pre_run(self):
         """ Prepare to run """
         if self.is_running():
-            raise RuntimeError('Simulator is already running')
+            raise RuntimeError('Canary simulation is already running')
         if self.options.verbose:
             logger.setLevel(logging.DEBUG)
 
-        logger.info('Starting simulator session for xHoundPi!')
-        logger.debug(f'Configuration options: {self.options}')
-        logger.debug(f'Current working directory "{os.getcwd()}"')
-        logger.debug(f'Environment variables "{os.environ}"')
+        logger.info('Starting Canary session for xHoundPi')
+        logger.debug(f"'Configuration loaded': {str(vars(self.options))}")
+        logger.debug(f"'Current working directory': {str(vars(self.options))}")
+        logger.debug(f"'Environment variables: '{env_vars}'")
 
         self.parse_gnss_input()
 
     def run(self):
         """ Run service """
-        cmd = Simulator.MODULE_CALL.format(
+        cmd = Canary.MODULE_CALL.format(
             gnss_input=self.options.gnssinput,
             gnss_output=self.options.gnssoutput)
         logger.info(f'Starting xHoundPi with \'{cmd}\'')

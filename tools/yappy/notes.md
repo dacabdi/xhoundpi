@@ -5,3 +5,6 @@ The `pybluez` library leverages the fact that every bluetooth connection is gene
 ## Known issues
 ### Linux
 If the installation of the `PyBluez` dependency fails to find the `Python.h` or `bluetooth.h` headers. Please install `$ sudo apt install libbluetooth-dev python3.9-dev`. If `apt` fails to resolve the `python3.9` related packages, please follow this [guide](https://linuxize.com/post/how-to-install-python-3-9-on-ubuntu-20-04/).
+
+### Windows
+Installing `PyBluez` requires Visual Studio with the Visual C++ package > v14.0 (the sources are compiled).

@@ -7,7 +7,7 @@
 import unittest
 from io import BytesIO
 
-from xhoundpi.serial import StubSerial
+from xhoundpi.serial import StubSerialBinary
 from xhoundpi.gnss_client import GnssClient
 
 class test_GnssClient(unittest.TestCase):
@@ -15,7 +15,7 @@ class test_GnssClient(unittest.TestCase):
     def test_read(self):
         rx = BytesIO(b'\x01\x0a\x0b\xff\x0d\x1f')
         tx = BytesIO()
-        ss = StubSerial(rx=rx, tx=tx)
+        ss = StubSerialBinary(rx=rx, tx=tx)
         client = GnssClient(ss)
 
         self.assertEqual(b'\x01', client.read())
@@ -27,7 +27,7 @@ class test_GnssClient(unittest.TestCase):
     def test_write(self):
         rx = BytesIO()
         tx = BytesIO()
-        ss = StubSerial(rx=rx, tx=tx)
+        ss = StubSerialBinary(rx=rx, tx=tx)
         client = GnssClient(ss)
 
         self.assertEqual(1, client.write(bytes.fromhex('01')))

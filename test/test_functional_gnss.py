@@ -22,7 +22,7 @@ import pynmea2
 import pyubx2
 
 # local imports
-from xhoundpi.serial import StubSerial
+from xhoundpi.serial import StubSerialBinary
 from xhoundpi.gnss_client import GnssClient
 from xhoundpi.proto_class import ProtocolClass
 from xhoundpi.proto_classifier import ProtocolClassifier
@@ -40,7 +40,7 @@ from xhoundpi.gnss_service_runner import GnssServiceRunner
 from xhoundpi.async_ext import run_sync
 import xhoundpi.gnss_service_decorators # pylint: disable=unused-import
 
-from tools.capture_processor.parser import parser
+from tools.hermes.parser import parser
 
 from .log_utils import setup_test_event_logger
 
@@ -65,7 +65,7 @@ class test_Functional_Gnss(unittest.TestCase):
     def create_service(self, inbound_queue, outbound_queue, transport_rx, transport_tx):
         self.maxDiff = None
         logger = structlog.get_logger()
-        gnss_serial = StubSerial(transport_rx, transport_tx)
+        gnss_serial = StubSerialBinary(transport_rx, transport_tx)
         gnss_client = GnssClient(gnss_serial)
         gnss_protocol_classifier = ProtocolClassifier({
             bytes(b'\x24') : ProtocolClass.NMEA,

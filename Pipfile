@@ -21,6 +21,7 @@ Pillow = "*"
 numpy = "*"
 pygame = "*"
 pexpect = "*"
+humanize = "*"
 
 [packages]
 ConfigArgParse = "*"

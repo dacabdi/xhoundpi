@@ -49,8 +49,8 @@ High precision GPS firmware for point surveyor xHound hardware modules based on 
 #### Quick feedback loop
 - Run all tests issue the following command from the root of the repository: `pipenv run python -m unittest discover --verbose --locals`
 - Then run the linter using the commend: `pipenv run pylint xhoundpi` (tests are not linting and style conforming but please keep them clean)
-#### Simulator smoke tests
-Run simulator to perform a smoke test of the overall functionality by issuing the command `$ python -m tools.simulator --verbose --parse-gnss-input ./data/mixed_nmea_ubx_sample.cap ./gnss_out.hex`. This will prepare mocked input and output files, run xHoundPi, and collect results for a simple smoke test. The return code of the process indicates success/failure.
+#### Run Canary (simulator and smoke tester)
+Run Canary to perform a smoke test of the overall functionality by issuing the command `$ python -m tools.canary --verbose --parse-gnss-input ./data/mixed_nmea_ubx_sample.cap ./gnss_out.hex`. This will prepare mocked input and output files, run xHoundPi, and collect results for a simple smoke test. The return code of the process indicates success/failure.
 #### Using nektos/act
 The project [`nektos/act`](https://github.com/nektos/act) is designed to run GitHub actions locally and provide immediate feedback without resorting to the GitHub agents and pipelines. These tests would provide a closer validation to the one your PRs will be subjected too and always setup temporary clean environments on every run. Follow the setup instructions on the project's README and use it with our repository to run the validation workflows.
 
@@ -59,9 +59,9 @@ The project [`nektos/act`](https://github.com/nektos/act) is designed to run Git
 #### Working with data captures to mock IO devices
 To allow functional testing in isolation from the hardware, we have collected captures off the actual devices. See the `data` subdir for samples (the `notes.md` file describes the contents). To convert these text based captures to binary files, run the following commands from the root of the repository (assumes the `pipenv` shell is initialized):
 
-`$ python -m tools.capture_processor [inputfile] [outputfile]`
+`$ python -m tools.hermes [inputfile] [outputfile]`
 
-E.g., to parse the `data/mixed_nmea_ubx_sample.txt` file and output the results into the file `data.hex` use `$ python -m tools.capture_processor "data/mixed_nmea_ubx_sample.txt" "data.hex"`. :warning: Adopt the convention of using the `.hex` extension for your processed samples, it will allow to filter them in the `.gitignore` file and avoid accidentally commiting them.
+E.g., to parse the `data/mixed_nmea_ubx_sample.txt` file and output the results into the file `data.hex` use `$ python -m tools.hermes "data/mixed_nmea_ubx_sample.txt" "data.hex"`. :warning: Adopt the convention of using the `.hex` extension for your processed samples, it will allow to filter them in the `.gitignore` file and avoid accidentally commiting them.
 
 ### Code submission
 
