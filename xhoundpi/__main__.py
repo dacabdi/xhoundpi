@@ -80,9 +80,9 @@ async def main_async():
 
     # setup loggers
     setup_logging(config.log_config_file)
-    logger.debug(AppEvent(f"'Configuration loaded': {str(vars(config))}"))
-    logger.debug(AppEvent(f"'Current working directory': {str(vars(config))}"))
-    logger.debug(AppEvent(f"'Environment variables: '{env_vars}'"))
+    logger.info(AppEvent(f"'Configuration loaded': {str(vars(config))}"))
+    logger.info(AppEvent(f"'Current working directory': {str(vars(config))}"))
+    logger.info(AppEvent(f"'Environment variables: '{env_vars}'"))
 
     # create and run module
     return await XHoundPi(config).run()
