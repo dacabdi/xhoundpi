@@ -37,7 +37,7 @@
                 "--parse-gnss-input",
                 "--test-timeout",
                 "120", // takes longer to pass under the debugger
-                "./data/mixed_nmea_ubx_sample.cap",
+                "./data/smoke_test_data.cap",
                 "./data/gnss_out.bin"
             ],
         },
