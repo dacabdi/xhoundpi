@@ -144,3 +144,7 @@ display.gif
 # prevent cross-platform
 # issues
 Pipfile.lock
+
+node_modules/
+package-lock.json
+pyright.json

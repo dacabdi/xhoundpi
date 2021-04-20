@@ -1,5 +1,5 @@
 """xHoundPi firmware execution module"""
-# pylint: disable=wrong-import-position
+# pylint: disable=wrong-import-position,wrong-import-order
 
 BANNER = '''
 
