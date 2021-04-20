@@ -2,12 +2,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Run xHoundPi module",
+            "name": "xHoundPi module",
             "type": "python",
             "request": "launch",
             "module": "xhoundpi",
             "args": [
-                "--config", "xhoundpi.config",
+                "--mock-gnss",
+                "--gnss-mock-input",
+                "./data/mixed_nmea_ubx_sample.cap.hex",
+                "--gnss-mock-output",
+                "./gnss_out.hex",
+                "--display-mode",
+                "rgb",
+                "--display-driver",
+                "pygame"
             ],
         },
         {
@@ -18,16 +26,47 @@
             "justMyCode": true
         },
         {
-            "name": "Simulator Smoke Test",
+            "name": "Canary Smoke Test",
             "type": "python",
             "request": "launch",
-            "module": "tools.simulator",
+            "module": "tools.canary",
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
+                "--verbose",
                 "--parse-gnss-input",
-                "./data/mixed_nmea_ubx_sample.cap",
+                "--test-timeout",
+                "120", // takes longer to pass under the debugger
+                "./data/smoke_test_data.cap",
                 "./data/gnss_out.bin"
+            ],
+        },
+        {
+            "name": "Serial benchmark",
+            "type": "python",
+            "request": "launch",
+            "module": "tools.yappy",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "args": [],
+        },
+        {
+            "name": "Panel POC",
+            "type": "python",
+            "request": "launch",
+            "module": "tools.panel",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--verbose",
+                "--display-height",
+                "64",
+                "--display-width",
+                "128",
+                "--mode",
+                "rgb",
+                "--driver",
+                "pygame"
             ],
         },
         {

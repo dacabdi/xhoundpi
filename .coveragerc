@@ -2,3 +2,6 @@
 omit =
   test/**
   .venv/**
+  xhoundpi/panel/fakepanel.py
+  xhoundpi/bound_logger_event.py
+  tools/yappy/**

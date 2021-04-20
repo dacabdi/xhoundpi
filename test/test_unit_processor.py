@@ -82,7 +82,7 @@ class test_GenericProcessor(unittest.TestCase):
         operator.operate.assert_not_called()
         self.assertEqual(processor._name, 'Processor1') # pylint: disable=protected-access
 
-    def test_error_process_returns_original_msg(self):
+    def test_error_process_returns_original_msg_on_exception1(self):
         msg = Message(uuid.UUID('{12345678-1234-5678-1234-567812345678}'), None, None)
         policy = Mock()
         policy.qualifies = Mock(return_value=False)
@@ -107,7 +107,7 @@ class test_GenericProcessor(unittest.TestCase):
         operator.operate.assert_not_called()
         self.assertEqual(processor._name, 'Processor1') # pylint: disable=protected-access
 
-    def test_error_process_returns_original_msg2(self):
+    def test_error_process_returns_original_msg_on_exception2(self):
         msg = Message(uuid.UUID('{12345678-1234-5678-1234-567812345678}'), None, None)
         policy = Mock()
         policy.qualifies = Mock(return_value=True)
@@ -130,6 +130,34 @@ class test_GenericProcessor(unittest.TestCase):
         policy.qualifies.assert_called_once_with(msg)
         operator_provider.get_operator.assert_called_once_with(msg)
         operator.operate.assert_not_called()
+        self.assertEqual(processor._name, 'Processor1') # pylint: disable=protected-access
+
+    def test_error_process_returns_original_msg_on_operator_error(self):
+        msg = Message(uuid.UUID('{12345678-1234-5678-1234-567812345678}'), None, None)
+        policy = Mock()
+        policy.qualifies = Mock(return_value=True)
+        policy_provider = Mock()
+        policy_provider.get_policy = Mock(return_value=policy)
+        operator = Mock()
+        operator.operate = Mock(return_value=(Status(Exception('Whoopsies!'),
+            metadata={'operation':'add'}), 'new message'))
+        operator_provider = Mock()
+        operator_provider.get_operator = Mock(return_value=operator)
+        processor = GenericProcessor(
+            name='Processor1',
+            policy_provider=policy_provider,
+            operator_provider=operator_provider)
+
+        result = run_sync(processor.process(msg))
+
+        self.assertEqual((Status(Exception('Whoopsies!'),
+            metadata={'qualified':True, 'operation':'add'}), msg), result)
+        policy_provider.get_policy.assert_called_once_with(msg)
+        policy.qualifies.assert_called_once_with(msg)
+        operator_provider.get_operator.assert_called_once_with(msg)
+        operator.operate.assert_called_once_with(
+            Message(message_id=uuid.UUID('12345678-1234-5678-1234-567812345678'),
+                proto=None, payload=None))
         self.assertEqual(processor._name, 'Processor1') # pylint: disable=protected-access
 
 class test_CompositeProcessor(unittest.TestCase):

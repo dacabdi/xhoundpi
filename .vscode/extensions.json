@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "shardulm94.trailing-spaces",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "eamodio.gitlens",
+        "ms-vscode.hexeditor",
+        "magicstack.magicpython",
+        "visualstudioexptteam.vscodeintellicode"
+    ]
+}

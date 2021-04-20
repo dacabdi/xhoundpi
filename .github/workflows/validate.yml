@@ -70,14 +70,14 @@ jobs:
         run: |
           pipenv run coverage run -m unittest discover --verbose --locals
           pipenv run coverage report
-          pipenv run coverage html --directory ./coverage-xml
+          pipenv run coverage html --directory ./coverage-html
           pipenv run coverage xml
 
       # Simulate and smoke test
 
-      - name: Run smoke test simulation
+      - name: Run Canary (smoke test simulation)
         if: always()
-        run: pipenv run python -m tools.simulator --verbose --parse-gnss-input ./data/mixed_nmea_ubx_sample.cap ./data/gnss_out.bin
+        run: pipenv run python -m tools.canary --verbose --parse-gnss-input --test-timeout 120 ./data/smoke_test_data.cap ./gnss_output.bin
 
       # Linter
 
@@ -85,7 +85,18 @@ jobs:
         if: always()
         run: pipenv run pylint xhoundpi
 
+      # PyRight (for static type checking)
+
+      - name: Install type checker (PyRight)
+        uses: bahmutov/npm-install@v1
+        with:
+          useLockFile: false
+
+      - name: Run type checker (PyRight)
+        run: node node_modules/pyright/dist/pyright.js --lib --stats --dependencies
+
       # Publish artifacts
+
       - name: Upload build artifacts
         if: always() && github.actor != 'nektos/act'
         uses: actions/upload-artifact@v2
@@ -96,6 +107,8 @@ jobs:
             .coverage
             coverage.xml
             coverage-html/
+            display.gif
+            gnss_output.bin
           if-no-files-found: error
 
       - name: Publish unit test results

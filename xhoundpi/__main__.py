@@ -1,21 +1,71 @@
 """xHoundPi firmware execution module"""
+# pylint: disable=wrong-import-position,wrong-import-order
+
+BANNER = '''
+
+                888    888                                 888
+                888    888                                 888
+                888    888                                 888
+       888  888 8888888888  .d88b.  888  888 88888b.   .d88888
+       `Y8bd8P' 888    888 d88""88b 888  888 888 "88b d88" 888
+         X88K   888    888 888  888 888  888 888  888 888  888
+       .d8""8b. 888    888 Y88..88P Y88b 888 888  888 Y88b 888
+       888  888 888    888  "Y88P"   "Y88888 888  888  "Y88888
+
+            3,141592653589793238462643383279502884197169399375
+        105820974944592307816406286208998628034825342117067982
+      14808651328230664709384460955058223172535940812848111745
+    0284102701938521105559644622948954930381964428810975665933
+    4461284756482337867831652712019091456485669234603486104543
+  26648213          393607              26024914
+  1273              724587            0066063155
+8817                488152            0920962829
+25                  409171            53643678
+                    925903            60011330
+                    530548            82046652
+                  138414              69519415
+                  116094              33057270
+                  365759              59195309
+                  218611              73819326
+                  117931              05118548
+                07446237              99627495
+                67351885            7527248912
+              2793818301            1949129833
+              6733624406            5664308602
+            139494639522            4737190702
+            1798609437              0277053921              71
+          762931767523              8467481846              76
+          694051320005              681271452635          6082
+        77857713427577              89609173637178      7214
+      6844090122495343              014654958537105079227968
+      92589235420199                  56112129021960864034
+      41815981362977                  47713099605187072113
+      499999983729                      7804995105973173
+          281609                            63185950
+
+'''
+print(BANNER)
+
+from xhoundpi.diagnostics import describe_environment, env_vars
+print(describe_environment())
 
 # standard libs
+import os
+import sys
+import pprint
 import asyncio
 import logging
 import logging.config
-import os
-import sys
 
 # external imports
-import yaml
 import structlog
+import yaml
 
 # local imports
 from .config import setup_configparser
-from .xhoundpi import XHoundPi
 from .bound_logger_event import BoundLoggerEvents
 from .events import AppEvent
+from .xhoundpi import XHoundPi
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -24,13 +74,15 @@ async def main_async():
 
     # setup and read configuration
     parser = setup_configparser()
-    config = parser.parse()
+    config = parser.parse() # type: ignore
     parser.print_values()
-    print(vars(config))
+    pprint.pprint(vars(config))
 
     # setup loggers
     setup_logging(config.log_config_file)
-    logger.info(AppEvent(str), config=vars(config))
+    logger.info(AppEvent(f"'Configuration loaded': {str(vars(config))}"))
+    logger.info(AppEvent(f"'Current working directory': {str(vars(config))}"))
+    logger.info(AppEvent(f"'Environment variables: '{env_vars}'"))
 
     # create and run module
     return await XHoundPi(config).run()

@@ -1,10 +1,10 @@
-""" Simulator configuration parser module """
+""" Canary configuration parser module """
 
 import argparse
 
 def setup_argparser():
     """ Prepare shell arguments parser """
-    config = argparse.ArgumentParser(description='Simulates xHoundPi runs')
+    config = argparse.ArgumentParser(description='Simulates and smoke tests xHoundPi')
     config.add_argument('gnssinput', help='gnss in file')
     config.add_argument('gnssoutput', help='gnss out file')
     config.add_argument('--parse-gnss-input', action='store_true', dest='parse_gnss_input',

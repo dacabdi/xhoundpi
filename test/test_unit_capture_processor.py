@@ -7,7 +7,7 @@
 import unittest
 from io import StringIO, BytesIO
 
-from tools.capture_processor.parser import parser
+from tools.hermes.parser import parser
 
 class test_Parser(unittest.TestCase):
 
@@ -267,3 +267,11 @@ class test_Parser(unittest.TestCase):
             '30 30 2C 4E 2C 30 2E 30 30 30 2C 4E 2A 34 34 0D'
             '0A                                             '
             '                                               '))
+
+    def test_parse_no_match(self):
+        in_file = StringIO(
+            "some non matching string\n"
+            "and another one string\n")
+        out_file = BytesIO()
+        parser(in_file, out_file)
+        self.assertEqual(out_file.getvalue(), bytes.fromhex(''))

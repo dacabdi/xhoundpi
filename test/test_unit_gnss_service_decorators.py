@@ -17,7 +17,7 @@ from structlog.testing import capture_logs
 
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleExportSpanProcessor
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter, SimpleSpanProcessor
 
 from xhoundpi.status import Status
 from xhoundpi.async_ext import run_sync
@@ -41,6 +41,7 @@ class StubGnssService(IGnssService):
         self.write = 0
         self.return_read = None
         self.return_written = None
+        self.some_prop = 'test'
 
     async def read_message(self) -> Tuple[Status, Message]:
         self.read += 1
@@ -233,6 +234,15 @@ class test_GnssServiceWithEvents(unittest.TestCase):
             }
         ])
 
+    def test_access_to_decorated_object_props(self):
+        _, decorated = self.create_and_decorate()
+        self.assertTrue(hasattr(decorated, 'some_prop'))
+        self.assertEqual('test', decorated.some_prop)
+        decorated.some_prop = 'changed'
+        self.assertEqual('changed', decorated.some_prop)
+        del decorated.some_prop
+        self.assertFalse(hasattr(decorated, 'some_prop'))
+
 @dataclass
 class TestData: # pylint: disable=too-many-instance-attributes
     service: StubGnssService
@@ -337,6 +347,15 @@ class test_GnssServiceWithMetrics(unittest.TestCase):
         self.assertEqual(tdata.wlatency.value, 0.5)
         tdata.hook.assert_any_call('gnss_write_latency', 0.5)
 
+    def test_access_to_decorated_object_props(self):
+        decorated = self.create_and_decorate().decorated
+        self.assertTrue(hasattr(decorated, 'some_prop'))
+        self.assertEqual('test', decorated.some_prop)
+        decorated.some_prop = 'changed'
+        self.assertEqual('changed', decorated.some_prop)
+        del decorated.some_prop
+        self.assertFalse(hasattr(decorated, 'some_prop'))
+
 class test_GnssServiceWithTraces(unittest.TestCase):
 
     def test_tracing(self):
@@ -345,7 +364,7 @@ class test_GnssServiceWithTraces(unittest.TestCase):
         output = io.StringIO()
         formatter = lambda span: span.name
         trace.set_tracer_provider(TracerProvider())
-        trace.get_tracer_provider().add_span_processor(SimpleExportSpanProcessor(ConsoleSpanExporter(out=output, formatter=formatter)))
+        trace.get_tracer_provider().add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter(out=output, formatter=formatter)))
 
         tracer = trace.get_tracer("test_tracer")
 
@@ -364,3 +383,13 @@ class test_GnssServiceWithTraces(unittest.TestCase):
         self.assertEqual(gnss_service.read, 1)
         self.assertEqual(gnss_service.write, 1)
         self.assertEqual(output.getvalue(), "readwrite")
+
+    def test_access_to_decorated_object_props(self):
+        service = StubGnssService()
+        decorated = service.with_traces(None) # pylint: disable=no-member
+        self.assertTrue(hasattr(decorated, 'some_prop'))
+        self.assertEqual('test', decorated.some_prop)
+        decorated.some_prop = 'changed'
+        self.assertEqual('changed', decorated.some_prop)
+        del decorated.some_prop
+        self.assertFalse(hasattr(decorated, 'some_prop'))

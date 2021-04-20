@@ -5,6 +5,7 @@ limit-inference-results=100
 persistent=yes
 suggestion-mode=yes
 unsafe-load-any-extension=no
+extension-pkg-allow-list=pillow,PIL
 
 [MESSAGES CONTROL]
 

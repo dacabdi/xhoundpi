@@ -1,4 +1,8 @@
 """ Device data capture processing tools """
+# pylint: disable=wrong-import-position
+
+from xhoundpi.diagnostics import describe_environment
+print(describe_environment())
 
 import argparse
 from .parser import parser
