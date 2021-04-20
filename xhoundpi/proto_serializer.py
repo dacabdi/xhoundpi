@@ -1,6 +1,7 @@
 """ GNSS protocol serializers """
 
 from abc import ABC, abstractmethod
+from typing import Callable
 
 from .proto_class import ProtocolClass
 from .message import Message
@@ -41,7 +42,7 @@ class UBXProtocolSerializer(IProtocolSerializer):
 
     protocol_class = ProtocolClass.UBX
 
-    def __init__(self, serializer_lib_entry_point: callable):
+    def __init__(self, serializer_lib_entry_point: Callable[[Message], bytes]):
         self.__serializer_lib_entry_point = serializer_lib_entry_point
 
     def serialize(self, message: Message) -> bytes:
@@ -57,7 +58,7 @@ class NMEAProtocolSerializer(IProtocolSerializer):
     protocol_class = ProtocolClass.NMEA
     protocol_revision = 'NMEA-0183'
 
-    def __init__(self, serializer_lib_entry_point: callable):
+    def __init__(self, serializer_lib_entry_point: Callable[[Message], bytes]):
         self.__serializer_lib_entry_point = serializer_lib_entry_point
 
     def serialize(self, message: Message) -> bytes:

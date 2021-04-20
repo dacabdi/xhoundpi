@@ -2,20 +2,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Run xHoundPi module",
+            "name": "xHoundPi module",
             "type": "python",
             "request": "launch",
             "module": "xhoundpi",
             "args": [
                 "--mock-gnss",
                 "--gnss-mock-input",
-                "./data/nmea_capture_sample.cap.hex",
+                "./data/mixed_nmea_ubx_sample.cap.hex",
                 "--gnss-mock-output",
                 "./gnss_out.hex",
                 "--display-mode",
                 "rgb",
                 "--display-driver",
-                "gif"
+                "pygame"
             ],
         },
         {
@@ -33,7 +33,10 @@
             "console": "integratedTerminal",
             "justMyCode": false,
             "args": [
+                "--verbose",
                 "--parse-gnss-input",
+                "--test-timeout",
+                "120", // takes longer to pass under the debugger
                 "./data/mixed_nmea_ubx_sample.cap",
                 "./data/gnss_out.bin"
             ],

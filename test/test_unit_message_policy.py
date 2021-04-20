@@ -45,14 +45,14 @@ class test_HasLocationPolicy(unittest.TestCase):
     # UBX
 
     def test_qualifies_with_pyubx2_payload(self):
-        msg = Message(None, None, pyubx2.UBXMessage(ubxClass=b'\x01', ubxID=b'\x14', mode=0, lat=10, lon=10))
+        msg = Message(None, None, pyubx2.UBXMessage(ubxClass=b'\x01', ubxID=b'\x14', msgmode=0, lat=10, lon=10))
         policy = HasLocationPolicy()
         self.assertTrue(policy.qualifies(msg))
 
     def test_qualifies_not_with_no_properties_on_pyubx2_payload(self):
-        msg1 = Message(None, None, pyubx2.UBXMessage(ubxClass=b'\x01', ubxID=b'\x13', mode=0))
-        msg2 = Message(None, None, pyubx2.UBXMessage(ubxClass=b'\x01', ubxID=b'\x39', mode=0))
-        msg3 = Message(None, None, pyubx2.UBXMessage(ubxClass=b'\x01', ubxID=b'\x04', mode=0))
+        msg1 = Message(None, None, pyubx2.UBXMessage(ubxClass=b'\x01', ubxID=b'\x13', msgmode=0))
+        msg2 = Message(None, None, pyubx2.UBXMessage(ubxClass=b'\x01', ubxID=b'\x39', msgmode=0))
+        msg3 = Message(None, None, pyubx2.UBXMessage(ubxClass=b'\x01', ubxID=b'\x04', msgmode=0))
         policy = HasLocationPolicy()
         self.assertFalse(policy.qualifies(msg1))
         self.assertFalse(policy.qualifies(msg2))
