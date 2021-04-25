@@ -17,7 +17,7 @@ from xhoundpi.async_ext import run_sync
 from xhoundpi.gnss_service_iface import IGnssService
 from xhoundpi.gnss_service_runner import GnssServiceRunner
 
-from .async_utils import wait_for_condition, notify_condition
+from test.async_utils import wait_for_condition, notify_condition
 
 class StubGnssService(IGnssService):
 

@@ -15,7 +15,7 @@ import humanize
 import serial
 from serial.serialutil import SerialTimeoutException
 
-from xhoundpi.serial import StubSerialBinary, StubSerialText
+from xhoundpi.serial import StubSerialText
 from xhoundpi.time import StopWatch
 
 logger = logging.getLogger()

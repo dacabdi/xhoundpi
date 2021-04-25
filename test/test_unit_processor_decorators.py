@@ -20,8 +20,8 @@ from xhoundpi.async_ext import run_sync
 from xhoundpi.processor import IProcessor
 from xhoundpi.metric import LatencyMetric, SuccessCounterMetric
 
-from .time_utils import FakeStopWatch
-from .log_utils import setup_test_event_logger
+from test.time_utils import FakeStopWatch
+from test.log_utils import setup_test_event_logger
 
 def setUpModule():
     setup_test_event_logger()

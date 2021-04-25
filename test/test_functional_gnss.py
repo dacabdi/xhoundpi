@@ -42,7 +42,7 @@ import xhoundpi.gnss_service_decorators # pylint: disable=unused-import
 
 from tools.hermes.parser import parser
 
-from .log_utils import setup_test_event_logger
+from test.log_utils import setup_test_event_logger
 
 def setUpModule():
     # parse input file into binary

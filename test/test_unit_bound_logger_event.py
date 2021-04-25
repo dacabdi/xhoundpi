@@ -14,7 +14,7 @@ from enum import Enum, auto
 import structlog
 from structlog.testing import capture_logs
 
-from .log_utils import setup_test_event_logger
+from test.log_utils import setup_test_event_logger
 
 class TestEventOp(Enum):
     BeginSomeOperation = 1
