@@ -148,3 +148,7 @@ Pipfile.lock
 node_modules/
 package-lock.json
 pyright.json
+
+# put all benchmark results here
+# to be ignored by git
+benchmarks/

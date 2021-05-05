@@ -5,6 +5,7 @@
 
 import logging
 import structlog
+
 from xhoundpi.bound_logger_event import BoundLoggerEvents
 
 def setup_test_event_logger():

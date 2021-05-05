@@ -88,6 +88,7 @@ jobs:
       # PyRight (for static type checking)
 
       - name: Install type checker (PyRight)
+        if: always()
         uses: bahmutov/npm-install@v1
         with:
           useLockFile: false

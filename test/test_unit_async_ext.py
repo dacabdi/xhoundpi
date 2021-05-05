@@ -9,7 +9,7 @@ import asyncio
 import asynctest
 
 from xhoundpi.async_ext import run_sync, loop_forever_async
-from .async_utils import wait_for_condition, notify_condition
+from test.async_utils import wait_for_condition, notify_condition
 
 class test_AsyncExtFunctions(unittest.TestCase):
 

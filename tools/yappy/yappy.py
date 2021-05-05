@@ -15,7 +15,7 @@ import humanize
 import serial
 from serial.serialutil import SerialTimeoutException
 
-from xhoundpi.serial import StubSerialBinary, StubSerialText
+from xhoundpi.serial import StubSerialText
 from xhoundpi.time import StopWatch
 
 logger = logging.getLogger()
@@ -61,7 +61,7 @@ class Yappy:
         finally:
             self._running = None
 
-        with open('serial_benchmark_results.json', 'w') as fp:
+        with open('benchmarks/serial_benchmark_results.json', 'w') as fp:
             json.dump(result, fp, indent=4, sort_keys=True, default=str)
 
         # TODO print out results

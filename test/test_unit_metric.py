@@ -10,7 +10,7 @@ from xhoundpi.metric import (LatencyMetric,
                             SuccessCounterMetric,
                             MetricsCollection,)
 
-from .time_utils import FakeStopWatch
+from test.time_utils import FakeStopWatch
 
 class test_LatencyMetric(unittest.TestCase): # pylint: disable=invalid-name
 
