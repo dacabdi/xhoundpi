@@ -12,8 +12,8 @@ class CoordinateOffset:
     '''
     Model for geographic coordinates offsets
     '''
-    latitude: Decimal
-    longitude: Decimal
+    lat: Decimal
+    lon: Decimal
 
 class ICoordinateOffsetProvider(ABC):
     '''

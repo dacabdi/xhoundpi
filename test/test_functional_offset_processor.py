@@ -17,6 +17,7 @@ from xhoundpi.message import Message
 from xhoundpi.data_formatter import NMEADataFormatter, UBXDataFormatter
 from xhoundpi.message_editor import NMEAMessageEditor, UBXMessageEditor
 from xhoundpi.operator import NMEAOffsetOperator, UBXHiResOffsetOperator, UBXOffsetOperator
+from xhoundpi.coordinate_offset import CoordinateOffset, StaticOffsetProvider
 from xhoundpi.operator_provider import CoordinateOperationProvider
 from xhoundpi.message_policy import HasLocationPolicy
 from xhoundpi.message_policy_provider import OnePolicyProvider
@@ -26,6 +27,7 @@ class test_Functional_OffsetProcessor(unittest.TestCase):
 
     # pylint: disable=no-self-use
     def setup_processor(self, lat_off: Decimal, long_off: Decimal):
+        offset_provider = StaticOffsetProvider(CoordinateOffset(lat=lat_off, lon=long_off))
         return GenericProcessor(
             name='TestProcessor',
             policy_provider=OnePolicyProvider(HasLocationPolicy()),
@@ -33,18 +35,15 @@ class test_Functional_OffsetProcessor(unittest.TestCase):
                 nmea_operator=NMEAOffsetOperator(
                     msg_editor=NMEAMessageEditor(),
                     data_formatter=NMEADataFormatter(),
-                    lat_offset=lat_off,
-                    lon_offset=long_off),
+                    offset_provider=offset_provider),
                 ubx_operator=UBXOffsetOperator(
                     msg_editor=UBXMessageEditor(),
                     data_formatter=UBXDataFormatter(),
-                    lat_offset=lat_off,
-                    lon_offset=long_off),
+                    offset_provider=offset_provider),
                 ubx_hires_operator=UBXHiResOffsetOperator(
                     msg_editor=UBXMessageEditor(),
                     data_formatter=UBXDataFormatter(),
-                    lat_offset=lat_off,
-                    lon_offset=long_off)))
+                    offset_provider=offset_provider)))
 
     def test_ubx_hires_zero_offset1(self):
         self.maxDiff = None

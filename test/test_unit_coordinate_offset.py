@@ -13,13 +13,13 @@ from xhoundpi.coordinate_offset import CoordinateOffset, StaticOffsetProvider
 class test_StaticOffsetProvider(unittest.TestCase):
 
     def test_provide(self):
-        offset = CoordinateOffset(latitude=Decimal("0.5"), longitude=Decimal("-0.1"))
+        offset = CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("-0.1"))
         provider = StaticOffsetProvider(offset)
 
         self.assertEqual(
-            CoordinateOffset(latitude=Decimal("0.5"), longitude=Decimal("-0.1")),
+            CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("-0.1")),
             provider.get_offset(), msg = 'Because it must provide the preset offset')
 
         self.assertEqual(
-            CoordinateOffset(latitude=Decimal("0.5"), longitude=Decimal("-0.1")),
+            CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("-0.1")),
             provider.get_offset(), msg = 'Because it must provide the same value across calls')
