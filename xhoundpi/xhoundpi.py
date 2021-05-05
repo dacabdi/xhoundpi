@@ -264,7 +264,6 @@ class XHoundPi:
 
     def create_gnss_serial(self):
         """ Resolves the GNSS serial com based on configuration """
-         # pylint: disable=consider-using-with
         if self.config.mock_gnss:
             transport_rx = open(self.config.gnss_mock_input, mode='rb')
             transport_tx = open(self.config.gnss_mock_output, mode='wb')
