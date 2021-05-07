@@ -51,6 +51,7 @@ from .data_formatter import (NMEADataFormatter,
                              UBXDataFormatter)
 from .message_editor import (NMEAMessageEditor,
                             UBXMessageEditor)
+from .coordinate_offset import CoordinateOffset, ICoordinateOffsetProvider, StaticOffsetProvider
 from .operator import (NMEAOffsetOperator,
                       UBXOffsetOperator,
                       UBXHiResOffsetOperator,)
@@ -325,20 +326,17 @@ class XHoundPi:
                     latency=self.metrics.null_processor_latency), # type: ignore
             self.make_offset_generic_processor(
                 name='ZeroOffsetProcessor',
-                lat_offset=zero_offset,
-                lon_offset=zero_offset,
+                offset_provider=StaticOffsetProvider(CoordinateOffset(lat=zero_offset, lon=zero_offset)),
                 counter=self.metrics.zero_offset_processor_counter, # type: ignore
                 latency=self.metrics.zero_offset_processor_latency), # type: ignore
             self.make_offset_generic_processor(
                 name='PositiveOffsetProcessor',
-                lat_offset=pos_offset,
-                lon_offset=pos_offset,
+                offset_provider=StaticOffsetProvider(CoordinateOffset(lat=pos_offset, lon=pos_offset)),
                 counter=self.metrics.positive_offset_processor_counter, # type: ignore
                 latency=self.metrics.positive_offset_processor_latency), # type: ignore
             self.make_offset_generic_processor(
                 name='NegativeOffsetProcessor',
-                lat_offset=neg_offset,
-                lon_offset=neg_offset,
+                offset_provider=StaticOffsetProvider(CoordinateOffset(lat=neg_offset, lon=neg_offset)),
                 counter=self.metrics.negative_offset_processor_counter, # type: ignore
                 latency=self.metrics.negative_offset_processor_latency), # type: ignore
         ])
@@ -355,8 +353,7 @@ class XHoundPi:
     def make_offset_generic_processor(
         self,
         name: str,
-        lat_offset: decimal.Decimal,
-        lon_offset: decimal.Decimal,
+        offset_provider: ICoordinateOffsetProvider,
         counter: SuccessCounterMetric,
         latency: LatencyMetric):
         # pylint: disable=no-member
@@ -371,18 +368,15 @@ class XHoundPi:
                     nmea_operator=NMEAOffsetOperator(
                         msg_editor=NMEAMessageEditor(),
                         data_formatter=NMEADataFormatter(),
-                        lat_offset=lat_offset,
-                        lon_offset=lon_offset),
+                        offset_provider=offset_provider),
                     ubx_operator=UBXOffsetOperator(
                         msg_editor=UBXMessageEditor(),
                         data_formatter=UBXDataFormatter(),
-                        lat_offset=lat_offset,
-                        lon_offset=lon_offset),
+                        offset_provider=offset_provider),
                     ubx_hires_operator=UBXHiResOffsetOperator(
                         msg_editor=UBXMessageEditor(),
                         data_formatter=UBXDataFormatter(),
-                        lat_offset=lat_offset,
-                        lon_offset=lon_offset),))
+                        offset_provider=offset_provider),))
                 .with_events(logger=logger) # type: ignore
                 .with_metrics(
                     # TODO use separate metrics
