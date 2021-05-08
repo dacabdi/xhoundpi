@@ -41,7 +41,7 @@ class test_NMEAOffsetOperator(unittest.TestCase):
         editor.set_fields = Mock(return_value='new message')
         offset_provider = Mock()
         offset_provider.get_offset = Mock(
-            return_value=CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("0.2")))
+            return_value=CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("0.2"), alt=Decimal("0.1")))
         msg = Message(
             message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
             proto=ProtocolClass.NMEA,
@@ -81,7 +81,7 @@ class test_NMEAOffsetOperator(unittest.TestCase):
         editor.set_fields = Mock(return_value='new message')
         offset_provider = Mock()
         offset_provider.get_offset = Mock(
-            return_value=CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("0.2")))
+            return_value=CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("0.2"), alt=Decimal("0.1")))
         msg = Message(
             message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
             proto=ProtocolClass.NMEA,
@@ -123,7 +123,7 @@ class test_UBXOffsetOperator(unittest.TestCase):
         editor.set_fields = Mock(return_value='new message')
         offset_provider = Mock()
         offset_provider.get_offset = Mock(
-            return_value=CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("0.2")))
+            return_value=CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("0.2"), alt=Decimal("0.1")))
         msg = Message(
             message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
             proto=ProtocolClass.UBX,
@@ -162,7 +162,7 @@ class test_UBXHiResOffsetOperator(unittest.TestCase):
         editor.set_fields = Mock(return_value='new message')
         offset_provider = Mock()
         offset_provider.get_offset = Mock(
-            return_value=CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("0.2")))
+            return_value=CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("0.2"), alt=Decimal("0.1")))
         msg = Message(
             message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
             proto=ProtocolClass.UBX,

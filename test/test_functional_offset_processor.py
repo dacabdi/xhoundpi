@@ -27,7 +27,7 @@ class test_Functional_OffsetProcessor(unittest.TestCase):
 
     # pylint: disable=no-self-use
     def setup_processor(self, lat_off: Decimal, long_off: Decimal):
-        offset_provider = StaticOffsetProvider(CoordinateOffset(lat=lat_off, lon=long_off))
+        offset_provider = StaticOffsetProvider(CoordinateOffset(lat=lat_off, lon=long_off, alt=Decimal("1.0")))
         return GenericProcessor(
             name='TestProcessor',
             policy_provider=OnePolicyProvider(HasLocationPolicy()),

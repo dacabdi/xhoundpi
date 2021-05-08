@@ -6,7 +6,7 @@ Basic operations on Decimal type values
 # NOTE this code is copied from https://docs.python.org/3/library/decimal.html#recipes
 # it will be ignored from styling and test coverage
 
-from decimal import getcontext, Decimal
+from decimal import Inexact, Decimal, localcontext
 
 def pi():
     """Compute Pi to the current precision.
@@ -15,17 +15,26 @@ def pi():
     3.141592653589793238462643383
 
     """
-    getcontext().prec += 2  # extra digits for intermediate steps
-    three = Decimal(3)      # substitute "three=3.0" for regular floats
-    lasts, t, s, n, na, d, da = 0, three, 3, 1, 0, 0, 24
-    while s != lasts:
-        lasts = s
-        n, na = n+na, na+8
-        d, da = d+da, da+32
-        t = (t * n) / d
-        s += t
-    getcontext().prec -= 2
-    return +s               # unary plus applies the new precision
+    with localcontext() as ctx:
+        ctx.traps[Inexact] = False
+        ctx.prec += 2  # extra digits for intermediate steps
+        three = Decimal(3)      # substitute "three=3.0" for regular floats
+        lasts, t, s, n, na, d, da = 0, three, 3, 1, 0, 0, 24
+        while s != lasts:
+            lasts = s
+            n, na = n+na, na+8
+            d, da = d+da, da+32
+            t = (t * n) / d
+            s += t
+        ctx.prec -= 2
+        return +s               # unary plus applies the new precision
+
+with localcontext() as c:
+    c.traps[Inexact] = False
+    c.prec = 64
+    PI = pi()
+    DEG180 = Decimal("180")
+    DEG_RAD_RATIO = PI / DEG180
 
 def exp(x):
     """Return e raised to the power of x.  Result type matches input type.
@@ -40,16 +49,18 @@ def exp(x):
     (7.38905609893+0j)
 
     """
-    getcontext().prec += 2
-    i, lasts, s, fact, num = 0, 0, 1, 1, 1
-    while s != lasts:
-        lasts = s
-        i += 1
-        fact *= i
-        num *= x
-        s += num / fact
-    getcontext().prec -= 2
-    return +s
+    with localcontext() as ctx:
+        ctx.traps[Inexact] = False
+        ctx.prec += 2  # extra digits for intermediate steps
+        i, lasts, s, fact, num = 0, 0, 1, 1, 1
+        while s != lasts:
+            lasts = s
+            i += 1
+            fact *= i
+            num *= x
+            s += num / fact
+        ctx.prec -= 2
+        return +s
 
 def cos(x):
     """Return the cosine of x as measured in radians.
@@ -65,17 +76,19 @@ def cos(x):
     (0.87758256189+0j)
 
     """
-    getcontext().prec += 2
-    i, lasts, s, fact, num, sign = 0, 0, 1, 1, 1, 1
-    while s != lasts:
-        lasts = s
-        i += 2
-        fact *= i * (i-1)
-        num *= x * x
-        sign *= -1
-        s += num / fact * sign
-    getcontext().prec -= 2
-    return +s
+    with localcontext() as ctx:
+        ctx.traps[Inexact] = False
+        ctx.prec += 2  # extra digits for intermediate steps
+        i, lasts, s, fact, num, sign = 0, 0, 1, 1, 1, 1
+        while s != lasts:
+            lasts = s
+            i += 2
+            fact *= i * (i-1)
+            num *= x * x
+            sign *= -1
+            s += num / fact * sign
+        ctx.prec -= 2
+        return +s
 
 def sin(x):
     """Return the sine of x as measured in radians.
@@ -91,14 +104,22 @@ def sin(x):
     (0.479425538604+0j)
 
     """
-    getcontext().prec += 2
-    i, lasts, s, fact, num, sign = 1, 0, x, 1, x, 1
-    while s != lasts:
-        lasts = s
-        i += 2
-        fact *= i * (i-1)
-        num *= x * x
-        sign *= -1
-        s += num / fact * sign
-    getcontext().prec -= 2
-    return +s
+    with localcontext() as ctx:
+        ctx.traps[Inexact] = False
+        ctx.prec += 2  # extra digits for intermediate steps
+        i, lasts, s, fact, num, sign = 1, 0, x, 1, x, 1
+        while s != lasts:
+            lasts = s
+            i += 2
+            fact *= i * (i-1)
+            num *= x * x
+            sign *= -1
+            s += num / fact * sign
+        ctx.prec -= 2
+        return +s
+
+def deg_to_rad(deg: Decimal):
+    '''
+    Convert from degrees to radians
+    '''
+    return deg * DEG_RAD_RATIO

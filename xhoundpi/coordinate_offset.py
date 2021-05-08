@@ -57,6 +57,7 @@ class CoordinateOffset:
     '''
     lat: Decimal
     lon: Decimal
+    alt: Decimal
 
 class ICoordinateOffsetProvider(ABC):
     '''
@@ -88,6 +89,9 @@ class OrientationOffsetProvider(ICoordinateOffsetProvider):
     based off euler angles orientation and radius
     '''
 
+    PI = pi()
+    DEG180 = Decimal("180")
+
     def __init__(self, orientation: IOrientationProvider, radius: Decimal):
         self.__orientation = orientation
         self.__radius = radius
@@ -95,6 +99,24 @@ class OrientationOffsetProvider(ICoordinateOffsetProvider):
     def get_offset(self) -> CoordinateOffset:
         angles = self.__orientation.get_orientation()
         radius = self.__radius
-        return CoordinateOffset(
-            lat=angles.yaw + radius,
-            lon=angles.pitch + radius)
+
+        yaw = self._deg_to_rad(angles.yaw)
+        pitch = self._deg_to_rad(angles.pitch)
+        roll = self._deg_to_rad(angles.roll)
+
+        Rad = Decimal(radius)
+
+        dLong = Rad * ( sin(roll)*sin(yaw) + cos(roll)*cos(yaw)*sin(pitch) )
+        dLat = -Rad * ( sin(roll)*cos(yaw) - cos(roll)*sin(pitch)*sin(yaw) )
+        dAlt = Rad * cos(roll)*cos(pitch)
+
+        return CoordinateOffset(dLat,dLong,dAlt)
+
+    @classmethod
+    def _deg_to_rad(cls, deg: Decimal):
+        with localcontext() as ctx:
+            ctx.traps[Inexact] = False
+            # NOTE the cls.PI / cls.DEG180 operation is inexact
+            # TODO save the result of the operation,
+            #      we do not need to calculate it every time
+            return deg * cls.PI / cls.DEG180

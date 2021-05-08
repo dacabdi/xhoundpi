@@ -326,17 +326,17 @@ class XHoundPi:
                     latency=self.metrics.null_processor_latency), # type: ignore
             self.make_offset_generic_processor(
                 name='ZeroOffsetProcessor',
-                offset_provider=StaticOffsetProvider(CoordinateOffset(lat=zero_offset, lon=zero_offset)),
+                offset_provider=StaticOffsetProvider(CoordinateOffset(lat=zero_offset, lon=zero_offset, alt=zero_offset)),
                 counter=self.metrics.zero_offset_processor_counter, # type: ignore
                 latency=self.metrics.zero_offset_processor_latency), # type: ignore
             self.make_offset_generic_processor(
                 name='PositiveOffsetProcessor',
-                offset_provider=StaticOffsetProvider(CoordinateOffset(lat=pos_offset, lon=pos_offset)),
+                offset_provider=StaticOffsetProvider(CoordinateOffset(lat=pos_offset, lon=pos_offset, alt=pos_offset)),
                 counter=self.metrics.positive_offset_processor_counter, # type: ignore
                 latency=self.metrics.positive_offset_processor_latency), # type: ignore
             self.make_offset_generic_processor(
                 name='NegativeOffsetProcessor',
-                offset_provider=StaticOffsetProvider(CoordinateOffset(lat=neg_offset, lon=neg_offset)),
+                offset_provider=StaticOffsetProvider(CoordinateOffset(lat=neg_offset, lon=neg_offset, alt=neg_offset)),
                 counter=self.metrics.negative_offset_processor_counter, # type: ignore
                 latency=self.metrics.negative_offset_processor_latency), # type: ignore
         ])
