@@ -21,13 +21,13 @@ from xhoundpi.coordinate_offset import (
 class test_StaticOrientationProvider(unittest.TestCase):
 
     def test_provide(self):
-        angles = EulerAngles(x=D("-1.5"), y=D("0.2"))
+        angles = EulerAngles(yaw=D("-1.5"), pitch=D("0.2"))
         provider = StaticOrientationProvider(angles)
 
-        self.assertEqual(EulerAngles(x=D("-1.5"), y=D("0.2")),
+        self.assertEqual(EulerAngles(yaw=D("-1.5"), pitch=D("0.2")),
             provider.get_orientation(), msg = 'Because it must provide the preset angles')
 
-        self.assertEqual(EulerAngles(x=D("-1.5"), y=D("0.2")),
+        self.assertEqual(EulerAngles(yaw=D("-1.5"), pitch=D("0.2")),
             provider.get_orientation(), msg = 'Because it must provide the same value across calls')
 
 class test_StaticOffsetProvider(unittest.TestCase):
@@ -45,16 +45,16 @@ class test_StaticOffsetProvider(unittest.TestCase):
             provider.get_offset(), msg = 'Because it must provide the same value across calls')
 
 
-def _data(x: D, y: D, z: D, r: D, lat: D, lon: D):
-    return (EulerAngles(x, y, z), r, CoordinateOffset(lat, lon))
+def _data(yaw: D, pitch: D, roll: D, r: D, lat: D, lon: D):
+    return (EulerAngles(yaw, pitch, roll), r, CoordinateOffset(lat, lon))
 
 @ddt
 class test_OrientationOffsetProvider(unittest.TestCase):
 
     @data(
-        _data(x=D("0.5"), y=D("0.5"), z=D("0.4"), r=D("10"), lat=D("11"), lon=D("10")),
-        _data(x=D("0.5"), y=D("0.5"), z=D("0.4"), r=D("10"), lat=D("11"), lon=D("10")),
-        _data(x=D("0.5"), y=D("0.5"), z=D("0.4"), r=D("10"), lat=D("11"), lon=D("10"))
+        _data(yaw=D("0.5"), pitch=D("0.5"), roll=D("0.4"), r=D("10"), lat=D("10.5"), lon=D("10.5")),
+        _data(yaw=D("0.5"), pitch=D("0.5"), roll=D("0.4"), r=D("10"), lat=D("10.5"), lon=D("11.5")),
+        _data(yaw=D("0.5"), pitch=D("0.5"), roll=D("0.4"), r=D("10"), lat=D("10.5"), lon=D("10.5"))
     )
     @unpack
     def test_provide(self, angles, radius, offset):
