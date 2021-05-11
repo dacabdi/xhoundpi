@@ -1,27 +1,18 @@
-""" Format converters for message fields """
+'''
+Format converters for message fields
+'''
 
 import re
-
-from decimal import * # pylint: disable=wildcard-import,unused-wildcard-import
 from typing import Tuple
+from decimal import localcontext, Inexact, Decimal
 
-from .direction import (CoordAxis,
-                       Direction)
-
-c = getcontext()
-c.traps[Overflow] = True
-c.traps[DivisionByZero] = True
-c.traps[InvalidOperation] = True
-c.traps[FloatOperation] = True
-c.traps[Inexact] = True
-c.rounding=ROUND_HALF_EVEN
-getcontext().prec = 24
+from .direction import CoordAxis, Direction
 
 class NMEADataFormatter:
-    """
+    '''
     Transforms values from decimal degrees to
     high precision NMEA geographic co-ordinates
-    """
+    '''
 
     LO_PRES = 5
     HI_PRES = 7
@@ -29,16 +20,16 @@ class NMEADataFormatter:
     FORMAT = '{{degs:0{degs_width}n}}{{mins:0{mins_width}.{prec}f}}'
 
     def degmins_to_decdeg(self, degmins: str, direction: Direction) -> Decimal:
-        """
+        '''
         Converts a geographic co-ordinate given in
         (d)ddmm.mmmmm(mm) format to signed decimal degrees
-        """
+        '''
         decdeg = Decimal(self._degmins_to_decdeg(degmins))
         return decdeg.copy_negate() if direction in (Direction.S, Direction.W) else decdeg
 
     def decdeg_to_degmins(self, dec_deg: Decimal, axis: CoordAxis, hipres: bool = False
     ) -> Tuple[str, Direction]:
-        """
+        '''
         Converts a geographic co-ordinate given in
         signed decimal degrees to (d)ddmm.mmmmm(m*) format
 
@@ -51,13 +42,37 @@ class NMEADataFormatter:
 
         ublox devices:
             https://portal.u-blox.com/s/question/0D52p00008HKDHLCA5/are-the-latitude-and-longitude-values-in-the-gpgga-message-fixed-format-or-variable
-        """
+        '''
         template, direction, degs, mins = self._get_data(dec_deg, axis, hipres)
         return template.format(degs=degs, mins=mins), direction
 
     @classmethod
+    def height_field_m_to_height_mm(cls, field: str) -> Decimal:
+        '''
+        Converts an NMEA height field in meters
+        into a decimal millimetric representation
+        '''
+        return Decimal(field).scaleb(3)
+
+    @classmethod
+    def height_mm_to_height_field_m(cls, height: Decimal) -> str:
+        '''
+        Converts an NMEA height field in meters
+        into a decimal millimetric representation
+        '''
+        return str(height.scaleb(-3))
+
+    @classmethod
+    def is_highpres(cls, value: str):
+        '''
+        Determines if a geographic co-ordinate given in
+        (d)ddmm.mmmmm(mm) format is NMEA high precision mode
+        '''
+        return len(value) - value.find('.') > 7
+
+    @classmethod
     def _get_data(cls, dec_deg: Decimal, axis: CoordAxis, hipres: bool
-    ) -> Tuple[str, Direction]:
+    ) -> Tuple[str, Direction, int, Decimal]:
         if axis is CoordAxis.LON:
             direction = Direction.E if dec_deg >= 0 else Direction.W
             deg_length = 3
@@ -93,52 +108,64 @@ class NMEADataFormatter:
             ctx.traps[Inexact] = False
             return Decimal(d) + Decimal(m) / Decimal(60)
 
-    @classmethod
-    def is_highpres(cls, value: str):
-        """
-        Determines if a geographic co-ordinate given in
-        (d)ddmm.mmmmm(mm) format is NMEA high precision mode
-        """
-        return len(value) - value.find('.') > 7
-
 class UBXDataFormatter:
-    """
+    '''
     Transform values from decimal degrees to
     high precision UBX geographic co-ordinates
-    """
+    '''
 
+    # TODO store the Decimal instead of the base
     BASE_RES = 7
     HIGH_RES = 9
     DEC_1 = Decimal('1')
+    DEC_0_1 = Decimal('0.1')
+    MAX = 2147483647
+    MIN = -2147483648
 
     def integer_to_decdeg(self, base: int, hires: int = 0) -> Decimal:
-        """
+        '''
         Converts an UBX integer geographic
         co-ordinate into signed decimal degrees
-        """
+        '''
         base_dec  = Decimal(base ).scaleb(-self.BASE_RES)
         hires_dec = Decimal(hires).scaleb(-self.HIGH_RES)
         return base_dec + hires_dec
 
+    def integer_to_height_mm(self, base: int, hires: int = 0) -> Decimal:
+        '''
+        Converts signed altitude value from two integer
+        components into decimal millimeters representation
+        '''
+        return base + (hires * self.DEC_0_1)
+
     def decdeg_to_integer(self, decdeg: Decimal) -> Tuple[int, int]:
-        """
+        '''
         Converts signed decimal degrees
         into an UBX integer geographic co-ordinate
-        """
+        '''
         base, frac = divmod(decdeg.scaleb(self.BASE_RES), self.DEC_1)
         hi_res, _ = divmod(frac.scaleb(self.HIGH_RES - self.BASE_RES), self.DEC_1)
         return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
 
-    def minimize_correction(self, base: int, hires: int) -> Tuple[int, int]:
-        """
+    def height_mm_to_integer(self, height_mm: Decimal) -> Tuple[int, int]:
+        '''
+        Converts signed altitude value from decimal millimeters
+        to two integer components representation
+        '''
+        base, frac = divmod(height_mm, self.DEC_1)
+        hi_res, _ = divmod(frac.scaleb(self.DEC_1), self.DEC_1)
+        return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
+
+    def minimize_correction(self, base: int, hires: int, midpoint: int = 50) -> Tuple[int, int]:
+        '''
         Comply with UBX correction minization
-        """
-        if abs(hires) > 50:
+        '''
+        if base not in [self.MAX, self.MIN] and abs(hires) >= midpoint:
             sign = self._sign(base)
             if sign != self._sign(hires):
                 raise ValueError('Operation not defined for not matching signs')
             base += sign
-            hires -= 100 * sign
+            hires -= (midpoint * 2) * sign
         return base, hires
 
     @classmethod

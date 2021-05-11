@@ -22,12 +22,15 @@ from xhoundpi.operator_provider import CoordinateOperationProvider
 from xhoundpi.message_policy import HasLocationPolicy
 from xhoundpi.message_policy_provider import OnePolicyProvider
 from xhoundpi.processor import GenericProcessor
+from xhoundpi.decimal_math import setup_common_decimal_context
+
+setup_common_decimal_context()
 
 class test_Functional_OffsetProcessor(unittest.TestCase):
 
     # pylint: disable=no-self-use
-    def setup_processor(self, lat_off: Decimal, long_off: Decimal):
-        offset_provider = StaticOffsetProvider(CoordinateOffset(lat=lat_off, lon=long_off, alt=Decimal("1.0")))
+    def setup_processor(self, lat_off: Decimal, long_off: Decimal): # TODO add non-zero altitude to the tests
+        offset_provider = StaticOffsetProvider(CoordinateOffset(lat=lat_off, lon=long_off, alt=Decimal("0.0")))
         return GenericProcessor(
             name='TestProcessor',
             policy_provider=OnePolicyProvider(HasLocationPolicy()),
@@ -131,7 +134,7 @@ class test_Functional_OffsetProcessor(unittest.TestCase):
             message_id=uuid.UUID('{12345678-1234-5678-1234-567812345678}'),
             proto=ProtocolClass.UBX,
             payload=pyubx2.UBXReader.parse(frame))
-        processor = self.setup_processor(0, 0)
+        processor = self.setup_processor(Decimal('0'), Decimal('0'))
         result = run_sync(processor.process(msg))
         self.assertEqual(result[1].payload.serialize().hex(' ').upper(), bytes.fromhex(
             'B5 62 01 07' # header + class + id

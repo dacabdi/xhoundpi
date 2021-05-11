@@ -4,18 +4,9 @@ Coordinate offset models and providers definition
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from decimal import Decimal, localcontext, Inexact
 
-from decimal import *
-from .decimal_math import sin, cos, exp, pi
-
-c = getcontext()
-c.traps[Overflow] = True
-c.traps[DivisionByZero] = True
-c.traps[InvalidOperation] = True
-c.traps[FloatOperation] = True
-c.traps[Inexact] = True
-c.rounding=ROUND_HALF_EVEN
-getcontext().prec = 24
+from .decimal_math import sin, cos, pi
 
 @dataclass
 class EulerAngles:

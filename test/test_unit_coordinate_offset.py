@@ -9,14 +9,15 @@ from unittest.mock import Mock
 from decimal import Decimal as D, Inexact, localcontext
 from ddt import ddt, data, unpack
 
-from xhoundpi.decimal_math import deg_to_rad
-
+from xhoundpi.decimal_math import deg_to_rad, setup_common_decimal_context
 from xhoundpi.coordinate_offset import (
     CoordinateOffset,
     OrientationOffsetProvider,
     EulerAngles,
     StaticOffsetProvider,
     StaticOrientationProvider,)
+
+setup_common_decimal_context()
 
 class test_StaticOrientationProvider(unittest.TestCase):
 

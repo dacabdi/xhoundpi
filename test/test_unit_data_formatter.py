@@ -9,10 +9,11 @@ import unittest.mock
 
 from decimal import Decimal
 
-from xhoundpi.direction import (Direction,
-                               CoordAxis)
-from xhoundpi.data_formatter import (NMEADataFormatter,
-                                    UBXDataFormatter)
+from xhoundpi.direction import Direction, CoordAxis
+from xhoundpi.data_formatter import NMEADataFormatter, UBXDataFormatter
+from xhoundpi.decimal_math import setup_common_decimal_context
+
+setup_common_decimal_context()
 
 class test_NMEADataFormatter(unittest.TestCase): # pylint: disable=too-many-public-methods
 
@@ -161,6 +162,20 @@ class test_NMEADataFormatter(unittest.TestCase): # pylint: disable=too-many-publ
         converter = NMEADataFormatter()
         result = converter.decdeg_to_degmins(Decimal('-0.00000001'), CoordAxis.LAT, hipres=True)
         self.assertEqual(result, ('0000.0000006', Direction.S))
+
+    # height conversions
+
+    def test_height_field_m_to_height_mm(self):
+        converter = NMEADataFormatter()
+        self.assertEqual(Decimal('1000'), converter.height_field_m_to_height_mm('1'))
+        self.assertEqual(Decimal('0'), converter.height_field_m_to_height_mm('0'))
+        self.assertEqual(Decimal('1'), converter.height_field_m_to_height_mm('0.001'))
+
+    def test_height_field_to_height_mm(self):
+        converter = NMEADataFormatter()
+        self.assertEqual('1000.000', converter.height_mm_to_height_field_m(Decimal('1000000')))
+        self.assertEqual('0.000', converter.height_mm_to_height_field_m(Decimal('0')))
+        self.assertEqual('0.001', converter.height_mm_to_height_field_m(Decimal('1')))
 
     # is_highpres
 
@@ -321,9 +336,72 @@ class test_UBXDataFormatter(unittest.TestCase):
         result = converter.decdeg_to_integer(Decimal('214.7483647990'))
         self.assertEqual(result, (2147483647, 99))
 
+    # decimal height in mm -> ubx height/hMSL integer fields
+
+    def test_integer_to_height_mm_zero(self):
+        converter = UBXDataFormatter()
+        result = converter.integer_to_height_mm(0)
+        self.assertEqual(Decimal('0.0') , result)
+
+    def test_integer_to_height_mm_max(self):
+        converter = UBXDataFormatter()
+        result = converter.integer_to_height_mm(2147483647)
+        self.assertEqual(Decimal('2147483647.0'), result)
+
+    def test_integer_to_height_mm_min(self):
+        converter = UBXDataFormatter()
+        result = converter.integer_to_height_mm(-2147483648)
+        self.assertEqual(Decimal('-2147483648.0'), result)
+
+    def test_integer_to_height_mm_max_hires(self):
+        converter = UBXDataFormatter()
+        result = converter.integer_to_height_mm(2147483647, 9)
+        self.assertEqual(Decimal('2147483647.9'), result)
+
+    def test_integer_to_height_mm_min_hires(self):
+        converter = UBXDataFormatter()
+        result = converter.integer_to_height_mm(-2147483648, -9)
+        self.assertEqual(Decimal('-2147483648.9'), result)
+
+
+    # ubx height/hMSL integer fields -> decimal height in mm
+
+    def test_height_mm_to_integer_zero(self):
+        converter = UBXDataFormatter()
+        result = converter.height_mm_to_integer(Decimal('0.0'))
+        self.assertEqual((0, 0), result)
+
+    def test_height_mm_to_integer_max(self):
+        converter = UBXDataFormatter()
+        result = converter.height_mm_to_integer(Decimal('2147483647'))
+        self.assertEqual((2147483647, 0), result)
+
+    def test_height_mm_to_integer_min(self):
+        converter = UBXDataFormatter()
+        result = converter.height_mm_to_integer(Decimal('-2147483648'))
+        self.assertEqual((-2147483648, 0), result)
+
+    def test_height_mm_to_integer_max_hires(self):
+        converter = UBXDataFormatter()
+        result = converter.height_mm_to_integer(Decimal('2147483647.9'))
+        self.assertEqual((2147483647, 9), result)
+
+    def test_height_mm_to_integer_min_hires(self):
+        converter = UBXDataFormatter()
+        result = converter.height_mm_to_integer(Decimal('-2147483648.9'))
+        self.assertEqual((-2147483648, -9), result)
+
+    def test_height_mm_to_integer_assorted(self):
+        converter = UBXDataFormatter()
+        self.assertEqual((0, 1), converter.height_mm_to_integer(Decimal('0.1')))
+        self.assertEqual((1, 5), converter.height_mm_to_integer(Decimal('1.5')))
+        self.assertEqual((1, 5), converter.height_mm_to_integer(Decimal('1.55')))
+        self.assertEqual((-10, 0), converter.height_mm_to_integer(Decimal('-10.01')))
+        self.assertEqual((-1, -1), converter.height_mm_to_integer(Decimal('-1.1')))
+
     # minimize hi precision correction
 
-    def test_minimize_correction(self):
+    def test_minimize_correction_default_100(self):
         converter = UBXDataFormatter()
 
         # real life case
@@ -333,26 +411,42 @@ class test_UBXDataFormatter(unittest.TestCase):
         # + / +
         self.assertEqual(( 100000000,   0), converter.minimize_correction(100000000,  0 ))
         self.assertEqual(( 100000000,  49), converter.minimize_correction(100000000,  49))
-        self.assertEqual(( 100000000,  50), converter.minimize_correction(100000000,  50))
+        self.assertEqual(( 100000001, -50), converter.minimize_correction(100000000,  50))
         self.assertEqual(( 100000001, -49), converter.minimize_correction(100000000,  51))
         self.assertEqual(( 100000001, -1 ), converter.minimize_correction(100000000,  99))
 
         # - / -
         self.assertEqual((-100000000,   0), converter.minimize_correction(-100000000,  0 ))
         self.assertEqual((-100000000, -49), converter.minimize_correction(-100000000, -49))
-        self.assertEqual((-100000000, -50), converter.minimize_correction(-100000000, -50))
+        self.assertEqual((-100000001,  50), converter.minimize_correction(-100000000, -50))
         self.assertEqual((-100000001,  49), converter.minimize_correction(-100000000, -51))
         self.assertEqual((-100000001,  1 ), converter.minimize_correction(-100000000, -99))
 
-    def test_minimize_correction_gt50_diff_sign_raises(self):
+    def test_minimize_correction_default_100_max_min(self):
+        converter = UBXDataFormatter()
+
+        # NOTE on the boundaries of the 32 bit fields,
+        #      if the correction causes an overflow, we avoid it
+
+        # + / +
+        self.assertEqual((2147483647, 99), converter.minimize_correction(2147483647, 99))
+        self.assertEqual((2147483647, 50), converter.minimize_correction(2147483647, 50))
+        self.assertEqual((2147483647, 49), converter.minimize_correction(2147483647, 49))
+
+        # - / -
+        self.assertEqual((-2147483648, -99), converter.minimize_correction(-2147483648, -99))
+        self.assertEqual((-2147483648, -50), converter.minimize_correction(-2147483648, -50))
+        self.assertEqual((-2147483648, -49), converter.minimize_correction(-2147483648, -49))
+
+    def test_minimize_correction_midpoint_diff_sign_raises(self):
         converter = UBXDataFormatter()
 
         with self.assertRaises(ValueError) as context:
-            converter.minimize_correction(-100000000, 51)
+            converter.minimize_correction(-100000000, 51, midpoint=50)
         self.assertEqual('Operation not defined for not matching signs',
             str(context.exception))
 
         with self.assertRaises(ValueError) as context:
-            converter.minimize_correction(100000000, -51)
+            converter.minimize_correction(100000000, -51, midpoint=50)
         self.assertEqual('Operation not defined for not matching signs',
             str(context.exception))

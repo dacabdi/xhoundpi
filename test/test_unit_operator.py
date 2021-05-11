@@ -29,6 +29,10 @@ class UBXPayload:
     lon: int = 111
     latHp: int = 22
     lonHp: int = 33
+    height: int = 20
+    heightHp: int = 4
+    hMSL: int = 30
+    hMSLHp: int = 2
 
 class test_NMEAOffsetOperator(unittest.TestCase):
 

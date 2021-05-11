@@ -68,6 +68,7 @@ from .metric import (LatencyMetric,
                     SuccessCounterMetric,
                     MetricsCollection)
 from .async_ext import loop_forever_async
+from .decimal_math import setup_common_decimal_context
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -80,6 +81,7 @@ class XHoundPi:
         self.tasks = []
         self.tasks_gather = None
         self.setup_signals()
+        self.setup_decimal_context()
         self.setup_queues()
         self.setup_metrics()
         self.setup_metrics_logger()
@@ -120,6 +122,9 @@ class XHoundPi:
         self.signal_frame = frame
         if self.tasks_gather:
             self.tasks_gather.cancel()
+
+    def setup_decimal_context(self):
+        setup_common_decimal_context()
 
     def setup_display(self):
         """

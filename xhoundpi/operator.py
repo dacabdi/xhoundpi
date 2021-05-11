@@ -30,6 +30,7 @@ class NMEAOffsetOperator(IMessageOperator):
         '''
         Operate on the message and return the transformed version
         '''
+        # TODO add alt and alt_ref (prop ubx)
         nmea = message.payload
         offset = self.__offset_provider.get_offset()
         hi_res = self.__formatter.is_highpres(nmea.lat) and self.__formatter.is_highpres(nmea.lon)
@@ -63,20 +64,33 @@ class UBXOffsetOperator(IMessageOperator):
         Operate on the message and return the transformed version
         '''
         ubx = message.payload
+
+        lat = self.__formatter.integer_to_decdeg(ubx.lat)
+        lon = self.__formatter.integer_to_decdeg(ubx.lon)
+        height = ubx.height
+        hmsl = ubx.hMSL
+
         offset = self.__offset_provider.get_offset()
-        src_lat = self.__formatter.integer_to_decdeg(ubx.lat)
-        src_lon = self.__formatter.integer_to_decdeg(ubx.lon)
-        target_lat, _ = self.__formatter.decdeg_to_integer(src_lat + offset.lat)
-        target_lon, _ = self.__formatter.decdeg_to_integer(src_lon + offset.lon)
+
+        tlat, _ = self.__formatter.decdeg_to_integer(lat + offset.lat)
+        tlon, _ = self.__formatter.decdeg_to_integer(lon + offset.lon)
+        theight, _ = self.__formatter.height_mm_to_integer(height + offset.alt)
+        thmsl, _ = self.__formatter.height_mm_to_integer(hmsl + offset.alt)
+
         return self.__editor.set_fields(message, {
-            'lat': target_lat,
-            'lon': target_lon,
+            'lat': tlat,
+            'lon': tlon,
+            'height': theight,
+            'hMSL': thmsl,
         })
 
 class UBXHiResOffsetOperator(IMessageOperator):
     '''
     Correct coordinates of a hi res UBX message by adding an offset
     '''
+
+    LATLON_MP = 50
+    HEIGHT_MP = 5
 
     def __init__(
         self,
@@ -87,21 +101,42 @@ class UBXHiResOffsetOperator(IMessageOperator):
         self.__formatter = data_formatter
         self.__offset_provider = offset_provider
 
+    # pylint: disable=too-many-locals
     def operate(self, message: Message) -> Tuple[Status, Message]:
         '''
         Operate on the message and return the transformed hi res version
         '''
         ubx = message.payload
-        offset = self.__offset_provider.get_offset()
+
+        # get current data
         lat = self.__formatter.integer_to_decdeg(ubx.lat, ubx.latHp)
         lon = self.__formatter.integer_to_decdeg(ubx.lon, ubx.lonHp)
+        height = self.__formatter.integer_to_height_mm(ubx.height, ubx.heightHp)
+        hmsl = self.__formatter.integer_to_height_mm(ubx.hMSL, ubx.hMSLHp)
+
+        # get offset
+        offset = self.__offset_provider.get_offset()
+
+        # calculate offsets
         tlat, tlat_hp = self.__formatter.decdeg_to_integer(lat + offset.lat)
         tlon, tlon_hp = self.__formatter.decdeg_to_integer(lon + offset.lon)
-        tlat, tlat_hp = self.__formatter.minimize_correction(tlat, tlat_hp)
-        tlon, tlon_hp = self.__formatter.minimize_correction(tlon, tlon_hp)
+        thei, thei_hp = self.__formatter.height_mm_to_integer(height + offset.alt)
+        thms, thms_hp = self.__formatter.height_mm_to_integer(hmsl + offset.alt)
+
+        # minimize hi pres field correction delta
+        tlat, tlat_hp = self.__formatter.minimize_correction(tlat, tlat_hp, midpoint=self.LATLON_MP)
+        tlon, tlon_hp = self.__formatter.minimize_correction(tlon, tlon_hp, midpoint=self.LATLON_MP)
+        thei, thei_hp = self.__formatter.minimize_correction(thei, thei_hp, midpoint=self.HEIGHT_MP)
+        thms, thms_hp = self.__formatter.minimize_correction(thms, thms_hp, midpoint=self.HEIGHT_MP)
+
+        # edit message
         return self.__editor.set_fields(message, {
             'lat': tlat,
             'lon': tlon,
             'latHp': tlat_hp,
-            'lonHp': tlon_hp
+            'lonHp': tlon_hp,
+            'height': thei,
+            'heightHp': thei_hp,
+            'hMSL': thms,
+            'hMSLHp': thms_hp,
         })

@@ -1,11 +1,12 @@
 """ Operation status representation module """
 
-from typing import Dict
+from __future__ import annotations
+from typing import Dict, Union
 
 class Status:
     """ Operation status representation """
 
-    def __init__(self, error: Exception, metadata: Dict = None):
+    def __init__(self, error: Union[Exception, None], metadata: Dict = None):
         self.__error = error
         self.__metadata = metadata if metadata is not None else dict()
 
@@ -29,7 +30,7 @@ class Status:
         """ Signals whether the status is succesful """
         return self.error is None
 
-    def __eq__(self, o: object) -> bool:
+    def __eq__(self, o: Status) -> bool:
         return (
             type(self.error) is type(o.error)
             and ((self.error is None and o.error is None)
