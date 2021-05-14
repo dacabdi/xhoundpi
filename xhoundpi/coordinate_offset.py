@@ -4,7 +4,7 @@ Coordinate offset models and providers definition
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from decimal import Decimal, localcontext, Inexact
+from decimal import Decimal, Inexact, localcontext
 
 from .decimal_math import sin, cos, pi
 
@@ -95,8 +95,12 @@ class OrientationOffsetProvider(ICoordinateOffsetProvider):
         pitch = angles.pitch
         roll = angles.roll
 
-        delta_latitude = radius * (sin(roll) * sin(yaw) + cos(roll) * cos(yaw) * sin(pitch))
-        delta_longitude = -radius * (sin(roll) * cos(yaw) - cos(roll) * sin(pitch) * sin(yaw))
-        delta_alt = radius * cos(roll) * cos(pitch)
+        with localcontext() as ctx:
+            # NOTE the sin/cos operations can produce irrational values
+            #      that cannot guarantee exactitude, we accept it
+            ctx.traps[Inexact] = False
+            delta_latitude = radius * (sin(roll) * sin(yaw) + cos(roll) * cos(yaw) * sin(pitch))
+            delta_longitude = -radius * (sin(roll) * cos(yaw) - cos(roll) * sin(pitch) * sin(yaw))
+            delta_alt = radius * cos(roll) * cos(pitch)
 
         return CoordinateOffset(delta_latitude, delta_longitude, delta_alt)
