@@ -95,19 +95,8 @@ class OrientationOffsetProvider(ICoordinateOffsetProvider):
         pitch = angles.pitch
         roll = angles.roll
 
-        Rad = Decimal(radius)
+        delta_latitude = radius * (sin(roll) * sin(yaw) + cos(roll) * cos(yaw) * sin(pitch))
+        delta_longitude = -radius * (sin(roll) * cos(yaw) - cos(roll) * sin(pitch) * sin(yaw))
+        delta_alt = radius * cos(roll) * cos(pitch)
 
-        dLat = Rad * ( sin(roll)*sin(yaw) + cos(roll)*cos(yaw)*sin(pitch) )
-        dLon = -Rad * ( sin(roll)*cos(yaw) - cos(roll)*sin(pitch)*sin(yaw) )
-        dAlt = Rad * cos(roll)*cos(pitch)
-
-        return CoordinateOffset(dLat,dLon,dAlt)
-
-    @classmethod
-    def _deg_to_rad(cls, deg: Decimal):
-        with localcontext() as ctx:
-            ctx.traps[Inexact] = False
-            # NOTE the cls.PI / cls.DEG180 operation is inexact
-            # TODO save the result of the operation,
-            #      we do not need to calculate it every time
-            return deg * cls.PI / cls.DEG180
+        return CoordinateOffset(delta_latitude, delta_longitude, delta_alt)
