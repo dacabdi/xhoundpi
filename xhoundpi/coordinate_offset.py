@@ -91,17 +91,17 @@ class OrientationOffsetProvider(ICoordinateOffsetProvider):
         angles = self.__orientation.get_orientation()
         radius = self.__radius
 
-        yaw = self._deg_to_rad(angles.yaw)
-        pitch = self._deg_to_rad(angles.pitch)
-        roll = self._deg_to_rad(angles.roll)
+        yaw = angles.yaw
+        pitch = angles.pitch
+        roll = angles.roll
 
         Rad = Decimal(radius)
 
-        dLong = Rad * ( sin(roll)*sin(yaw) + cos(roll)*cos(yaw)*sin(pitch) )
-        dLat = -Rad * ( sin(roll)*cos(yaw) - cos(roll)*sin(pitch)*sin(yaw) )
+        dLat = Rad * ( sin(roll)*sin(yaw) + cos(roll)*cos(yaw)*sin(pitch) )
+        dLon = -Rad * ( sin(roll)*cos(yaw) - cos(roll)*sin(pitch)*sin(yaw) )
         dAlt = Rad * cos(roll)*cos(pitch)
 
-        return CoordinateOffset(dLat,dLong,dAlt)
+        return CoordinateOffset(dLat,dLon,dAlt)
 
     @classmethod
     def _deg_to_rad(cls, deg: Decimal):

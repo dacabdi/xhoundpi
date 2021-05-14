@@ -60,6 +60,11 @@ class test_OrientationOffsetProvider(unittest.TestCase):
     @data(
         _data(yaw=D("0"), pitch=D("0"), roll=D("0"), r=D("10"), lat=D("0"), lon=D("0"), alt=D("10")),
         _data(yaw=D("0"), pitch=D("60"), roll=D("0"), r=D("10"), lat=D("8.6602540378443864676372317075294"), lon=D("0"), alt=D("5")),
+        _data(yaw=D("0"), pitch=D("30"), roll=D("0"), r=D("10"), lat=D("5"), lon=D("0"), alt=D("8.6602540378443864676372317075294")),
+        _data(yaw=D("30"), pitch=D("30"), roll=D("0"), r=D("10"), lat=D("4.33012701892219"), lon=D("2.5"), alt=D("8.6602540378443864676372317075294")),
+        _data(yaw=D("0"), pitch=D("45"), roll=D("0"), r=D("10"), lat=D("7.07106781186547"), lon=D("0"), alt=D("7.07106781186547")),
+        _data(yaw=D("45"), pitch=D("45"), roll=D("0"), r=D("10"), lat=D("5"), lon=D("5"), alt=D("7.07106781186547")),
+        _data(yaw=D("45"), pitch=D("45"), roll=D("90"), r=D("10"), lat=D("7.07106781186547"), lon=D("-7.07106781186547"), alt=D("0")),
     )
     @unpack
     def test_provide(self, angles, radius, expected):
