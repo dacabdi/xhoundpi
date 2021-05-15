@@ -17,7 +17,7 @@ from xhoundpi.message import Message
 from xhoundpi.data_formatter import NMEADataFormatter, UBXDataFormatter
 from xhoundpi.message_editor import NMEAMessageEditor, UBXMessageEditor
 from xhoundpi.operator import NMEAOffsetOperator, UBXHiResOffsetOperator, UBXOffsetOperator
-from xhoundpi.coordinate_offset import CoordinateOffset, StaticOffsetProvider
+from xhoundpi.coordinate_offset import GeoCoordinates, StaticOffsetProvider
 from xhoundpi.operator_provider import CoordinateOperationProvider
 from xhoundpi.message_policy import HasLocationPolicy
 from xhoundpi.message_policy_provider import OnePolicyProvider
@@ -30,7 +30,7 @@ class test_Functional_OffsetProcessor(unittest.TestCase):
 
     # pylint: disable=no-self-use
     def setup_processor(self, lat_off: Decimal, long_off: Decimal): # TODO add non-zero altitude to the tests
-        offset_provider = StaticOffsetProvider(CoordinateOffset(lat=lat_off, lon=long_off, alt=Decimal("0.0")))
+        offset_provider = StaticOffsetProvider(GeoCoordinates(lat=lat_off, lon=long_off, alt=Decimal("0.0")))
         return GenericProcessor(
             name='TestProcessor',
             policy_provider=OnePolicyProvider(HasLocationPolicy()),

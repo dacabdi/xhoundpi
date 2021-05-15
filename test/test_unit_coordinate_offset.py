@@ -11,7 +11,7 @@ from ddt import ddt, data, unpack
 
 from xhoundpi.decimal_math import deg_to_rad, setup_common_decimal_context
 from xhoundpi.coordinate_offset import (
-    CoordinateOffset,
+    GeoCoordinates,
     OrientationOffsetProvider,
     EulerAngles,
     StaticOffsetProvider,
@@ -34,15 +34,15 @@ class test_StaticOrientationProvider(unittest.TestCase):
 class test_StaticOffsetProvider(unittest.TestCase):
 
     def test_provide(self):
-        offset = CoordinateOffset(lat=D("0.5"), lon=D("-0.1"), alt=D("-0.3"))
+        offset = GeoCoordinates(lat=D("0.5"), lon=D("-0.1"), alt=D("-0.3"))
         provider = StaticOffsetProvider(offset)
 
         self.assertEqual(
-            CoordinateOffset(lat=D("0.5"), lon=D("-0.1"), alt=D("-0.3")),
+            GeoCoordinates(lat=D("0.5"), lon=D("-0.1"), alt=D("-0.3")),
             provider.get_offset(), msg = 'Because it must provide the preset offset')
 
         self.assertEqual(
-            CoordinateOffset(lat=D("0.5"), lon=D("-0.1"), alt=D("-0.3")),
+            GeoCoordinates(lat=D("0.5"), lon=D("-0.1"), alt=D("-0.3")),
             provider.get_offset(), msg = 'Because it must provide the same value across calls')
 
 
@@ -50,7 +50,7 @@ def _data(yaw: D, pitch: D, roll: D, r: D, lat: D, lon: D, alt: D):
     with localcontext() as ctx:
         # NOTE the ratio multiplication produces inexact results
         ctx.traps[Inexact] = False
-        return (EulerAngles(deg_to_rad(yaw), deg_to_rad(pitch), deg_to_rad(roll)), r, CoordinateOffset(lat, lon, alt))
+        return (EulerAngles(deg_to_rad(yaw), deg_to_rad(pitch), deg_to_rad(roll)), r, GeoCoordinates(lat, lon, alt))
 
 @ddt
 class test_OrientationOffsetProvider(unittest.TestCase):

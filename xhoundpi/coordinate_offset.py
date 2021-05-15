@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from decimal import Decimal, Inexact, localcontext
 
 from .decimal_math import sin, cos, pi
+from .geocoordinates import GeoCoordinates
 
 @dataclass
 class EulerAngles:
@@ -41,15 +42,6 @@ class StaticOrientationProvider(IOrientationProvider):
     def get_orientation(self) -> EulerAngles:
         return self.__angles
 
-@dataclass
-class CoordinateOffset:
-    '''
-    Model for geographic coordinates offsets
-    '''
-    lat: Decimal
-    lon: Decimal
-    alt: Decimal
-
 class ICoordinateOffsetProvider(ABC):
     '''
     Coordinate offset provider for dynamically sourced
@@ -57,7 +49,7 @@ class ICoordinateOffsetProvider(ABC):
     '''
 
     @abstractmethod
-    def get_offset(self) -> CoordinateOffset:
+    def get_offset(self) -> GeoCoordinates:
         '''
         Returns a coordinate offset object
         '''
@@ -67,10 +59,10 @@ class StaticOffsetProvider(ICoordinateOffsetProvider):
     Fixed offset provider
     '''
 
-    def __init__(self, offset: CoordinateOffset):
+    def __init__(self, offset: GeoCoordinates):
         self.__offset = offset
 
-    def get_offset(self) -> CoordinateOffset:
+    def get_offset(self) -> GeoCoordinates:
         return self.__offset
 
 
@@ -87,7 +79,7 @@ class OrientationOffsetProvider(ICoordinateOffsetProvider):
         self.__orientation = orientation
         self.__radius = radius
 
-    def get_offset(self) -> CoordinateOffset:
+    def get_offset(self) -> GeoCoordinates:
         angles = self.__orientation.get_orientation()
         radius = self.__radius
 
@@ -103,4 +95,4 @@ class OrientationOffsetProvider(ICoordinateOffsetProvider):
             delta_longitude = -radius * (sin(roll) * cos(yaw) - cos(roll) * sin(pitch) * sin(yaw))
             delta_alt = radius * cos(roll) * cos(pitch)
 
-        return CoordinateOffset(delta_latitude, delta_longitude, delta_alt)
+        return GeoCoordinates(delta_latitude, delta_longitude, delta_alt)
