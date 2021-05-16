@@ -24,11 +24,18 @@ def _data(lat: D, lon: D, alt: D, factor_lat: D, factor_lon: D):
 @ddt
 class test_DistanceAngleConverter(unittest.TestCase):
 
-    TOLERANCE = 12
+    TOLERANCE = 6
 
     @data(
-        _data(lat=D("25"), lon=D("-80"), alt=D("0"), factor_lat=D("1"), factor_lon=D("1")),
-        _data(lat=D("25"), lon=D("-80"), alt=D("0"), factor_lat=D("1"), factor_lon=D("1")),
+        _data(lat=D("25"), lon=D("-88"), alt=D("0"), factor_lat=D("110863.588408447"), factor_lon=D("101032.741490611")),
+        _data(lat=D("90"), lon=D("-88"), alt=D("0"), factor_lat=D("111693.9791457850"), factor_lon=D("0.0000000000")),
+        _data(lat=D("0.0"), lon=D("-88.0"), alt=D("0"), factor_lat=D("110574.9563383210"), factor_lon=D("111319.4904007660")),
+        _data(lat=D("89.0"), lon=D("-88.0"), alt=D("0"), factor_lat=D("111693.6982589560"), factor_lon=D("1949.3277206142")),
+        _data(lat=D("-89.0"), lon=D("-88.0"), alt=D("0"), factor_lat=D("110948.5729163590"), factor_lon=D("1936.3235426595")),
+        _data(lat=D("-90.0"), lon=D("-88.0"), alt=D("0"), factor_lat=D("110948.7433106710"), factor_lon=D("0.0000000000")),
+        _data(lat=D("45.0"), lon=D("0.0"), alt=D("0"), factor_lat=D("111209.7227700660"), factor_lon=D("78901.7343263512")),
+        _data(lat=D("45.0"), lon=D("180.0"), alt=D("0"), factor_lat=D("111209.7227700660"), factor_lon=D("78901.7343263864")),
+        _data(lat=D("45.0"), lon=D("-180.0"), alt=D("0"), factor_lat=D("111209.7227700660"), factor_lon=D("78901.7343263864")),
     )
     @unpack
     def test_provide(self, locn, expected):
@@ -39,6 +46,6 @@ class test_DistanceAngleConverter(unittest.TestCase):
         with localcontext() as ctx:
             # NOTE we are ok with not having exactitude on this comparison
             ctx.traps[Inexact] = False
-            self.assertEqual(round(expected.factor_lat, self.TOLERANCE), round(actual[0], self.TOLERANCE))
-            self.assertEqual(round(expected.factor_lon, self.TOLERANCE), round(actual[1], self.TOLERANCE))
-        ConversionFactorProvider.get_factor.assert_called_once()
+            self.assertEqual(round(expected.lat, self.TOLERANCE), round(actual.lat, self.TOLERANCE))
+            self.assertEqual(round(expected.lon, self.TOLERANCE), round(actual.lon, self.TOLERANCE))
+        location_provider.get_location.assert_called_once()
