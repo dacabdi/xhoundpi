@@ -16,6 +16,8 @@ from decimal import (
     Inexact,
     ROUND_HALF_EVEN,
     Decimal)
+from typing import Tuple
+from xhoundpi import geocoordinates
 
 def setup_common_decimal_context(pres: int = 24):
     '''
@@ -57,6 +59,29 @@ with localcontext() as c:
     PI = pi()
     DEG180 = Decimal("180")
     DEG_RAD_RATIO = PI / DEG180
+    MINUTE = Decimal("1") / Decimal("60")
+    EQUAT_RAD_M = Decimal("6378137")
+    POLAR_RAD_M = Decimal("6356752.314")
+    SQRD_RADIAL_RATIO = (POLAR_RAD_M**2 / EQUAT_RAD_M**2)
+    ELLIPSOID_ECC_SQRD = 1 - SQRD_RADIAL_RATIO
+
+def geodethic_to_ecef(point: geocoordinates) -> Tuple[Decimal, Decimal, Decimal]:
+    '''
+    Function to convert from Geodethic coordinates
+    to Earth Centered - Earth Fixed (ECEF) coordinate system
+    ref: https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_geodetic_to_ECEF_coordinates '''#pylint: disable=line-too-long
+
+    lat = point.lat
+    lon = point.lon
+    alt = point.alt
+
+    prime_vert_rad = EQUAT_RAD_M / Decimal.sqrt(1 - ELLIPSOID_ECC_SQRD * sin(deg_to_rad(lat)))
+
+    x_coord = (prime_vert_rad + alt) * cos(deg_to_rad(lat)) * cos(deg_to_rad(lon))
+    y_coord = (prime_vert_rad + alt) * cos(deg_to_rad(lat)) * sin(deg_to_rad(lon))
+    z_coord = (SQRD_RADIAL_RATIO * prime_vert_rad + alt) * sin(deg_to_rad(lat))
+
+    return x_coord, y_coord, z_coord
 
 def exp(x):
     '''Return e raised to the power of x.  Result type matches input type.
