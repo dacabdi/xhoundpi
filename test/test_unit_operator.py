@@ -22,9 +22,11 @@ class NMEAPayload:
     lon: str = '98701.12345'
     lat_dir: str = 'N'
     lon_dir: str = 'E'
+    alt: str = '1.5'
 
 @dataclass
 class UBXPayload:
+    # pylint: disable=too-many-instance-attributes
     lat: int = 999
     lon: int = 111
     latHp: int = 22
@@ -41,11 +43,17 @@ class test_NMEAOffsetOperator(unittest.TestCase):
         formatter.is_highpres = Mock(return_value=False)
         formatter.degmins_to_decdeg = Mock(return_value=Decimal("1.0"))
         formatter.decdeg_to_degmins = Mock(return_value=('00010.12345', Direction.N))
+        formatter.height_field_m_to_height_mm = Mock(return_value=Decimal("100"))
+        formatter.height_mm_to_field_m = Mock(return_value="1.5011")
         editor = Mock()
         editor.set_fields = Mock(return_value='new message')
         offset_provider = Mock()
         offset_provider.get_offset = Mock(
+<<<<<<< HEAD
             return_value=GeoCoordinates(lat=Decimal("0.5"), lon=Decimal("0.2"), alt=Decimal("0.1")))
+=======
+            return_value=CoordinateOffset(lat=Decimal("0.5"), lon=Decimal("0.2"), alt=Decimal("1.1")))
+>>>>>>> 107a941 (wip)
         msg = Message(
             message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
             proto=ProtocolClass.NMEA,
@@ -62,6 +70,8 @@ class test_NMEAOffsetOperator(unittest.TestCase):
         formatter.degmins_to_decdeg.assert_called_with('98701.12345', Direction.E)
         formatter.decdeg_to_degmins.assert_any_call(Decimal("1.5"), CoordAxis.LAT, False)
         formatter.decdeg_to_degmins.assert_called_with(Decimal('1.2'), CoordAxis.LON, False)
+        formatter.height_field_m_to_height_mm.assert_called_once_with('1.5')
+        formatter.height_mm_to_field_m.assert_called_once_with(Decimal('1501.1'))
         offset_provider.get_offset.assert_called_once()
         editor.set_fields.assert_called_once_with(
             Message(
@@ -73,6 +83,7 @@ class test_NMEAOffsetOperator(unittest.TestCase):
                 'lon': '00010.12345',
                 'lat_dir': 'N',
                 'lon_dir': 'N',
+                'alt': '1.5011'
             })
         self.assertEqual(result, 'new message')
 

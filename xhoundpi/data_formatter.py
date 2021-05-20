@@ -7,6 +7,7 @@ from typing import Tuple
 from decimal import localcontext, Inexact, Decimal
 
 from .direction import CoordAxis, Direction
+from .decimal_math import moneyfmt
 
 class NMEADataFormatter:
     '''
@@ -17,6 +18,7 @@ class NMEADataFormatter:
     LO_PRES = 5
     HI_PRES = 7
     DEC_1 = Decimal('1')
+    DEC_0_001 = DEC_1.scaleb(-3)
     FORMAT = '{{degs:0{degs_width}n}}{{mins:0{mins_width}.{prec}f}}'
 
     def degmins_to_decdeg(self, degmins: str, direction: Direction) -> Decimal:
@@ -47,20 +49,22 @@ class NMEADataFormatter:
         return template.format(degs=degs, mins=mins), direction
 
     @classmethod
-    def height_field_m_to_height_mm(cls, field: str) -> Decimal:
+    def height_from_field(cls, field: str) -> Decimal:
         '''
         Converts an NMEA height field in meters
-        into a decimal millimetric representation
+        into a decimal meter representation
         '''
-        return Decimal(field).scaleb(3)
+        return Decimal(field)
 
     @classmethod
-    def height_mm_to_height_field_m(cls, height: Decimal) -> str:
+    def height_to_field(cls, height: Decimal) -> str:
         '''
         Converts an NMEA height field in meters
-        into a decimal millimetric representation
+        into a decimal meter representation
         '''
-        return str(height.scaleb(-3))
+        result = str(height.quantize(cls.DEC_0_001))
+        
+        return str(height.quantize(cls.DEC_0_001))
 
     @classmethod
     def is_highpres(cls, value: str):
@@ -131,13 +135,6 @@ class UBXDataFormatter:
         hires_dec = Decimal(hires).scaleb(-self.HIGH_RES)
         return base_dec + hires_dec
 
-    def integer_to_height_mm(self, base: int, hires: int = 0) -> Decimal:
-        '''
-        Converts signed altitude value from two integer
-        components into decimal millimeters representation
-        '''
-        return base + (hires * self.DEC_0_1)
-
     def decdeg_to_integer(self, decdeg: Decimal) -> Tuple[int, int]:
         '''
         Converts signed decimal degrees
@@ -147,12 +144,20 @@ class UBXDataFormatter:
         hi_res, _ = divmod(frac.scaleb(self.HIGH_RES - self.BASE_RES), self.DEC_1)
         return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
 
-    def height_mm_to_integer(self, height_mm: Decimal) -> Tuple[int, int]:
+    def height_from_field(self, base: int, hires: int = 0) -> Decimal:
         '''
-        Converts signed altitude value from decimal millimeters
-        to two integer components representation
+        Converts signed altitude value from two integer
+        components in millimiters to decimal meters representation
         '''
-        base, frac = divmod(height_mm, self.DEC_1)
+        return (base + (hires * self.DEC_0_1)).scaleb(-3)
+
+    def height_to_field(self, height: Decimal) -> Tuple[int, int]:
+        '''
+        Converts signed altitude value from decimal meters
+        to two integer components representation in millimiters
+        '''
+        height = height.scaleb(3)
+        base, frac = divmod(height, self.DEC_1)
         hi_res, _ = divmod(frac.scaleb(self.DEC_1), self.DEC_1)
         return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
 

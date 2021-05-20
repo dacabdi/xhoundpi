@@ -15,7 +15,8 @@ from xhoundpi.decimal_math import setup_common_decimal_context
 
 setup_common_decimal_context()
 
-class test_NMEADataFormatter(unittest.TestCase): # pylint: disable=too-many-public-methods
+class test_NMEADataFormatter(unittest.TestCase):
+    # pylint: disable=too-many-public-methods
 
     # degmins_to_decdeg
 
@@ -165,17 +166,17 @@ class test_NMEADataFormatter(unittest.TestCase): # pylint: disable=too-many-publ
 
     # height conversions
 
-    def test_height_field_m_to_height_mm(self):
+    def test_height_from_field(self):
         converter = NMEADataFormatter()
-        self.assertEqual(Decimal('1000'), converter.height_field_m_to_height_mm('1'))
-        self.assertEqual(Decimal('0'), converter.height_field_m_to_height_mm('0'))
-        self.assertEqual(Decimal('1'), converter.height_field_m_to_height_mm('0.001'))
+        self.assertEqual(Decimal('1'), converter.height_from_field('1'))
+        self.assertEqual(Decimal('0'), converter.height_from_field('0'))
+        self.assertEqual(Decimal('0.001'), converter.height_from_field('0.001'))
 
     def test_height_field_to_height_mm(self):
         converter = NMEADataFormatter()
-        self.assertEqual('1000.000', converter.height_mm_to_height_field_m(Decimal('1000000')))
-        self.assertEqual('0.000', converter.height_mm_to_height_field_m(Decimal('0')))
-        self.assertEqual('0.001', converter.height_mm_to_height_field_m(Decimal('1')))
+        self.assertEqual('100.000', converter.height_to_field(Decimal('100.000')))
+        self.assertEqual('0.000', converter.height_to_field(Decimal('0')))
+        self.assertEqual('1.000', converter.height_to_field(Decimal('1')))
 
     # is_highpres
 
@@ -340,27 +341,27 @@ class test_UBXDataFormatter(unittest.TestCase):
 
     def test_integer_to_height_mm_zero(self):
         converter = UBXDataFormatter()
-        result = converter.integer_to_height_mm(0)
+        result = converter.height_from_field(0)
         self.assertEqual(Decimal('0.0') , result)
 
     def test_integer_to_height_mm_max(self):
         converter = UBXDataFormatter()
-        result = converter.integer_to_height_mm(2147483647)
+        result = converter.height_from_field(2147483647)
         self.assertEqual(Decimal('2147483647.0'), result)
 
     def test_integer_to_height_mm_min(self):
         converter = UBXDataFormatter()
-        result = converter.integer_to_height_mm(-2147483648)
+        result = converter.height_from_field(-2147483648)
         self.assertEqual(Decimal('-2147483648.0'), result)
 
     def test_integer_to_height_mm_max_hires(self):
         converter = UBXDataFormatter()
-        result = converter.integer_to_height_mm(2147483647, 9)
+        result = converter.height_from_field(2147483647, 9)
         self.assertEqual(Decimal('2147483647.9'), result)
 
     def test_integer_to_height_mm_min_hires(self):
         converter = UBXDataFormatter()
-        result = converter.integer_to_height_mm(-2147483648, -9)
+        result = converter.height_from_field(-2147483648, -9)
         self.assertEqual(Decimal('-2147483648.9'), result)
 
 
@@ -368,36 +369,36 @@ class test_UBXDataFormatter(unittest.TestCase):
 
     def test_height_mm_to_integer_zero(self):
         converter = UBXDataFormatter()
-        result = converter.height_mm_to_integer(Decimal('0.0'))
+        result = converter.height_to_field(Decimal('0.0'))
         self.assertEqual((0, 0), result)
 
     def test_height_mm_to_integer_max(self):
         converter = UBXDataFormatter()
-        result = converter.height_mm_to_integer(Decimal('2147483647'))
+        result = converter.height_to_field(Decimal('2147483647'))
         self.assertEqual((2147483647, 0), result)
 
     def test_height_mm_to_integer_min(self):
         converter = UBXDataFormatter()
-        result = converter.height_mm_to_integer(Decimal('-2147483648'))
+        result = converter.height_to_field(Decimal('-2147483648'))
         self.assertEqual((-2147483648, 0), result)
 
     def test_height_mm_to_integer_max_hires(self):
         converter = UBXDataFormatter()
-        result = converter.height_mm_to_integer(Decimal('2147483647.9'))
+        result = converter.height_to_field(Decimal('2147483647.9'))
         self.assertEqual((2147483647, 9), result)
 
     def test_height_mm_to_integer_min_hires(self):
         converter = UBXDataFormatter()
-        result = converter.height_mm_to_integer(Decimal('-2147483648.9'))
+        result = converter.height_to_field(Decimal('-2147483648.9'))
         self.assertEqual((-2147483648, -9), result)
 
     def test_height_mm_to_integer_assorted(self):
         converter = UBXDataFormatter()
-        self.assertEqual((0, 1), converter.height_mm_to_integer(Decimal('0.1')))
-        self.assertEqual((1, 5), converter.height_mm_to_integer(Decimal('1.5')))
-        self.assertEqual((1, 5), converter.height_mm_to_integer(Decimal('1.55')))
-        self.assertEqual((-10, 0), converter.height_mm_to_integer(Decimal('-10.01')))
-        self.assertEqual((-1, -1), converter.height_mm_to_integer(Decimal('-1.1')))
+        self.assertEqual((0, 1), converter.height_to_field(Decimal('0.1')))
+        self.assertEqual((1, 5), converter.height_to_field(Decimal('1.5')))
+        self.assertEqual((1, 5), converter.height_to_field(Decimal('1.55')))
+        self.assertEqual((-10, 0), converter.height_to_field(Decimal('-10.01')))
+        self.assertEqual((-1, -1), converter.height_to_field(Decimal('-1.1')))
 
     # minimize hi precision correction
 
