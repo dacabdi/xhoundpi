@@ -7,7 +7,7 @@ from typing import Tuple
 from decimal import localcontext, Inexact, Decimal
 
 from .direction import CoordAxis, Direction
-from .decimal_math import moneyfmt
+from .dmath import moneyfmt
 
 class NMEADataFormatter:
     '''
@@ -63,7 +63,7 @@ class NMEADataFormatter:
         into a decimal meter representation
         '''
         result = str(height.quantize(cls.DEC_0_001))
-        
+
         return str(height.quantize(cls.DEC_0_001))
 
     @classmethod

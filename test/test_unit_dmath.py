@@ -8,9 +8,9 @@ import unittest
 import unittest.mock
 from decimal import Decimal as D
 
-from xhoundpi.decimal_math import setup_common_decimal_context, normalize_fraction
+from xhoundpi.dmath import setup_common_context, normalize_fraction
 
-setup_common_decimal_context()
+setup_common_context()
 
 class test_normalize_fraction(unittest.TestCase):
 
