@@ -22,6 +22,7 @@ class NMEAPayload:
     lon: str = '98701.12345'
     lat_dir: str = 'N'
     lon_dir: str = 'E'
+    alt: str = '1.5'
 
 @dataclass
 class UBXPayload:
@@ -42,6 +43,8 @@ class test_NMEAOffsetOperator(unittest.TestCase):
         formatter.is_highpres = Mock(return_value=False)
         formatter.degmins_to_decdeg = Mock(return_value=Decimal("1.0"))
         formatter.decdeg_to_degmins = Mock(return_value=('00010.12345', Direction.N))
+        formatter.height_field_m_to_height_mm = Mock(return_value=Decimal("100"))
+        formatter.height_mm_to_field_m = Mock(return_value="1.5011")
         editor = Mock()
         editor.set_fields = Mock(return_value='new message')
         offset_provider = Mock()
@@ -63,6 +66,8 @@ class test_NMEAOffsetOperator(unittest.TestCase):
         formatter.degmins_to_decdeg.assert_called_with('98701.12345', Direction.E)
         formatter.decdeg_to_degmins.assert_any_call(Decimal("1.5"), CoordAxis.LAT, False)
         formatter.decdeg_to_degmins.assert_called_with(Decimal('1.2'), CoordAxis.LON, False)
+        formatter.height_field_m_to_height_mm.assert_called_once_with('1.5')
+        formatter.height_mm_to_field_m.assert_called_once_with(Decimal('1501.1'))
         offset_provider.get_offset.assert_called_once()
         editor.set_fields.assert_called_once_with(
             Message(
@@ -74,6 +79,7 @@ class test_NMEAOffsetOperator(unittest.TestCase):
                 'lon': '00010.12345',
                 'lat_dir': 'N',
                 'lon_dir': 'N',
+                'alt': '1.5011'
             })
         self.assertEqual(result, 'new message')
 
