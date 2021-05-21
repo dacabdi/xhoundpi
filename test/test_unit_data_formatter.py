@@ -172,11 +172,15 @@ class test_NMEADataFormatter(unittest.TestCase):
         self.assertEqual(Decimal('0'), converter.height_from_field('0'))
         self.assertEqual(Decimal('0.001'), converter.height_from_field('0.001'))
 
-    def test_height_field_to_height_mm(self):
+    def test_height_to_field(self):
         converter = NMEADataFormatter()
-        self.assertEqual('100.000', converter.height_to_field(Decimal('100.000')))
-        self.assertEqual('0.000', converter.height_to_field(Decimal('0')))
-        self.assertEqual('1.000', converter.height_to_field(Decimal('1')))
+        self.assertEqual('100.0', converter.height_to_field(Decimal('100.000')))
+        self.assertEqual('0.0', converter.height_to_field(Decimal('0')))
+        self.assertEqual('1.0', converter.height_to_field(Decimal('1')))
+        self.assertEqual('100.0', converter.height_to_field(Decimal('100.000')))
+        self.assertEqual('-1.0', converter.height_to_field(Decimal('-1')))
+        self.assertEqual('100.123', converter.height_to_field(Decimal('100.1234')))
+        self.assertEqual('100.102', converter.height_to_field(Decimal('100.1029')))
 
     # is_highpres
 

@@ -9,6 +9,8 @@ Basic operations on Decimal type values
 from typing import Tuple
 from collections import defaultdict
 from decimal import (
+    DefaultContext,
+    ROUND_DOWN,
     getcontext,
     localcontext,
     Overflow,
@@ -17,7 +19,9 @@ from decimal import (
     FloatOperation,
     Inexact,
     ROUND_HALF_EVEN,
-    Decimal as D)
+    Decimal as D,
+    DecimalTuple as DT,
+    setcontext)
 
 from .coordinates import GeoCoordinates
 
@@ -57,21 +61,28 @@ with localcontext() as c:
     POLAR_RAD_M = D("6356752.314")
     SQRD_RADIAL_RATIO = (POLAR_RAD_M ** 2 / EQUAT_RAD_M ** 2)
     ELLIPSOID_ECC_SQRD = 1 - SQRD_RADIAL_RATIO
+    DECIMAL0 = D("0")
+    DECIMAL1 = D("1")
     DECIMAL2 = D("2")
     DECIMAL3 = D("3")
+    DECIMAL60 = D("60")
+    DECIMAL0_1 = D("0.1")
 
-def setup_common_context(pres: int = 24):
+def setup_common_context(
+    pres: int = 24,
+    rounding: str = ROUND_HALF_EVEN):
     '''
     Sets up common global context
     '''
-    ctx = getcontext()
+    ctx = DefaultContext
     ctx.traps[Overflow] = True
     ctx.traps[DivisionByZero] = True
     ctx.traps[InvalidOperation] = True
     ctx.traps[FloatOperation] = True
     ctx.traps[Inexact] = True
-    ctx.rounding=ROUND_HALF_EVEN
-    getcontext().prec = pres
+    ctx.rounding = rounding
+    ctx.prec = pres
+    setcontext(ctx)
 
 def geodethic_to_ecef(point: GeoCoordinates) -> Tuple[D, D, D]:
     '''
@@ -187,13 +198,32 @@ def distance(p0: Tuple[D, ...], p1: Tuple[D, ...]) -> D:
         raise ValueError('both tuples must be of equal length')
     return D.sqrt(D(sum((x - y) ** DECIMAL2 for x, y in zip(p0, p1))))
 
-def normalize_fraction(dec: D, minp: int = 0, maxp: int = 3) -> D:
+def adjust(dec: D, leftexp: int = -1, rightexp: int = -3) -> D:
     '''
     Drop trailing zeros on decimal value
+
+    leftexp: max exponent
+    rightexp: min exponent
     '''
-    normalized = dec.normalize()
-    sign, digit, exponent = normalized.as_tuple()
-    return normalized if exponent <= minp else normalized.quantize(1).scaleb(-minp)
+    if leftexp < rightexp:
+        raise ValueError('rightexp must be greated than leftexp')
+
+    with localcontext() as ctx:
+        ctx.traps[Inexact] = False
+        ctx.rounding = ROUND_DOWN
+        quantized = dec.quantize(DECIMAL1.scaleb(rightexp))
+
+    sign, digits, exponent = quantized.normalize().as_tuple()
+    if exponent >= leftexp:
+        rzeros = abs(exponent - leftexp)
+        digits += (0,) * rzeros
+        exponent = leftexp
+    elif exponent < rightexp:
+        drop = abs(exponent - rightexp)
+        digits = digits[:-drop]
+        exponent = rightexp
+    ctx = getcontext()
+    return D(DT(sign, digits, exponent))
 
 # pylint: disable=too-many-locals,too-many-arguments
 def moneyfmt(value, places=2, curr='', sep=',', dp='.',
@@ -245,3 +275,10 @@ def moneyfmt(value, places=2, curr='', sep=',', dp='.',
     build(curr)
     build(neg if sign else pos)
     return ''.join(reversed(result))
+
+def dec_to_str(dec: D) -> str:
+    """
+    Convert the given float to a string,
+    without resorting to scientific notation
+    """
+    return format(dec, 'f')

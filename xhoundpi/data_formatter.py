@@ -4,10 +4,10 @@ Format converters for message fields
 
 import re
 from typing import Tuple
-from decimal import localcontext, Inexact, Decimal
+from decimal import localcontext, Inexact, Decimal as D
 
 from .direction import CoordAxis, Direction
-from .dmath import moneyfmt
+from .dmath import DECIMAL0, DECIMAL0_1, DECIMAL1, DECIMAL60, adjust, dec_to_str
 
 class NMEADataFormatter:
     '''
@@ -17,19 +17,18 @@ class NMEADataFormatter:
 
     LO_PRES = 5
     HI_PRES = 7
-    DEC_1 = Decimal('1')
-    DEC_0_001 = DEC_1.scaleb(-3)
+    DEC_0_001 = DECIMAL1.scaleb(-3)
     FORMAT = '{{degs:0{degs_width}n}}{{mins:0{mins_width}.{prec}f}}'
 
-    def degmins_to_decdeg(self, degmins: str, direction: Direction) -> Decimal:
+    def degmins_to_decdeg(self, degmins: str, direction: Direction) -> D:
         '''
         Converts a geographic co-ordinate given in
         (d)ddmm.mmmmm(mm) format to signed decimal degrees
         '''
-        decdeg = Decimal(self._degmins_to_decdeg(degmins))
+        decdeg = D(self._degmins_to_decdeg(degmins))
         return decdeg.copy_negate() if direction in (Direction.S, Direction.W) else decdeg
 
-    def decdeg_to_degmins(self, dec_deg: Decimal, axis: CoordAxis, hipres: bool = False
+    def decdeg_to_degmins(self, dec_deg: D, axis: CoordAxis, hipres: bool = False
     ) -> Tuple[str, Direction]:
         '''
         Converts a geographic co-ordinate given in
@@ -49,22 +48,20 @@ class NMEADataFormatter:
         return template.format(degs=degs, mins=mins), direction
 
     @classmethod
-    def height_from_field(cls, field: str) -> Decimal:
+    def height_from_field(cls, field: str) -> D:
         '''
         Converts an NMEA height field in meters
         into a decimal meter representation
         '''
-        return Decimal(field)
+        return D(field)
 
     @classmethod
-    def height_to_field(cls, height: Decimal) -> str:
+    def height_to_field(cls, height: D) -> str:
         '''
         Converts an NMEA height field in meters
         into a decimal meter representation
         '''
-        result = str(height.quantize(cls.DEC_0_001))
-
-        return str(height.quantize(cls.DEC_0_001))
+        return dec_to_str(adjust(height, leftexp=-1, rightexp=-3))
 
     @classmethod
     def is_highpres(cls, value: str):
@@ -75,8 +72,8 @@ class NMEADataFormatter:
         return len(value) - value.find('.') > 7
 
     @classmethod
-    def _get_data(cls, dec_deg: Decimal, axis: CoordAxis, hipres: bool
-    ) -> Tuple[str, Direction, int, Decimal]:
+    def _get_data(cls, dec_deg: D, axis: CoordAxis, hipres: bool
+    ) -> Tuple[str, Direction, int, D]:
         if axis is CoordAxis.LON:
             direction = Direction.E if dec_deg >= 0 else Direction.W
             deg_length = 3
@@ -88,7 +85,7 @@ class NMEADataFormatter:
             degs_width=deg_length,
             mins_width=3 + precision,
             prec=precision)
-        degs, mins = divmod(dec_deg, cls.DEC_1)
+        degs, mins = divmod(dec_deg, DECIMAL1)
         degs = degs.copy_abs()
         mins = mins.copy_abs()
         with localcontext() as ctx:
@@ -103,14 +100,14 @@ class NMEADataFormatter:
 
     @classmethod
     #pylint: disable=invalid-name
-    def _degmins_to_decdeg(cls, dm: str) -> Decimal:
+    def _degmins_to_decdeg(cls, dm: str) -> D:
         if not dm or dm == '0':
-            return Decimal(0)
+            return DECIMAL0
         d, m = re.match(r'^(\d+)(\d\d\.\d+)$', dm).groups()
         with localcontext() as ctx:
             # NOTE we cannot expect exactitude in this operation
             ctx.traps[Inexact] = False
-            return Decimal(d) + Decimal(m) / Decimal(60)
+            return D(d) + D(m) / DECIMAL60
 
 class UBXDataFormatter:
     '''
@@ -121,44 +118,42 @@ class UBXDataFormatter:
     # TODO store the Decimal instead of the base
     BASE_RES = 7
     HIGH_RES = 9
-    DEC_1 = Decimal('1')
-    DEC_0_1 = Decimal('0.1')
     MAX = 2147483647
     MIN = -2147483648
 
-    def integer_to_decdeg(self, base: int, hires: int = 0) -> Decimal:
+    def integer_to_decdeg(self, base: int, hires: int = 0) -> D:
         '''
         Converts an UBX integer geographic
         co-ordinate into signed decimal degrees
         '''
-        base_dec  = Decimal(base ).scaleb(-self.BASE_RES)
-        hires_dec = Decimal(hires).scaleb(-self.HIGH_RES)
+        base_dec  = D(base ).scaleb(-self.BASE_RES)
+        hires_dec = D(hires).scaleb(-self.HIGH_RES)
         return base_dec + hires_dec
 
-    def decdeg_to_integer(self, decdeg: Decimal) -> Tuple[int, int]:
+    def decdeg_to_integer(self, decdeg: D) -> Tuple[int, int]:
         '''
         Converts signed decimal degrees
         into an UBX integer geographic co-ordinate
         '''
-        base, frac = divmod(decdeg.scaleb(self.BASE_RES), self.DEC_1)
-        hi_res, _ = divmod(frac.scaleb(self.HIGH_RES - self.BASE_RES), self.DEC_1)
+        base, frac = divmod(decdeg.scaleb(self.BASE_RES), DECIMAL1)
+        hi_res, _ = divmod(frac.scaleb(self.HIGH_RES - self.BASE_RES), DECIMAL1)
         return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
 
-    def height_from_field(self, base: int, hires: int = 0) -> Decimal:
+    def height_from_field(self, base: int, hires: int = 0) -> D:
         '''
         Converts signed altitude value from two integer
         components in millimiters to decimal meters representation
         '''
-        return (base + (hires * self.DEC_0_1)).scaleb(-3)
+        return (base + (hires * DECIMAL0_1)).scaleb(-3)
 
-    def height_to_field(self, height: Decimal) -> Tuple[int, int]:
+    def height_to_field(self, height: D) -> Tuple[int, int]:
         '''
         Converts signed altitude value from decimal meters
         to two integer components representation in millimiters
         '''
         height = height.scaleb(3)
-        base, frac = divmod(height, self.DEC_1)
-        hi_res, _ = divmod(frac.scaleb(self.DEC_1), self.DEC_1)
+        base, frac = divmod(height, DECIMAL1)
+        hi_res, _ = divmod(frac.scaleb(DECIMAL1), DECIMAL1)
         return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
 
     def minimize_correction(self, base: int, hires: int, midpoint: int = 50) -> Tuple[int, int]:
