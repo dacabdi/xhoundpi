@@ -17,14 +17,14 @@ from xhoundpi.message import Message
 from xhoundpi.data_formatter import NMEADataFormatter, UBXDataFormatter
 from xhoundpi.message_editor import NMEAMessageEditor, UBXMessageEditor
 from xhoundpi.operator import NMEAOffsetOperator, UBXHiResOffsetOperator, UBXOffsetOperator
-from xhoundpi.coordinate_offset import GeoCoordinates, StaticOffsetProvider
+from xhoundpi.coordinates_offset import GeoCoordinates, StaticOffsetProvider
 from xhoundpi.operator_provider import CoordinateOperationProvider
 from xhoundpi.message_policy import HasLocationPolicy
 from xhoundpi.message_policy_provider import OnePolicyProvider
 from xhoundpi.processor import GenericProcessor
-from xhoundpi.decimal_math import setup_common_decimal_context
+from xhoundpi.dmath import setup_common_context
 
-setup_common_decimal_context()
+setup_common_context()
 
 class test_Functional_OffsetProcessor(unittest.TestCase):
 

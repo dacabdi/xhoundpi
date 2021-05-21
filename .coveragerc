@@ -4,5 +4,5 @@ omit =
   .venv/**
   xhoundpi/panel/fakepanel.py
   xhoundpi/bound_logger_event.py
-  xhoundpi/decimal_math.py
+  xhoundpi/dmath.py
   tools/yappy/**

@@ -9,27 +9,14 @@ from unittest.mock import Mock
 from decimal import Decimal as D, Inexact, localcontext
 from ddt import ddt, data, unpack
 
-from xhoundpi.decimal_math import deg_to_rad, setup_common_decimal_context
-from xhoundpi.coordinate_offset import (
+from xhoundpi.dmath import deg2rad, setup_common_context
+from xhoundpi.orientation import EulerAngles
+from xhoundpi.coordinates_offset import (
     GeoCoordinates,
     OrientationOffsetProvider,
-    EulerAngles,
-    StaticOffsetProvider,
-    StaticOrientationProvider,)
+    StaticOffsetProvider,)
 
-setup_common_decimal_context()
-
-class test_StaticOrientationProvider(unittest.TestCase):
-
-    def test_provide(self):
-        angles = EulerAngles(yaw=D("-1.5"), pitch=D("0.2"))
-        provider = StaticOrientationProvider(angles)
-
-        self.assertEqual(EulerAngles(yaw=D("-1.5"), pitch=D("0.2")),
-            provider.get_orientation(), msg = 'Because it must provide the preset angles')
-
-        self.assertEqual(EulerAngles(yaw=D("-1.5"), pitch=D("0.2")),
-            provider.get_orientation(), msg = 'Because it must provide the same value across calls')
+setup_common_context()
 
 class test_StaticOffsetProvider(unittest.TestCase):
 
@@ -45,12 +32,12 @@ class test_StaticOffsetProvider(unittest.TestCase):
             GeoCoordinates(lat=D("0.5"), lon=D("-0.1"), alt=D("-0.3")),
             provider.get_offset(), msg = 'Because it must provide the same value across calls')
 
-
+# pylint: disable=too-many-arguments
 def _data(yaw: D, pitch: D, roll: D, r: D, lat: D, lon: D, alt: D):
     with localcontext() as ctx:
         # NOTE the ratio multiplication produces inexact results
         ctx.traps[Inexact] = False
-        return (EulerAngles(deg_to_rad(yaw), deg_to_rad(pitch), deg_to_rad(roll)), r, GeoCoordinates(lat, lon, alt))
+        return (EulerAngles(deg2rad(yaw), deg2rad(pitch), deg2rad(roll)), r, GeoCoordinates(lat, lon, alt))
 
 @ddt
 class test_OrientationOffsetProvider(unittest.TestCase):

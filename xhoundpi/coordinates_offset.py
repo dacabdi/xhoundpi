@@ -3,46 +3,13 @@ Coordinate offset models and providers definition
 '''
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from decimal import Decimal, Inexact, localcontext
 
-from .decimal_math import sin, cos, pi
-from .geocoordinates import GeoCoordinates
+from .dmath import sin, cos
+from .coordinates import GeoCoordinates
+from .orientation import IOrientationProvider
 
-@dataclass
-class EulerAngles:
-    '''
-    Model for Euler angles orientation
-    '''
-    # pylint: disable=invalid-name
-    yaw: Decimal = Decimal("0")
-    pitch: Decimal = Decimal("0")
-    roll: Decimal = Decimal("0")
-
-
-class IOrientationProvider(ABC):
-    '''
-    Orientation provider in Euler angles
-    '''
-
-    @abstractmethod
-    def get_orientation(self) -> EulerAngles:
-        '''
-        Returns the orientation in euler angles
-        '''
-
-class StaticOrientationProvider(IOrientationProvider):
-    '''
-    Static orientation provider in Euler angles
-    '''
-
-    def __init__(self, angles: EulerAngles):
-        self.__angles = angles
-
-    def get_orientation(self) -> EulerAngles:
-        return self.__angles
-
-class ICoordinateOffsetProvider(ABC):
+class ICoordinatesOffsetProvider(ABC):
     '''
     Coordinate offset provider for dynamically sourced
     manipulation of geographic coordinate messages
@@ -54,7 +21,7 @@ class ICoordinateOffsetProvider(ABC):
         Returns a coordinate offset object
         '''
 
-class StaticOffsetProvider(ICoordinateOffsetProvider):
+class StaticOffsetProvider(ICoordinatesOffsetProvider):
     '''
     Fixed offset provider
     '''
@@ -66,14 +33,11 @@ class StaticOffsetProvider(ICoordinateOffsetProvider):
         return self.__offset
 
 
-class OrientationOffsetProvider(ICoordinateOffsetProvider):
+class OrientationOffsetProvider(ICoordinatesOffsetProvider):
     '''
     Geographic coordinates dynamic offset provider
     based off euler angles orientation and radius
     '''
-
-    PI = pi()
-    DEG180 = Decimal("180")
 
     def __init__(self, orientation: IOrientationProvider, radius: Decimal):
         self.__orientation = orientation

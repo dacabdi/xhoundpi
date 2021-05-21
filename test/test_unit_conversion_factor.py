@@ -9,11 +9,11 @@ from unittest.mock import Mock
 from decimal import Decimal as D, Inexact, localcontext
 from ddt import ddt, data, unpack
 
-from xhoundpi.decimal_math import setup_common_decimal_context
-from xhoundpi.distance_angle_converter import ConversionFactor, ConversionFactorProvider
-from xhoundpi.geocoordinates import GeoCoordinates
+from xhoundpi.dmath import setup_common_context
+from xhoundpi.conversion_factor import ConversionFactor, DistAngleFactorProvider
+from xhoundpi.coordinates import GeoCoordinates
 
-setup_common_decimal_context()
+setup_common_context()
 
 def _data(lat: D, lon: D, alt: D, factor_lat: D, factor_lon: D):
     with localcontext() as ctx:
@@ -22,7 +22,7 @@ def _data(lat: D, lon: D, alt: D, factor_lat: D, factor_lon: D):
         return (GeoCoordinates(lat, lon, alt), ConversionFactor(factor_lat, factor_lon))
 
 @ddt
-class test_DistanceAngleConverter(unittest.TestCase):
+class test_DistAngleFactorProvider(unittest.TestCase):
 
     TOLERANCE = 6
 
@@ -40,12 +40,12 @@ class test_DistanceAngleConverter(unittest.TestCase):
     @unpack
     def test_provide(self, locn, expected):
         location_provider = Mock()
-        location_provider.get_location = Mock(return_value = locn)
-        provider = ConversionFactorProvider(location_provider)
+        location_provider.get_coordinates = Mock(return_value = locn)
+        provider = DistAngleFactorProvider(location_provider)
         actual = provider.get_factor()
         with localcontext() as ctx:
             # NOTE we are ok with not having exactitude on this comparison
             ctx.traps[Inexact] = False
             self.assertEqual(round(expected.lat, self.TOLERANCE), round(actual.lat, self.TOLERANCE))
             self.assertEqual(round(expected.lon, self.TOLERANCE), round(actual.lon, self.TOLERANCE))
-        location_provider.get_location.assert_called_once()
+        location_provider.get_coordinates.assert_called_once()

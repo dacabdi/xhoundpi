@@ -4,7 +4,7 @@ Location provider
 
 from abc import ABC, abstractmethod
 
-from .geocoordinates import GeoCoordinates
+from .coordinates import GeoCoordinates
 
 class ICoordinatesProvider(ABC):
     '''
@@ -12,7 +12,7 @@ class ICoordinatesProvider(ABC):
     '''
 
     @abstractmethod
-    def get_location(self) -> GeoCoordinates:
+    def get_coordinates(self) -> GeoCoordinates:
         '''
         Provides a dynamic or preset coordinate
         '''
@@ -25,5 +25,5 @@ class StaticCoordinatesProvider(ICoordinatesProvider):
     def __init__(self, location: GeoCoordinates):
         self.__location = location
 
-    def get_location(self) -> GeoCoordinates:
+    def get_coordinates(self) -> GeoCoordinates:
         return self.__location

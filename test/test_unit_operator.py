@@ -11,7 +11,7 @@ from decimal import Decimal
 from uuid import UUID
 from xhoundpi.proto_class import ProtocolClass
 
-from xhoundpi.coordinate_offset import GeoCoordinates
+from xhoundpi.coordinates_offset import GeoCoordinates
 from xhoundpi.direction import CoordAxis, Direction
 from xhoundpi.operator import NMEAOffsetOperator, UBXOffsetOperator, UBXHiResOffsetOperator
 from xhoundpi.message import Message
@@ -25,6 +25,7 @@ class NMEAPayload:
 
 @dataclass
 class UBXPayload:
+    # pylint: disable=too-many-instance-attributes
     lat: int = 999
     lon: int = 111
     latHp: int = 22

@@ -6,6 +6,8 @@ Basic operations on Decimal type values
 # NOTE this code is based off  https://docs.python.org/3/library/decimal.html#recipes
 # it will be ignored from styling and test coverage
 
+from typing import Tuple
+from collections import defaultdict
 from decimal import (
     getcontext,
     localcontext,
@@ -15,13 +17,52 @@ from decimal import (
     FloatOperation,
     Inexact,
     ROUND_HALF_EVEN,
-    Decimal)
-from typing import Tuple
-from xhoundpi import geocoordinates
+    Decimal as D)
 
-def setup_common_decimal_context(pres: int = 24):
+from .coordinates import GeoCoordinates
+
+def __pi() -> D:
+    with localcontext() as ctx:
+        ctx.traps[Inexact] = False
+        ctx.prec += 2 # extra digits for intermediate steps
+        three = D(3) # substitute "three=3.0" for regular floats
+        lasts, t, s, n, na, d, da = 0, three, 3, 1, 0, 0, 24
+        while s != lasts:
+            lasts = s
+            n, na = n+na, na+8
+            d, da = d+da, da+32
+            t = (t * n) / d
+            s += t
+        ctx.prec -= 2
+        return D(+s) # unary plus applies the new precision
+
+__pi_cache = defaultdict(__pi)
+def pi() -> D:
+    '''Compute Pi to the current precision.
+
+    >>> print(pi())
+    3.141592653589793238462643383
+
     '''
-    Sets up global context
+    return __pi_cache[getcontext().prec]
+
+CONSTANTS_PRES = 64
+with localcontext() as c:
+    c.traps[Inexact] = False
+    c.prec = CONSTANTS_PRES
+    DEG180 = D("180")
+    DEG_RAD_RATIO = pi() / DEG180
+    MINUTE = D("1") / D("60")
+    EQUAT_RAD_M = D("6378137")
+    POLAR_RAD_M = D("6356752.314")
+    SQRD_RADIAL_RATIO = (POLAR_RAD_M ** 2 / EQUAT_RAD_M ** 2)
+    ELLIPSOID_ECC_SQRD = 1 - SQRD_RADIAL_RATIO
+    DECIMAL2 = D("2")
+    DECIMAL3 = D("3")
+
+def setup_common_context(pres: int = 24):
+    '''
+    Sets up common global context
     '''
     ctx = getcontext()
     ctx.traps[Overflow] = True
@@ -32,40 +73,7 @@ def setup_common_decimal_context(pres: int = 24):
     ctx.rounding=ROUND_HALF_EVEN
     getcontext().prec = pres
 
-def pi():
-    '''Compute Pi to the current precision.
-
-    >>> print(pi())
-    3.141592653589793238462643383
-
-    '''
-    with localcontext() as ctx:
-        ctx.traps[Inexact] = False
-        ctx.prec += 2  # extra digits for intermediate steps
-        three = Decimal(3)      # substitute "three=3.0" for regular floats
-        lasts, t, s, n, na, d, da = 0, three, 3, 1, 0, 0, 24
-        while s != lasts:
-            lasts = s
-            n, na = n+na, na+8
-            d, da = d+da, da+32
-            t = (t * n) / d
-            s += t
-        ctx.prec -= 2
-        return +s               # unary plus applies the new precision
-
-with localcontext() as c:
-    c.traps[Inexact] = False
-    c.prec = 64
-    PI = pi()
-    DEG180 = Decimal("180")
-    DEG_RAD_RATIO = PI / DEG180
-    MINUTE = Decimal("1") / Decimal("60")
-    EQUAT_RAD_M = Decimal("6378137")
-    POLAR_RAD_M = Decimal("6356752.314")
-    SQRD_RADIAL_RATIO = (POLAR_RAD_M**2 / EQUAT_RAD_M**2)
-    ELLIPSOID_ECC_SQRD = 1 - SQRD_RADIAL_RATIO
-
-def geodethic_to_ecef(point: geocoordinates) -> Tuple[Decimal, Decimal, Decimal]:
+def geodethic_to_ecef(point: GeoCoordinates) -> Tuple[D, D, D]:
     '''
     Function to convert from Geodethic coordinates
     to Earth Centered - Earth Fixed (ECEF) coordinate system
@@ -75,15 +83,15 @@ def geodethic_to_ecef(point: geocoordinates) -> Tuple[Decimal, Decimal, Decimal]
     lon = point.lon
     alt = point.alt
 
-    prime_vert_rad = EQUAT_RAD_M / Decimal.sqrt(1 - ELLIPSOID_ECC_SQRD * sin(deg_to_rad(lat)))
+    prime_vert_rad = EQUAT_RAD_M / D.sqrt(1 - ELLIPSOID_ECC_SQRD * sin(deg2rad(lat)))
 
-    x_coord = (prime_vert_rad + alt) * cos(deg_to_rad(lat)) * cos(deg_to_rad(lon))
-    y_coord = (prime_vert_rad + alt) * cos(deg_to_rad(lat)) * sin(deg_to_rad(lon))
-    z_coord = (SQRD_RADIAL_RATIO * prime_vert_rad + alt) * sin(deg_to_rad(lat))
+    x_coord = (prime_vert_rad + alt) * cos(deg2rad(lat)) * cos(deg2rad(lon))
+    y_coord = (prime_vert_rad + alt) * cos(deg2rad(lat)) * sin(deg2rad(lon))
+    z_coord = (SQRD_RADIAL_RATIO * prime_vert_rad + alt) * sin(deg2rad(lat))
 
     return x_coord, y_coord, z_coord
 
-def exp(x):
+def exp(x: D) -> D:
     '''Return e raised to the power of x.  Result type matches input type.
 
     >>> print(exp(Decimal(1)))
@@ -107,9 +115,9 @@ def exp(x):
             num *= x
             s += num / fact
         ctx.prec -= 2
-        return +s
+        return D(+s)
 
-def cos(x):
+def cos(x: D) -> D:
     '''Return the cosine of x as measured in radians.
 
     The Taylor series approximation works best for a small value of x.
@@ -135,9 +143,9 @@ def cos(x):
             sign *= -1
             s += num / fact * sign
         ctx.prec -= 2
-        return +s
+        return D(+s)
 
-def sin(x):
+def sin(x: D) -> D:
     '''Return the sine of x as measured in radians.
 
     The Taylor series approximation works best for a small value of x.
@@ -165,8 +173,16 @@ def sin(x):
         ctx.prec -= 2
         return +s
 
-def deg_to_rad(deg: Decimal):
+def deg2rad(deg: D) -> D:
     '''
     Convert from degrees to radians
     '''
     return deg * DEG_RAD_RATIO
+
+def distance(p0: Tuple[D, ...], p1: Tuple[D, ...]) -> D:
+    '''
+    Calculates the cartesian distance between two points
+    '''
+    if len(p0) != len(p1):
+        raise ValueError('both tuples must be of equal length')
+    return D.sqrt(D(sum((x - y) ** DECIMAL2 for x, y in zip(p0, p1))))

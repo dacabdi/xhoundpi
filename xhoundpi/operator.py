@@ -10,7 +10,7 @@ from .message_editor import IMessageEditor
 from .operator_iface import IMessageOperator
 from .data_formatter import NMEADataFormatter, UBXDataFormatter
 from .direction import CoordAxis, Direction
-from .coordinate_offset import ICoordinateOffsetProvider
+from .coordinates_offset import ICoordinatesOffsetProvider
 
 class NMEAOffsetOperator(IMessageOperator):
     '''
@@ -21,7 +21,7 @@ class NMEAOffsetOperator(IMessageOperator):
         self,
         msg_editor: IMessageEditor,
         data_formatter: NMEADataFormatter,
-        offset_provider: ICoordinateOffsetProvider):
+        offset_provider: ICoordinatesOffsetProvider):
         self.__editor = msg_editor
         self.__formatter = data_formatter
         self.__offset_provider = offset_provider
@@ -54,7 +54,7 @@ class UBXOffsetOperator(IMessageOperator):
         self,
         msg_editor: IMessageEditor,
         data_formatter: UBXDataFormatter,
-        offset_provider: ICoordinateOffsetProvider):
+        offset_provider: ICoordinatesOffsetProvider):
         self.__editor = msg_editor
         self.__formatter = data_formatter
         self.__offset_provider = offset_provider
@@ -96,7 +96,7 @@ class UBXHiResOffsetOperator(IMessageOperator):
         self,
         msg_editor: IMessageEditor,
         data_formatter: UBXDataFormatter,
-        offset_provider: ICoordinateOffsetProvider):
+        offset_provider: ICoordinatesOffsetProvider):
         self.__editor = msg_editor
         self.__formatter = data_formatter
         self.__offset_provider = offset_provider

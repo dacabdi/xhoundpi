@@ -3,7 +3,7 @@ ignore:
   - '.venv/**'
   - 'xhoundpi/bound_logger_event.py'
   - 'xhoundpi/panel/fakepanel.py'
-  - 'xhoundpi/decimal_math.py'
+  - 'xhoundpi/dmath.py'
 
 comment:
   layout: 'reach, diff, flags, files'

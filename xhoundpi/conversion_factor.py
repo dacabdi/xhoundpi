@@ -5,8 +5,8 @@ Surface distance to lat/long angle factor calculator
 from dataclasses import dataclass
 from decimal import Decimal, Inexact, localcontext
 from abc import ABC, abstractmethod
-from .decimal_math import MINUTE, geodethic_to_ecef
-from .geocoordinates import GeoCoordinates
+from .dmath import MINUTE, geodethic_to_ecef, distance
+from .coordinates import GeoCoordinates
 from .coordinates_provider import ICoordinatesProvider
 
 @dataclass
@@ -28,7 +28,7 @@ class IConversionFactorProvider(ABC):
         Returns a conversion factor object
         '''
 
-class ConversionFactorProvider(IConversionFactorProvider):
+class DistAngleFactorProvider(IConversionFactorProvider):
     '''
     Converion factor provider;
     translates surface distance to latitude/longitude increments
@@ -38,22 +38,22 @@ class ConversionFactorProvider(IConversionFactorProvider):
         self.__location = location
 
     def get_factor(self) -> ConversionFactor:
-        point0 = self.__location.get_location()
+        p0_geo = self.__location.get_coordinates()
 
         with localcontext() as ctx:
             # NOTE the sin/cos operations can produce irrational values
             #      that cannot guarantee exactitude, we accept it
             ctx.traps[Inexact] = False
 
-            point1 = GeoCoordinates(point0.lat + MINUTE, point0.lon, point0.alt)
-            point2 = GeoCoordinates(point0.lat, point0.lon + MINUTE, point0.alt)
+            p1_geo = GeoCoordinates(p0_geo.lat + MINUTE, p0_geo.lon, p0_geo.alt)
+            p2_geo = GeoCoordinates(p0_geo.lat, p0_geo.lon + MINUTE, p0_geo.alt)
 
             # pylint: disable=invalid-name
-            x0, y0, z0 = geodethic_to_ecef(point0)
-            x1, y1, z1 = geodethic_to_ecef(point1)
-            x2, y2, z2 = geodethic_to_ecef(point2)
+            p0_ecef = geodethic_to_ecef(p0_geo)
+            p1_ecef = geodethic_to_ecef(p1_geo)
+            p2_ecef = geodethic_to_ecef(p2_geo)
 
-            factor_lat = Decimal.sqrt((y1 - y0)**2 + (x1 - x0)**2 + (z1 - z0)**2) / MINUTE
-            factor_lon = Decimal.sqrt((y2 - y0)**2 + (x2 - x0)**2 + (z2 - z0)**2) / MINUTE
+            factor_lat = distance(p0_ecef, p1_ecef) / MINUTE
+            factor_lon = distance(p0_ecef, p2_ecef) / MINUTE
 
         return ConversionFactor(factor_lat, factor_lon)

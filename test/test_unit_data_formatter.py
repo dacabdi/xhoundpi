@@ -11,9 +11,9 @@ from decimal import Decimal
 
 from xhoundpi.direction import Direction, CoordAxis
 from xhoundpi.data_formatter import NMEADataFormatter, UBXDataFormatter
-from xhoundpi.decimal_math import setup_common_decimal_context
+from xhoundpi.dmath import setup_common_context
 
-setup_common_decimal_context()
+setup_common_context()
 
 class test_NMEADataFormatter(unittest.TestCase): # pylint: disable=too-many-public-methods
 

@@ -51,7 +51,7 @@ from .data_formatter import (NMEADataFormatter,
                              UBXDataFormatter)
 from .message_editor import (NMEAMessageEditor,
                             UBXMessageEditor)
-from .coordinate_offset import GeoCoordinates, ICoordinateOffsetProvider, StaticOffsetProvider
+from .coordinates_offset import GeoCoordinates, ICoordinatesOffsetProvider, StaticOffsetProvider
 from .operator import (NMEAOffsetOperator,
                       UBXOffsetOperator,
                       UBXHiResOffsetOperator,)
@@ -68,7 +68,7 @@ from .metric import (LatencyMetric,
                     SuccessCounterMetric,
                     MetricsCollection)
 from .async_ext import loop_forever_async
-from .decimal_math import setup_common_decimal_context
+from .dmath import setup_common_context
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -124,7 +124,7 @@ class XHoundPi:
             self.tasks_gather.cancel()
 
     def setup_decimal_context(self):
-        setup_common_decimal_context()
+        setup_common_context()
 
     def setup_display(self):
         """
@@ -358,7 +358,7 @@ class XHoundPi:
     def make_offset_generic_processor(
         self,
         name: str,
-        offset_provider: ICoordinateOffsetProvider,
+        offset_provider: ICoordinatesOffsetProvider,
         counter: SuccessCounterMetric,
         latency: LatencyMetric):
         # pylint: disable=no-member
