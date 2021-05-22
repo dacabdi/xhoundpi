@@ -135,7 +135,7 @@ class XHoundPi:
         '''
         if self._config.display_driver == 'none':
             self._frame_buff = None
-            self.display = None
+            self._display = None
         else:
             self.setup_frame_buffer()
             self._gnss_processed_queue = (self._gnss_processed_queue
@@ -154,25 +154,25 @@ class XHoundPi:
         Setup frame buffer
         '''
         self._display_mode = display_mode(self._config.display_mode)
-        self.display_geometry = Geometry(
+        self._display_geometry = Geometry(
             rows=self._config.display_height,
             cols=self._config.display_width,
             channels=self._display_mode.channels, # type: ignore
             depth=self._display_mode.depth) # type: ignore
-        self._frame_buff = FrameBuffer(self.display_geometry)
+        self._frame_buff = FrameBuffer(self._display_geometry)
 
     def setup_display_pygame(self):
         '''
         Configure and start pygame fake display
         '''
-        self.display = PyGameDisplay(self._frame_buff, scale=self._config.display_scale)
-        self._tasks.append(self.display.mainloop())
+        self._display = PyGameDisplay(self._frame_buff, scale=self._config.display_scale)
+        self._tasks.append(self._display.mainloop())
 
     def setup_display_gif(self):
         '''
         Configure and setup a GIF output display
         '''
-        self.display = GifDisplay(self._display_mode, self._frame_buff)
+        self._display = GifDisplay(self._display_mode, self._frame_buff)
 
     def update_frame(self, message):
         '''
@@ -351,7 +351,8 @@ class XHoundPi:
         zero_offset = DECIMAL0
         pos_offset = decimal.Decimal('0.005')
         neg_offset = decimal.Decimal('-0.005')
-        self.processors = CompositeProcessor([
+        orientation = 
+        self._processors = CompositeProcessor([
             NullProcessor()
                 .with_events(logger=logger) # type: ignore
                 .with_metrics(
@@ -376,7 +377,7 @@ class XHoundPi:
         self.processors_pipeline = AsyncPump(
              # pylint: disable=no-member
             input_queue=(self._gnss_inbound_queue
-                .with_transform(self.processors.process) # type: ignore
+                .with_transform(self._processors.process) # type: ignore
                 .with_transform(lambda result: result[1])),
             output_queue=self._gnss_processed_queue)
         self._tasks.append(asyncio.create_task(
@@ -418,8 +419,8 @@ class XHoundPi:
 
     def _setup_msg_pump(self):
         ''' Temporary msg pump '''
-        self.message_pump = AsyncPump(
+        self._message_pump = AsyncPump(
             input_queue=self._gnss_processed_queue,
             output_queue=self._gnss_outbound_queue)
         self._tasks.append(asyncio.create_task(
-            self.message_pump.run(), name='message_pump'))
+            self._message_pump.run(), name='message_pump'))
