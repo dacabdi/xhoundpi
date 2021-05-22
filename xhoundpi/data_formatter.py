@@ -139,14 +139,16 @@ class UBXDataFormatter:
         hi_res, _ = divmod(frac.scaleb(self.HIGH_RES - self.BASE_RES), DECIMAL1)
         return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
 
-    def height_from_field(self, base: int, hires: int = 0) -> D:
+    @staticmethod
+    def height_from_field(base: int, hires: int = 0) -> D:
         '''
         Converts signed altitude value from two integer
         components in millimiters to decimal meters representation
         '''
         return (base + (hires * DECIMAL0_1)).scaleb(-3)
 
-    def height_to_field(self, height: D) -> Tuple[int, int]:
+    @staticmethod
+    def height_to_field(height: D) -> Tuple[int, int]:
         '''
         Converts signed altitude value from decimal meters
         to two integer components representation in millimiters

@@ -67,6 +67,9 @@ class UBXOffsetOperator(IMessageOperator):
     Correct coordinates of a UBX message by adding an offset
     '''
 
+    LATLON_MP = 50
+    HEIGHT_MP = 5
+
     def __init__(
         self,
         msg_editor: IMessageEditor,
@@ -96,15 +99,18 @@ class UBXOffsetOperator(IMessageOperator):
         }
 
     def __optional(self, message: Message, offset: GeoCoordinates) -> Dict[str, Any]:
+        # pylint: disable=line-too-long
         ubx = message.payload
         result = {}
         if hasattr(ubx, 'height'):
             height = self.__formatter.height_from_field(ubx.height)
-            theight, _ = self.__formatter.height_to_field(height + offset.alt)
+            theight, theight_hp = self.__formatter.height_to_field(height + offset.alt)
+            theight, theight_hp = self.__formatter.minimize_correction(theight, theight_hp, midpoint=self.HEIGHT_MP)
             result |= { 'height' : theight }
         if hasattr(ubx, 'hMSL'):
             hmsl = self.__formatter.height_from_field(ubx.hMSL)
-            thmsl, _ = self.__formatter.height_to_field(hmsl + offset.alt)
+            thmsl, thmsl_hp = self.__formatter.height_to_field(hmsl + offset.alt)
+            thmsl, thmsl_hp = self.__formatter.minimize_correction(thmsl, thmsl_hp, midpoint=self.HEIGHT_MP)
             result |= { 'hMSL' : thmsl }
         return result
 

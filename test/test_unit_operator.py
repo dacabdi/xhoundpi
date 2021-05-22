@@ -219,6 +219,7 @@ class test_UBXOffsetOperator(unittest.TestCase):
         formatter.decdeg_to_integer = Mock(side_effect=[(100, 99), (-10,-30)])
         formatter.height_from_field = Mock(side_effect=[D('3.0'), D('-4')])
         formatter.height_to_field = Mock(side_effect=[(1,2), (3,4)])
+        formatter.minimize_correction = Mock(side_effect=[(99, -1), (-10, -30)])
         return formatter
 
     @staticmethod
@@ -267,6 +268,8 @@ class test_UBXOffsetOperator(unittest.TestCase):
         formatter.height_to_field.assert_any_call(D('3.1'))
         formatter.height_to_field.assert_called_with(D('-3.9'))
 
+        formatter.height_to_
+
         editor.set_fields.assert_called_once_with(
             Message(
                 message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
@@ -275,8 +278,8 @@ class test_UBXOffsetOperator(unittest.TestCase):
             {
                 'lat': 100,
                 'lon': -10,
-                'height' : 1,
-                'hMSL' : 3,
+                'height' : 99,
+                'hMSL' : -10,
             })
         self.assertEqual(result, 'new message')
 
@@ -373,6 +376,11 @@ class test_UBXHiResOffsetOperator(unittest.TestCase):
         formatter.height_to_field.assert_any_call(D('3.1'))
         formatter.height_to_field.assert_called_with(D('-3.9'))
 
+        formatter.minimize_correction.assert_any_call(100, 99, midpoint=50)
+        formatter.minimize_correction.assert_any_call(-10, -30, midpoint=50)
+        formatter.minimize_correction.assert_any_call(1, 2, midpoint=5)
+        formatter.minimize_correction.assert_called_with(3, 4, midpoint=5)
+
         editor.set_fields.assert_called_once_with(
             Message(
                 message_id=UUID('{12345678-1234-5678-1234-567812345678}'),
@@ -410,6 +418,9 @@ class test_UBXHiResOffsetOperator(unittest.TestCase):
 
         formatter.decdeg_to_integer.assert_any_call(D('1.5'))
         formatter.decdeg_to_integer.assert_called_with(D('2.2'))
+
+        formatter.minimize_correction.assert_any_call(100, 99, midpoint=50)
+        formatter.minimize_correction.assert_called_with(-10, -30, midpoint=50)
 
         formatter.height_from_field.assert_not_called()
         formatter.height_to_field.assert_not_called()

@@ -68,7 +68,7 @@ from .metric import (LatencyMetric,
                     SuccessCounterMetric,
                     MetricsCollection)
 from .async_ext import loop_forever_async
-from .dmath import setup_common_context
+from .dmath import setup_common_context, DECIMAL0
 
 logger = structlog.get_logger('xhoundpi')
 
@@ -320,9 +320,9 @@ class XHoundPi:
     def setup_processors(self):
         """ Setup GNSS processors pipeline """
         # pylint: disable=no-member
-        zero_offset = decimal.Decimal('0')
-        pos_offset = decimal.Decimal('0.0005')
-        neg_offset = decimal.Decimal('-0.0005')
+        zero_offset = DECIMAL0
+        pos_offset = decimal.Decimal('0.005')
+        neg_offset = decimal.Decimal('-0.005')
         self.processors = CompositeProcessor([
             NullProcessor()
                 .with_events(logger=logger) # type: ignore
