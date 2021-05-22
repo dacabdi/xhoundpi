@@ -31,8 +31,8 @@ class NMEAOffsetOperator(IMessageOperator):
         '''
         Operate on the message and return the transformed version
         '''
-        offset =  self.__offset_provider.get_offset()
-        edited =  self.__common(message, offset) | self.__optional(message, offset)
+        offset = self.__offset_provider.get_offset()
+        edited = self.__common(message, offset) | self.__optional(message, offset)
         return self.__editor.set_fields(message, edited)
 
     def __common(self, message: Message, offset: GeoCoordinates) -> Dict[str, str]:
@@ -157,12 +157,12 @@ class UBXHiResOffsetOperator(IMessageOperator):
         ubx = message.payload
         result = {}
         if hasattr(ubx, 'height') and hasattr(ubx, 'heightHp'):
-            height = self.__formatter.height_from_field(ubx.height)
+            height = self.__formatter.height_from_field(ubx.height, ubx.heightHp)
             theight, theight_hp = self.__formatter.height_to_field(height + offset.alt)
             theight, theight_hp = self.__formatter.minimize_correction(theight, theight_hp, midpoint=self.HEIGHT_MP)
             result |= { 'height' : theight, 'heightHp' : theight_hp }
         if hasattr(ubx, 'hMSL') and hasattr(ubx, 'hMSLHp'):
-            hmsl = self.__formatter.height_from_field(ubx.hMSL)
+            hmsl = self.__formatter.height_from_field(ubx.hMSL, ubx.hMSLHp)
             thmsl, thmsl_hp = self.__formatter.height_to_field(hmsl + offset.alt)
             thmsl, thmsl_hp = self.__formatter.minimize_correction(thmsl, thmsl_hp, midpoint=self.HEIGHT_MP)
             result |= { 'hMSL' : thmsl, 'hMSLHp': thmsl_hp }
