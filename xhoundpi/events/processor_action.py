@@ -1,4 +1,4 @@
-""" Gnss service actions event """
+''' Gnss service actions event '''
 
 import uuid
 
@@ -8,14 +8,14 @@ from enum import Enum
 from ..proto_class import ProtocolClass
 
 class ProcessorOp(Enum):
-    """ Processor op codes """
+    ''' Processor op codes '''
     # pylint: disable=invalid-name
     BeginProcess = 1
     EndProcess = 2
 
 @dataclass(order=True)
 class ProcessorAction: # pylint: disable=too-many-instance-attributes
-    """ Processor event schema """
+    ''' Processor event schema '''
     opcode: ProcessorOp
     success: bool
     processor_id: str

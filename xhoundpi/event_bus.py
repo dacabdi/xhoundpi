@@ -1,4 +1,4 @@
-""" Event bus module based on RxPY library """
+''' Event bus module based on RxPY library '''
 
 import asyncio
 from dataclasses import dataclass

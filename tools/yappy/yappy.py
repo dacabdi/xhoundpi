@@ -1,4 +1,4 @@
-""" xHoundPi Yap bluetooth tester """
+''' xHoundPi Yap bluetooth tester '''
 # pylint: disable=logging-fstring-interpolation
 
 import asyncio
@@ -21,9 +21,9 @@ from xhoundpi.time import StopWatch
 logger = logging.getLogger()
 
 class Yappy:
-    """
+    '''
     Yappy context handlers (integration layer)
-    """
+    '''
     READ_TIMEOUT_SEC  = 1
     WRITE_TIMEOUT_SEC = 1
 
@@ -34,9 +34,9 @@ class Yappy:
         self._sets = sets
 
     async def run(self):
-        """
+        '''
         Run Yappy tests
-        """
+        '''
         a = StringIO()
         b = StringIO()
 
@@ -93,15 +93,15 @@ class Yappy:
         return sigs
 
     def _signal_handler(self, sig, frame): # pylint: disable=unused-argument,no-self-use
-        """ Signals handler """
+        ''' Signals handler '''
         signal_name = str(signal.Signals(sig)).removeprefix('Signals.') # pylint: disable=no-member
         logger.warning(f'Received termination signal \'{signal_name}\', exiting gracefully')
         self._running.cancel()
 
 class Test:
-    """
+    '''
     Yap BT test
-    """
+    '''
 
     def __init__(self, dev_a, dev_b, sets):
         self._dev_a = dev_a
@@ -115,9 +115,9 @@ class Test:
         }
 
     async def test(self):
-        """
+        '''
         Run a test session and report the results
-        """
+        '''
         await self._run_sets()
         return self._result
 

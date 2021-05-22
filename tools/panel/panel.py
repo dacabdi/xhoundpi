@@ -1,4 +1,4 @@
-""" xHoundPi Panel POC module """
+''' xHoundPi Panel POC module '''
 # pylint: disable=logging-fstring-interpolation
 
 import logging
@@ -19,7 +19,7 @@ from xhoundpi.panel.framebuffer import FrameBuffer
 logger = logging.getLogger()
 
 class Panel():
-    """ xHoundPi Panel POC context handlers """
+    ''' xHoundPi Panel POC context handlers '''
 
     # pylint: disable=too-many-instance-attributes
     def __init__(self, options):
@@ -37,7 +37,7 @@ class Panel():
         self._setup_display()
 
     def _setup_signals(self):
-        """ Subscribe to signals """
+        ''' Subscribe to signals '''
         self._signal = None
         self._signal_frame = None
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -58,7 +58,7 @@ class Panel():
                 "display modes are supported")
 
     async def run(self):
-        """ Run display POC """
+        ''' Run display POC '''
         self._pre_run()
         self._tasks.append(self._update_frame_loop())
         self._tasks_gather = asyncio.gather(*self._tasks)
@@ -75,7 +75,7 @@ class Panel():
             self._post_run()
 
     def _pre_run(self):
-        """ Prepare to run """
+        ''' Prepare to run '''
         if self._options.verbose:
             logger.setLevel(logging.DEBUG)
         logger.info('Starting Pannel POC session for xHoundPi!')
@@ -87,7 +87,7 @@ class Panel():
         pass
 
     def _signal_handler(self, sig, frame): # pylint: disable=unused-argument
-        """ Signals handler """
+        ''' Signals handler '''
         # pylint: disable=attribute-defined-outside-init
         self._signal = sig
         self._signal_frame = frame

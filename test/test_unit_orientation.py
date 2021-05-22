@@ -8,9 +8,7 @@ import unittest
 from decimal import Decimal as D
 
 from xhoundpi.dmath import setup_common_context
-from xhoundpi.orientation import (
-    EulerAngles,
-    StaticOrientationProvider,)
+from xhoundpi.orientation import EulerAngles, StaticOrientationProvider
 
 setup_common_context()
 

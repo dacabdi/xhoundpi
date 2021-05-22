@@ -1,4 +1,4 @@
-""" Decorators for IGnssService implementations """
+''' Decorators for IGnssService implementations '''
 
 import logging
 import uuid
@@ -12,17 +12,16 @@ from .status import Status
 from .gnss_service_iface import IGnssService
 from .message import Message
 from .monkey_patching import add_method
-from .metric import (LatencyMetric,
-                    SuccessCounterMetric)
+from .metric import LatencyMetric, SuccessCounterMetric
 
 @add_method(IGnssService)
 def with_traces(self, trace_provider):
-    """ Provides decorated GNSS service with traces """
+    ''' Provides decorated GNSS service with traces '''
     return GnssServiceWithTraces(self, trace_provider)
 
 @add_method(IGnssService)
 def with_events(self, logger):
-    """ Provides decorated GNSS service with event logs """
+    ''' Provides decorated GNSS service with event logs '''
     return GnssServiceWithEvents(self, logger)
 
 @add_method(IGnssService)
@@ -31,24 +30,24 @@ def with_metrics(self,
     wcounter: SuccessCounterMetric,
     rlatency: LatencyMetric,
     wlatency: LatencyMetric):
-    """ Provides decorated GNSS service with metrics """
+    ''' Provides decorated GNSS service with metrics '''
     return GnssServiceWithMetrics(self, rcounter, wcounter, rlatency, wlatency)
 
 class GnssServiceWithTraces(IGnssService):
-    """ IGnssService decorator for traces """
+    ''' IGnssService decorator for traces '''
 
     def __init__(self, inner: IGnssService, trace_provider):
         self._inner = inner
         self._trace_provider = trace_provider
 
     async def read_message(self) -> Tuple[Status, Message]:
-        """ Reads, classifies, and parses input from the GNSS client stream with traces """
+        ''' Reads, classifies, and parses input from the GNSS client stream with traces '''
         with self._trace_provider.start_as_current_span("read"):
             status, message = await self._inner.read_message()
             return status, message
 
     async def write_message(self, message: Message) -> Tuple[Status, int]:
-        """ Writes messages as byte strings to the GNSS client input with traces """
+        ''' Writes messages as byte strings to the GNSS client input with traces '''
         with self._trace_provider.start_as_current_span("write"):
             status, bytes_written = await self._inner.write_message(message)
             return status, bytes_written
@@ -69,14 +68,14 @@ class GnssServiceWithTraces(IGnssService):
 
 
 class GnssServiceWithEvents(IGnssService):
-    """ IGnssService decorator for events """
+    ''' IGnssService decorator for events '''
 
     def __init__(self, inner: IGnssService, logger):
         self._logger = logger
         self._inner = inner
 
     async def read_message(self) -> Tuple[Status, Message]:
-        """ Reads, classifies, and parses input from the GNSS client stream with log events """
+        ''' Reads, classifies, and parses input from the GNSS client stream with log events '''
         activity_id = uuid.uuid4()
         self._log_read_start(activity_id)
         status, message = await self._inner.read_message()
@@ -84,7 +83,7 @@ class GnssServiceWithEvents(IGnssService):
         return status, message
 
     async def write_message(self, message: Message) -> Tuple[Status, int]:
-        """ Writes messages as byte strings to the GNSS client input with log events """
+        ''' Writes messages as byte strings to the GNSS client input with log events '''
         activity_id = uuid.uuid4()
         self._log_write_start(activity_id, message)
         status, cbytes = await self._inner.write_message(message)
@@ -161,7 +160,7 @@ class GnssServiceWithEvents(IGnssService):
         delattr(self.__dict__['_inner'], name)
 
 class GnssServiceWithMetrics(IGnssService):
-    """ IGnssService decorator for metrics """
+    ''' IGnssService decorator for metrics '''
 
     # pylint: disable=too-many-arguments
     def __init__(self, inner: IGnssService,
@@ -176,16 +175,16 @@ class GnssServiceWithMetrics(IGnssService):
         self._wlatency = wlatency
 
     async def read_message(self) -> Tuple[Status, Message]:
-        """ Reads, classifies, and parses input from the GNSS
-        client stream with latency and success metrics """
+        ''' Reads, classifies, and parses input from the GNSS
+        client stream with latency and success metrics '''
         with self._rlatency:
             status, message = await self._inner.read_message()
         self._rcounter.increase(is_success=status.ok)
         return status, message
 
     async def write_message(self, message: Message) -> Tuple[Status, int]:
-        """ Writes messages as byte strings to the GNSS
-        client stream with latency and success metrics """
+        ''' Writes messages as byte strings to the GNSS
+        client stream with latency and success metrics '''
         with self._wlatency:
             status, cbytes = await self._inner.write_message(message)
         self._wcounter.increase(is_success=status.ok)

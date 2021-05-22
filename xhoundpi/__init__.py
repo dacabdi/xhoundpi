@@ -1,1 +1,1 @@
-"""xHound modules firmware for RaspberryPi platform"""
+'''xHound modules firmware for RaspberryPi platform'''

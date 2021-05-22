@@ -13,8 +13,7 @@ import pynmea2
 from xhoundpi.proto_class import ProtocolClass
 from xhoundpi.status import Status
 from xhoundpi.monkey_patching import add_method
-from xhoundpi.message_editor import (NMEAMessageEditor,
-                                    UBXMessageEditor)
+from xhoundpi.message_editor import NMEAMessageEditor, UBXMessageEditor
 from xhoundpi.message import Message
 
 # patch NMEASentence to include byte serialization for uniform message API

@@ -1,11 +1,11 @@
-""" Runner module for GNSS service implementations """
+''' Runner module for GNSS service implementations '''
 import asyncio
 
 from .gnss_service import IGnssService
 from .async_ext import loop_forever_async
 
 class GnssServiceRunner:
-    """ Gnss service runner reads/writes from in/out-bound queues"""
+    ''' Gnss service runner reads/writes from in/out-bound queues'''
 
     def __init__(
         self,
@@ -17,7 +17,7 @@ class GnssServiceRunner:
         self.__outbound_queue = outbound_queue
 
     async def run(self):
-        """ Run inbound and outbound data flows in a loop """
+        ''' Run inbound and outbound data flows in a loop '''
         return await asyncio.gather(
             loop_forever_async(self.__inbound),
             loop_forever_async(self.__outbound),

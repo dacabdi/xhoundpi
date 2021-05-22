@@ -7,8 +7,7 @@
 import unittest
 from io import BytesIO, StringIO
 
-from xhoundpi.serial import (StubSerialBinary,
-                            StubSerialText,)
+from xhoundpi.serial import StubSerialBinary, StubSerialText
 
 class test_StubSerialBinary(unittest.TestCase):
 

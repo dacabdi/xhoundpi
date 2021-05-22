@@ -14,9 +14,7 @@ from xhoundpi.proto_class import ProtocolClass
 from xhoundpi.message import Message
 from xhoundpi.status import Status
 from xhoundpi.async_ext import run_sync
-from xhoundpi.processor import (NullProcessor,
-                               GenericProcessor,
-                               CompositeProcessor)
+from xhoundpi.processor import NullProcessor, GenericProcessor, CompositeProcessor
 
 class test_NullProcessor(unittest.TestCase):
 

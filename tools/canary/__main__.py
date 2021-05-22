@@ -1,9 +1,9 @@
-""" Simulate system runs """
+''' Simulate system runs '''
 # pylint: disable=logging-fstring-interpolation
 # pylint: disable=wrong-import-position,wrong-import-order
 
 # https://patorjk.com/software/taag/#p=display&f=Banner3-D&t=xHoundPi%20Simulator
-BANNER = """
+BANNER = '''
 
          .-"-.            _____
         / 4 4 \\         / ____|
@@ -16,7 +16,7 @@ BANNER = """
 
           xHoundPi's Simulator and Smoke Tester
 
-"""
+'''
 print(BANNER)
 from xhoundpi.diagnostics import describe_environment
 print(describe_environment())
@@ -30,7 +30,7 @@ from .canary import Canary
 logger = logging.getLogger()
 
 def main():
-    """ Entry point for the simulator """
+    ''' Entry point for the simulator '''
     setup_logger()
 
     config = setup_argparser()
@@ -46,7 +46,7 @@ def main():
     sys.exit(0 if test_passed else 1)
 
 def setup_logger():
-    """ Basic logger configuration """
+    ''' Basic logger configuration '''
     console_handler = logging.StreamHandler()
     formatter = logging.Formatter('CANARY:[%(asctime)s][%(levelname)s] %(message)s')
     console_handler.setFormatter(formatter)

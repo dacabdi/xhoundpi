@@ -268,8 +268,6 @@ class test_UBXOffsetOperator(unittest.TestCase):
         formatter.height_to_field.assert_any_call(D('3.1'))
         formatter.height_to_field.assert_called_with(D('-3.9'))
 
-        formatter.height_to_
-
         editor.set_fields.assert_called_once_with(
             Message(
                 message_id=UUID('{12345678-1234-5678-1234-567812345678}'),

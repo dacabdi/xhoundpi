@@ -11,10 +11,7 @@ from ddt import ddt, data, unpack
 
 from xhoundpi.dmath import deg2rad, setup_common_context
 from xhoundpi.orientation import EulerAngles
-from xhoundpi.coordinates_offset import (
-    GeoCoordinates,
-    OrientationOffsetProvider,
-    StaticOffsetProvider,)
+from xhoundpi.coordinates_offset import GeoCoordinates, OrientationOffsetProvider, StaticOffsetProvider
 
 setup_common_context()
 

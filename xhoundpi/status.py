@@ -1,10 +1,10 @@
-""" Operation status representation module """
+''' Operation status representation module '''
 
 from __future__ import annotations
 from typing import Dict, Union
 
 class Status:
-    """ Operation status representation """
+    ''' Operation status representation '''
 
     def __init__(self, error: Union[Exception, None], metadata: Dict = None):
         self.__error = error
@@ -12,22 +12,22 @@ class Status:
 
     @classmethod
     def OK(cls, metadata: Dict = None): # pylint: disable=invalid-name
-        """ Create an OK status """
+        ''' Create an OK status '''
         return Status(None, metadata)
 
     @property
     def error(self):
-        """ Return internal exception if any """
+        ''' Return internal exception if any '''
         return self.__error
 
     @property
     def metadata(self):
-        """ Return status metadata """
+        ''' Return status metadata '''
         return self.__metadata
 
     @property
     def ok(self): # pylint: disable=invalid-name
-        """ Signals whether the status is succesful """
+        ''' Signals whether the status is succesful '''
         return self.error is None
 
     def __eq__(self, o: Status) -> bool:

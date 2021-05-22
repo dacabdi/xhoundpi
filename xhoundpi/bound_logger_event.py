@@ -15,7 +15,7 @@ from structlog.types import ExcInfo
 from structlog._log_levels import _LEVEL_TO_NAME
 
 class BoundLoggerEvents(BoundLoggerBase): # pylint: disable=too-many-public-methods
-    """
+    '''
     Bound logger that unpacks event dataclasses before passing
     to standard library logger.
 
@@ -25,7 +25,7 @@ class BoundLoggerEvents(BoundLoggerBase): # pylint: disable=too-many-public-meth
     nor will be rigourous about linting. It will make porting
     changes to the structlog library easier to retrofit here.
 
-    """
+    '''
 
     _logger: logging.Logger
 
@@ -86,9 +86,9 @@ class BoundLoggerEvents(BoundLoggerBase): # pylint: disable=too-many-public-meth
 
     @classmethod
     def unpack_event(cls, event):
-        """
+        '''
         Unpack all fields of an event object
-        """
+        '''
         event_fields = {}
         for key, value in event.__dict__.items():
             if type(value) in (int, str, bool):

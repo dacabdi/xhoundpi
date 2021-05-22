@@ -1,9 +1,9 @@
-""" Serial stream validation tool configuration parser """
+''' Serial stream validation tool configuration parser '''
 
 import argparse
 
 def setup_argparser():
-    """ Prepares shell arguments parser """
+    ''' Prepares shell arguments parser '''
     config = argparse.ArgumentParser(
         description='Validates serial communication between two devices')
     config.add_argument('--serial_a', type=str, dest='serial_a',

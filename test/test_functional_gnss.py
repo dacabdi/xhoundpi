@@ -26,15 +26,9 @@ from xhoundpi.serial import StubSerialBinary
 from xhoundpi.gnss_client import GnssClient
 from xhoundpi.proto_class import ProtocolClass
 from xhoundpi.proto_classifier import ProtocolClassifier
-from xhoundpi.proto_reader import (ProtocolReaderProvider,
-                                  UBXProtocolReader,
-                                  NMEAProtocolReader,)
-from xhoundpi.proto_parser import (ProtocolParserProvider,
-                                  UBXProtocolParser,
-                                  NMEAProtocolParser,)
-from xhoundpi.proto_serializer import (NMEAProtocolSerializer,
-                                      ProtocolSerializerProvider,
-                                      UBXProtocolSerializer,)
+from xhoundpi.proto_reader import ProtocolReaderProvider, UBXProtocolReader, NMEAProtocolReader
+from xhoundpi.proto_parser import ProtocolParserProvider, UBXProtocolParser, NMEAProtocolParser
+from xhoundpi.proto_serializer import NMEAProtocolSerializer, ProtocolSerializerProvider, UBXProtocolSerializer
 from xhoundpi.gnss_service import GnssService
 from xhoundpi.gnss_service_runner import GnssServiceRunner
 from xhoundpi.async_ext import run_sync

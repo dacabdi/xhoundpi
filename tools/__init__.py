@@ -1,1 +1,1 @@
-"""xHound modules deployment and development tooling for RaspberryPi platform"""
+'''xHound modules deployment and development tooling for RaspberryPi platform'''

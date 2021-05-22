@@ -1,4 +1,4 @@
-""" Setup xHoundPi module """
+''' Setup xHoundPi module '''
 
 from setuptools import setup
 

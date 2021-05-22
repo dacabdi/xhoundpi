@@ -1,9 +1,9 @@
-""" Panel proof of concept configuration parser module """
+''' Panel proof of concept configuration parser module '''
 
 import argparse
 
 def setup_argparser():
-    """ Prepare shell arguments parser """
+    ''' Prepare shell arguments parser '''
     config = argparse.ArgumentParser(description='Simulates xHoundPi display proof of concept')
     config.add_argument('--verbose', action='store_true', dest='verbose',
         help='set log level to debug')

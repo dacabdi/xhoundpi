@@ -50,11 +50,11 @@ _DISPLAY_MODES = frozendict({
 })
 
 def display_mode(mode: str) -> NamedTuple:
-    """
+    '''
     Parses the display mode string into a set of properties
     describing the pixel color resolution, number of channels,
     PIL (Python Imaging Library) mode, etc.
-    """
+    '''
     try:
         return _DISPLAY_MODES[mode]
     except KeyError as ex:

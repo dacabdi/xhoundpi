@@ -1,4 +1,4 @@
-""" GNSS protocol frame readers module """
+''' GNSS protocol frame readers module '''
 
 from abc import ABC, abstractmethod
 from io import BytesIO
@@ -7,10 +7,10 @@ from typing import Tuple
 from .proto_class import ProtocolClass
 
 class FrameReadingError(RuntimeError):
-    """ Stub to group all types of reading errors """
+    ''' Stub to group all types of reading errors '''
 
 class MalformedFrameError(FrameReadingError):
-    """ Exception type for malformed unexpected input during frame reading """
+    ''' Exception type for malformed unexpected input during frame reading '''
 
     def __init__(self, protocol: ProtocolClass, message, details=None):
         self.protocol = protocol
@@ -18,7 +18,7 @@ class MalformedFrameError(FrameReadingError):
         super().__init__(f'Error reading {protocol} frame: {message}')
 
 class HeaderMismatchError(FrameReadingError):
-    """ Exception type for header mismatch errors in the frame reader implementations """
+    ''' Exception type for header mismatch errors in the frame reader implementations '''
 
     def __init__(self,
         headers_expected: list[bytes],
@@ -33,35 +33,35 @@ class HeaderMismatchError(FrameReadingError):
                          f'for {protocol}.')
 
 class IProtocolReader(ABC):
-    """ Interface/contract for protocol reader implementations """
+    ''' Interface/contract for protocol reader implementations '''
 
     @abstractmethod
     def read_frame(self, header: bytes, stream: BytesIO) -> bytes:
-        """ Reads a frame body assuming header was already consumed """
+        ''' Reads a frame body assuming header was already consumed '''
 
 class IProtocolReaderProvider(ABC):
-    """ Interface/contract for protocol reader provider implementations """
+    ''' Interface/contract for protocol reader provider implementations '''
 
     @abstractmethod
     def get_reader(self, protocol: ProtocolClass) -> IProtocolReader:
-        """ Selects a protocol reader based on the protocol class """
+        ''' Selects a protocol reader based on the protocol class '''
 
 class StubProtocolReader(IProtocolReader):
-    """ Stub for a GNSS message reader """
+    ''' Stub for a GNSS message reader '''
 
     def __init__(self, message_length: int=1, expected_header: bytes=b'\x00'):
-        """ Initialize with a set number of bytes to read and a preset header expected """
+        ''' Initialize with a set number of bytes to read and a preset header expected '''
         self.__message_length = message_length
         self.__expected_headers = [expected_header]
 
     def read_frame(self, header: bytes, stream: BytesIO) -> bytes:
-        """ Reads a preset number of bytes from the input """
+        ''' Reads a preset number of bytes from the input '''
         if header not in self.__expected_headers:
             raise HeaderMismatchError(self.__expected_headers, header, ProtocolClass.NONE)
         return header + stream.read(self.__message_length)
 
 class UBXProtocolReader(IProtocolReader):
-    """ UBX frame reader """
+    ''' UBX frame reader '''
 
     protocol_class = ProtocolClass.UBX
     __message_preamble_size = 4
@@ -69,7 +69,7 @@ class UBXProtocolReader(IProtocolReader):
     __expected_headers = [b'\xb5\x62']
 
     def read_frame(self, header: bytes, stream: BytesIO) -> bytes:
-        """ Check header match and read UBX binary data frame from stream """
+        ''' Check header match and read UBX binary data frame from stream '''
         if header not in self.__expected_headers:
             raise HeaderMismatchError(self.__expected_headers, header, self.protocol_class)
         return header + UBXProtocolReader.__read_frame(stream)
@@ -117,7 +117,7 @@ class UBXProtocolReader(IProtocolReader):
         return checksum
 
 class NMEAProtocolReader(IProtocolReader):
-    """ NMEA 0183 frame reader """
+    ''' NMEA 0183 frame reader '''
 
     protocol_class = ProtocolClass.NMEA
     protocol_revision = 'NMEA-0183'
@@ -133,7 +133,7 @@ class NMEAProtocolReader(IProtocolReader):
     __extended_message_marker = bytearray('P', __encoding)
 
     def read_frame(self, header: bytes, stream: BytesIO) -> bytes:
-        """ Check header match and read NMEA packet as binary data frame from stream """
+        ''' Check header match and read NMEA packet as binary data frame from stream '''
         if header not in self.__header_markers:
             raise HeaderMismatchError(self.__header_markers, header, self.protocol_class)
 
@@ -144,7 +144,7 @@ class NMEAProtocolReader(IProtocolReader):
 
     @staticmethod
     def __read_special_marker(stream: BytesIO, header: bytes) -> Tuple[bytes, bool]:
-        """ Read first byte of the NMEA frame to determine if special vendor message """
+        ''' Read first byte of the NMEA frame to determine if special vendor message '''
         first_byte = stream.read(1)
         return first_byte, \
             (header == NMEAProtocolReader.__header_markers[0] \
@@ -152,7 +152,7 @@ class NMEAProtocolReader(IProtocolReader):
 
     @staticmethod
     def __read_frame(stream: BytesIO, first_byte: bytes) -> bytes:
-        """ Read NMEA packet as binary data frame from stream """
+        ''' Read NMEA packet as binary data frame from stream '''
         frame = bytearray(first_byte)
         while frame[-2:] != NMEAProtocolReader.__end_marker:
             if len(frame) >= NMEAProtocolReader.__max_nmea_frame_size - 1:
@@ -165,30 +165,30 @@ class NMEAProtocolReader(IProtocolReader):
 
     @staticmethod
     def __read_special_frame(stream: BytesIO, first_byte: bytes) -> bytes:
-        """ Read special NMEA packet as binary data frame from stream """
+        ''' Read special NMEA packet as binary data frame from stream '''
         frame = bytearray(first_byte)
         while frame[-2:] != NMEAProtocolReader.__end_marker:
             frame.extend(stream.read(1))
         return frame
 
 class StubProtocolReaderProvider(IProtocolReaderProvider):
-    """ Provider for frame readers based on protocol class """
+    ''' Provider for frame readers based on protocol class '''
 
     def __init__(self, reader: IProtocolReader):
-        """ Initialize with a fixed provider to return """
+        ''' Initialize with a fixed provider to return '''
         self.__reader = reader
 
     def get_reader(self, protocol: ProtocolClass) -> IProtocolReader:
-        """ Return message reader """
+        ''' Return message reader '''
         return self.__reader
 
 
 class ProtocolReaderProvider(IProtocolReaderProvider):
-    """ Protocol reader provider based on a static mapping provided on init """
+    ''' Protocol reader provider based on a static mapping provided on init '''
 
     def __init__(self, mapping: dict):
         self.__mapping = mapping
 
     def get_reader(self, protocol: ProtocolClass) -> IProtocolReader:
-        """ Return mapped reader for the protocol provided """
+        ''' Return mapped reader for the protocol provided '''
         return self.__mapping[protocol]

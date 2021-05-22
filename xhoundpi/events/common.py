@@ -1,4 +1,4 @@
-""" Common event types and functions """
+''' Common event types and functions '''
 
 import uuid
 

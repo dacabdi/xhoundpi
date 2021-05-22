@@ -277,8 +277,8 @@ def moneyfmt(value, places=2, curr='', sep=',', dp='.',
     return ''.join(reversed(result))
 
 def dec_to_str(dec: D) -> str:
-    """
+    '''
     Convert the given float to a string,
     without resorting to scientific notation
-    """
+    '''
     return format(dec, 'f')

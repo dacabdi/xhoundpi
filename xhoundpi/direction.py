@@ -1,10 +1,10 @@
-""" Defines cardinal directions as an enumeration """
+''' Defines cardinal directions as an enumeration '''
 
 from enum import Enum
 from typing import Any
 
 class Direction(Enum):
-    """ Cardinal directions """
+    ''' Cardinal directions '''
     N = 0
     S = 1
     W = 2
@@ -12,9 +12,9 @@ class Direction(Enum):
 
     @classmethod
     def from_symbol(cls, symbol: str):
-        """
+        '''
         Create Direction enum from string symbol
-        """
+        '''
         symbol = symbol.lower()
         # TODO use `match` when updating to Python 3.10
         if symbol in ('n', 'north'):
@@ -29,15 +29,15 @@ class Direction(Enum):
                           'symbol to a direction')
 
 class CoordAxis(Enum):
-    """ Coordinate axis enumeration """
+    ''' Coordinate axis enumeration '''
     LON = 1
     LAT = 2
 
     @classmethod
     def from_symbol(cls, symbol: Any):
-        """
+        '''
         Create Coordinate enum from string symbol or direction
-        """
+        '''
         # TODO use `match` when updating to Python 3.10
         symbol = (symbol.name
             if isinstance(symbol, Direction)

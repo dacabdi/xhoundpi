@@ -1,4 +1,4 @@
-""" xHoundPi Canary simulator and smoke testing module """
+''' xHoundPi Canary simulator and smoke testing module '''
 # pylint: disable=logging-fstring-interpolation
 
 import logging
@@ -16,7 +16,7 @@ from tools.hermes.parser import parser
 logger = logging.getLogger()
 
 class Canary():
-    """ Canary context handlers """
+    ''' Canary context handlers '''
 
     MODULE_CALL = (
         'python '
@@ -36,7 +36,7 @@ class Canary():
         atexit.register(self.last_cleanups)
 
     def run_and_test(self):
-        """ Run a simulation session, smoke test, and report """
+        ''' Run a simulation session, smoke test, and report '''
         self.pre_run()
         self.run()
         passed = self.smoke_test()
@@ -44,11 +44,11 @@ class Canary():
         return passed
 
     def is_running(self):
-        """ Check if simulated process is running already """
+        ''' Check if simulated process is running already '''
         return self.xhoundpi_proc is not None
 
     def pre_run(self):
-        """ Prepare to run """
+        ''' Prepare to run '''
         if self.is_running():
             raise RuntimeError('Canary simulation is already running')
         if self.options.verbose:
@@ -62,7 +62,7 @@ class Canary():
         self.parse_gnss_input()
 
     def run(self):
-        """ Run service """
+        ''' Run service '''
         cmd = Canary.MODULE_CALL.format(
             gnss_input=self.options.gnssinput,
             gnss_output=self.options.gnssoutput)
@@ -72,7 +72,7 @@ class Canary():
         self.xhoundpi_proc = subprocess.Popen(cmd.split(' '), env=env)
 
     def post_run(self):
-        """ Send SIGINT, wait for process to exit, and cleanup environment """
+        ''' Send SIGINT, wait for process to exit, and cleanup environment '''
         logger.info('Stopping subprocesses')
         if self.xhoundpi_proc:
             logger.debug('Sending termination signal')
@@ -93,7 +93,7 @@ class Canary():
         self.cleanup()
 
     def cleanup(self):
-        """ Clean up after simulation """
+        ''' Clean up after simulation '''
         try:
             if self.options.parse_gnss_input and not self.options.preserve_parsed_input:
                 logger.info('Deleting parsed binary GNSS input file')
@@ -107,7 +107,7 @@ class Canary():
             logger.exception('An exception ocurred while cleaning up')
 
     def smoke_test(self):
-        """ Check basic main functionality """
+        ''' Check basic main functionality '''
         passed = False
         try:
             passed = run_sync(self.test(), self.options.test_timeout)
@@ -116,7 +116,7 @@ class Canary():
         return passed
 
     async def test(self):
-        """ Smoke test input/output """
+        ''' Smoke test input/output '''
         # NOTE this test will evolve as functionalities are added
         logger.info(f'Running smoke test. Timeout set to {self.options.test_timeout} sec(s).')
         try:
@@ -152,7 +152,7 @@ class Canary():
             return False
 
     def parse_gnss_input(self):
-        """ Parse GNSS input if needed """
+        ''' Parse GNSS input if needed '''
         gnss_input_path = self.options.gnssinput
         if self.options.parse_gnss_input:
             logger.info('Parsing capture file for GNSS input')
@@ -164,14 +164,14 @@ class Canary():
         self.options.gnssinput = gnss_input_path
 
     def signal_handler(self, sig, frame): # pylint: disable=unused-argument
-        """ Signals handler """
+        ''' Signals handler '''
         signal_name = str(signal.Signals(sig)).removeprefix('Signals.') # pylint: disable=no-member
         logger.warning(f'Received termination signal \'{signal_name}\', exiting gracefully')
         self.post_run()
         sys.exit(1)
 
     def last_cleanups(self):
-        """ Last attempt to kill child process """
+        ''' Last attempt to kill child process '''
         logger.debug('Running last resource cleanups before exiting')
         if self.xhoundpi_proc:
             logger.warning('Found zombie child process exiting, killing it as last attempt!')

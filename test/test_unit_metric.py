@@ -1,16 +1,14 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-class-docstring
 # pylint: disable=missing-function-docstring
+# pylint: disable=line-too-long
 
 import unittest
 from unittest.mock import Mock, call
-from xhoundpi.metric import (LatencyMetric,
-                            CounterMetric,
-                            ValueMetric,
-                            SuccessCounterMetric,
-                            MetricsCollection,)
 
 from test.time_utils import FakeStopWatch
+
+from xhoundpi.metric import LatencyMetric, CounterMetric, ValueMetric, SuccessCounterMetric, MetricsCollection
 
 class test_LatencyMetric(unittest.TestCase): # pylint: disable=invalid-name
 
