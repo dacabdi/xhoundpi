@@ -94,6 +94,7 @@ jobs:
           useLockFile: false
 
       - name: Run type checker (PyRight)
+        continue-on-error: true
         run: node node_modules/pyright/dist/pyright.js --lib --stats --dependencies
 
       # Publish artifacts
