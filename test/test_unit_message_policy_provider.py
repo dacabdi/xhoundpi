@@ -10,8 +10,7 @@ from  unittest.mock import Mock
 from xhoundpi.message import Message
 from xhoundpi.message_policy_iface import IMessagePolicy
 from xhoundpi.proto_class import ProtocolClass
-from xhoundpi.message_policy_provider import (ProtocolPolicyProvider,
-                                             OnePolicyProvider,)
+from xhoundpi.message_policy_provider import ProtocolPolicyProvider, OnePolicyProvider
 
 class test_MessageProtocolPolicyProvider(unittest.TestCase):
 

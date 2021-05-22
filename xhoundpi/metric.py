@@ -1,4 +1,4 @@
-""" Metrics abstractions module """
+''' Metrics abstractions module '''
 
 import collections
 from typing import Any, Callable, Iterable, List, Mapping
@@ -6,7 +6,7 @@ from typing import Any, Callable, Iterable, List, Mapping
 from .time import IStopWatch
 
 class MetricBase:
-    """ Metrics base class """
+    ''' Metrics base class '''
 
     def __init__(self, dimension: str, hooks = List[Callable]):
         self._value = None
@@ -15,16 +15,16 @@ class MetricBase:
 
     @property
     def dimension(self) -> str:
-        """ Get dimension tag """
+        ''' Get dimension tag '''
         return self.__dimension
 
     @property
     def value(self) -> Any:
-        """ Get metric value """
+        ''' Get metric value '''
         return self._value
 
     def mappify(self):
-        """ Convert the metric into a dictionary """
+        ''' Convert the metric into a dictionary '''
         if isinstance(self.value, collections.Mapping):
             return self.value
         return {self.dimension: self.value}
@@ -41,7 +41,7 @@ class MetricBase:
         return str(self.mappify())
 
 class LatencyMetric(MetricBase):
-    """ Operation latency metric with context manager semantics """
+    ''' Operation latency metric with context manager semantics '''
 
     def __init__(self, dimension: str, stopwatch: IStopWatch, hooks = List[Callable]):
         super().__init__(dimension, hooks)
@@ -49,27 +49,27 @@ class LatencyMetric(MetricBase):
         self._value = float('inf')
 
     def start(self):
-        """ Start timer """
+        ''' Start timer '''
         self._value = float('inf')
         self.__stopwatch.start()
 
     def stop(self):
-        """ Stop timer """
+        ''' Stop timer '''
         self._value, _ = self.__stopwatch.stop()
         self._call_hooks()
 
     def __enter__(self):
-        """Start a new timer as a context manager"""
+        '''Start a new timer as a context manager'''
         self.start()
         return self
 
     def __exit__(self, *exc_info):
-        """Stop the context manager timer"""
+        '''Stop the context manager timer'''
         self.stop()
         return exc_info is None
 
 class CounterMetric(MetricBase):
-    """ Operation counter metric """
+    ''' Operation counter metric '''
 
     def __init__(self, dimension: str, hooks = List[Callable]):
         super().__init__(dimension, hooks)
@@ -77,13 +77,13 @@ class CounterMetric(MetricBase):
         self._call_hooks()
 
     def increase(self):
-        """ Increase internal counter value """
+        ''' Increase internal counter value '''
         self._value += 1
         self._call_hooks()
         return self.value
 
 class ValueMetric(MetricBase):
-    """ Value based metric """
+    ''' Value based metric '''
 
     def __init__(self, dimension: str, hooks = List[Callable]):
         super().__init__(dimension, hooks)
@@ -91,19 +91,19 @@ class ValueMetric(MetricBase):
         self._call_hooks()
 
     def add(self, value):
-        """ Add to internal value """
+        ''' Add to internal value '''
         self._value += value
         self._call_hooks()
         return self.value
 
     def subtract(self, value):
-        """ Substract from internal value """
+        ''' Substract from internal value '''
         self._value -= value
         self._call_hooks()
         return self.value
 
 class SuccessCounterMetric(MetricBase):
-    """ Success/failure operation counter metric """
+    ''' Success/failure operation counter metric '''
 
     SUCCESS_SUFFIX='success'
     FAILURE_SUFFIX='failure'
@@ -117,23 +117,23 @@ class SuccessCounterMetric(MetricBase):
         self._call_hooks()
 
     def increase(self, is_success: bool):
-        """ Increase internal counter value for success/failure """
+        ''' Increase internal counter value for success/failure '''
         self._increase(is_success=is_success)
         return self.value
 
     @property
     def success(self):
-        """ Report success counter """
+        ''' Report success counter '''
         return self._value[self._compose_dimension(is_success=True)]
 
     @property
     def failure(self):
-        """ Report failure counter """
+        ''' Report failure counter '''
         return self._value[self._compose_dimension(is_success=False)]
 
     @property
     def total(self):
-        """ Report total counter """
+        ''' Report total counter '''
         return self.success + self.failure
 
     def _compose_dimension(self, is_success: bool):
@@ -147,7 +147,7 @@ class SuccessCounterMetric(MetricBase):
         return self.value
 
 class MetricsCollection:
-    """ Metrics container with manipulation helpers """
+    ''' Metrics container with manipulation helpers '''
 
     def __init__(self, metrics: Iterable[MetricBase]):
         self._metrics = metrics
@@ -155,7 +155,7 @@ class MetricsCollection:
             setattr(self, metric.dimension, metric)
 
     def mappify(self) -> Mapping:
-        """ Convert a metrics set into a map of dimensions to values """
+        ''' Convert a metrics set into a map of dimensions to values '''
         result = {}
         for metric in self._metrics:
             result |= metric.mappify()

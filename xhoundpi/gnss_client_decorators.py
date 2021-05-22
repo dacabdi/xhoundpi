@@ -1,4 +1,4 @@
-""" Decorators for IGnssClient implementations """
+''' Decorators for IGnssClient implementations '''
 
 from .metric import ValueMetric
 from .gnss_client import IGnssClient
@@ -8,11 +8,11 @@ from .monkey_patching import add_method
 def with_metrics(self,
     cbytes_read: ValueMetric,
     cbytes_written: ValueMetric):
-    """ Provides decorated GNSS client with metrics """
+    ''' Provides decorated GNSS client with metrics '''
     return GnssClientWithMetrics(self, cbytes_read, cbytes_written)
 
 class GnssClientWithMetrics(IGnssClient):
-    """ IGnssClient decorator for metrics """
+    ''' IGnssClient decorator for metrics '''
 
     def __init__(self,
         inner: IGnssClient,
@@ -23,13 +23,13 @@ class GnssClientWithMetrics(IGnssClient):
         self._cbytes_written = cbytes_written
 
     def read(self, size) -> bytes:
-        """ Read n bytes from GNSS device transport and count bytes """
+        ''' Read n bytes from GNSS device transport and count bytes '''
         data = self._inner.read(size)
         self._cbytes_read.add(len(data))
         return data
 
     def write(self, data: bytes) -> int:
-        """ Write bytes to GNSS device transport and count bytes """
+        ''' Write bytes to GNSS device transport and count bytes '''
         cbytes = self._inner.write(data)
         self._cbytes_written.add(cbytes)
         return cbytes

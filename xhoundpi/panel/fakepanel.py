@@ -1,4 +1,4 @@
-""" Fake panels """
+''' Fake panels '''
 
 import asyncio
 import numpy as np
@@ -9,9 +9,9 @@ from PIL import Image
 from .framebuffer import FrameBuffer
 
 class GifDisplay:
-    """
+    '''
     Gif output display
-    """
+    '''
 
     def __init__(self, mode, frame: FrameBuffer):
         # pylint: disable=no-member
@@ -22,9 +22,9 @@ class GifDisplay:
         self._frame.subscribe(self.render)
 
     def render(self, frame):
-        """
+        '''
         Render frame onto screen
-        """
+        '''
         if self._active:
             self._append_frame(frame)
 
@@ -39,9 +39,9 @@ class GifDisplay:
                loop=0)
 
 class PyGameDisplay:
-    """
+    '''
     PyGame based display
-    """
+    '''
 
     # pylint: disable=no-member
     FLAGS = pygame.NOFRAME | pygame.SHOWN
@@ -57,9 +57,9 @@ class PyGameDisplay:
         self._frame.subscribe(self.render)
 
     async def mainloop(self):
-        """
+        '''
         PyGame main loop using async programming
-        """
+        '''
         while self._active:
             for event in pygame.event.get():
                 # pylint: disable=no-member
@@ -69,9 +69,9 @@ class PyGameDisplay:
             await asyncio.sleep(0)
 
     def render(self, frame):
-        """
+        '''
         Render frame onto screen
-        """
+        '''
         if self._active:
             self._clear()
             self._set_frame(frame)

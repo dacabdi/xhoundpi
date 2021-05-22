@@ -1,11 +1,11 @@
 # pylint: disable=duplicate-code
-""" Test with JUnit results """
+''' Test with JUnit results '''
 
 import unittest
 import xmlrunner
 
 def main():
-    """ Entry point for results generator """
+    ''' Entry point for results generator '''
     with open('unittest-results.xml', '+wb') as output:
         unittest.main(argv=['test', 'discover'], module=None,
             testRunner=xmlrunner.XMLTestRunner(output=output),

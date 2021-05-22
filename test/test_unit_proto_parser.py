@@ -9,11 +9,7 @@ import unittest
 from unittest.mock import MagicMock
 
 from xhoundpi.proto_class import ProtocolClass
-from xhoundpi.proto_parser import ProtocolParserProvider,\
-                                  StubParserProvider, \
-                                  StubProtocolParser, \
-                                  UBXProtocolParser, \
-                                  NMEAProtocolParser
+from xhoundpi.proto_parser import StubParserProvider, StubProtocolParser, UBXProtocolParser, NMEAProtocolParser
 
 class test_StubProtocolParser(unittest.TestCase):
 

@@ -11,8 +11,7 @@ import pyubx2
 import pynmea2
 
 from xhoundpi.message import Message
-from xhoundpi.message_policy import (AlwaysQualifiesPolicy,
-                                    HasLocationPolicy)
+from xhoundpi.message_policy import AlwaysQualifiesPolicy, HasLocationPolicy
 
 class test_AlwaysQualifiesPolicy(unittest.TestCase):
 

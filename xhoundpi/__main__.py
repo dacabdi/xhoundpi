@@ -1,4 +1,4 @@
-"""xHoundPi firmware execution module"""
+'''xHoundPi firmware execution module'''
 # pylint: disable=wrong-import-position,wrong-import-order
 
 BANNER = '''
@@ -70,7 +70,7 @@ from .xhoundpi import XHoundPi
 logger = structlog.get_logger('xhoundpi')
 
 async def main_async():
-    """xHoundPi entry point"""
+    '''xHoundPi entry point'''
 
     # setup and read configuration
     parser = setup_configparser()
@@ -88,13 +88,13 @@ async def main_async():
     return await XHoundPi(config).run()
 
 def main():
-    """ Entry point and async main scheduler """
+    ''' Entry point and async main scheduler '''
     loop = asyncio.get_event_loop()
     exit_code = loop.run_until_complete(main_async())
     sys.exit(exit_code)
 
 def setup_logging(config_path):
-    """ Setup logging configuration """
+    ''' Setup logging configuration '''
 
     timestamper = structlog.processors.TimeStamper(fmt='iso')
     pre_chain = [
@@ -144,7 +144,7 @@ def setup_logging(config_path):
         cache_logger_on_first_use=True)
 
 def create_log_dirs(logger_config):
-    """ Check logger configuration for filenames and create subdirs """
+    ''' Check logger configuration for filenames and create subdirs '''
     for handler in logger_config['handlers']:
         handler_dict = logger_config['handlers'][handler]
         if 'filename' in handler_dict:

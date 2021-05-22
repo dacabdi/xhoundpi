@@ -1,1 +1,1 @@
-""" Serial validation tools """
+''' Serial validation tools '''

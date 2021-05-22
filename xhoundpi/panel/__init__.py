@@ -1,1 +1,1 @@
-""" Display related module """
+''' Display related module '''

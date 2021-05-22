@@ -1,4 +1,4 @@
-""" Defines GNSS service interface/contracts """
+''' Defines GNSS service interface/contracts '''
 
 from typing import List, Tuple
 
@@ -9,15 +9,15 @@ from .operator_provider_iface import IMessageOperatorProvider
 from .message_policy_provider_iface import IMessagePolicyProvider
 
 class NullProcessor(IProcessor):
-    """ Stub processor passthrough """
+    ''' Stub processor passthrough '''
 
     async def process(self, message: Message) -> Tuple[Status, Message]:
-        """ Returns the message and an OK status """
+        ''' Returns the message and an OK status '''
         return Status.OK(), message
 
 class GenericProcessor(IProcessor):
-    """ Applies a correction to the message based on qualification
-    policies and operation providers set during initialization """
+    ''' Applies a correction to the message based on qualification
+    policies and operation providers set during initialization '''
 
     def __init__(self,
         name: str,
@@ -28,10 +28,10 @@ class GenericProcessor(IProcessor):
         self.__operator_provider = operator_provider
 
     async def process(self, message: Message) -> Tuple[Status, Message]:
-        """ If the policy provided by the policy provider for the message
+        ''' If the policy provided by the policy provider for the message
         indicates that the message must be processed, the operation is obtained
         from the operation provider and applied to the message. If failed,
-        will return the original message and the status """
+        will return the original message and the status '''
         # TODO clean up this logic
         metadata = {'qualified' : False}
         try:
@@ -48,17 +48,17 @@ class GenericProcessor(IProcessor):
             return Status(ex, metadata=metadata), message
 
 class CompositeProcessor(IProcessor):
-    """ Applies a series of processes in sequence """
+    ''' Applies a series of processes in sequence '''
 
     def __init__(self, operators: List[IProcessor]):
         self.__processors = operators
 
     async def process(self, message: Message) -> Tuple[Status, Message]:
-        """
+        '''
         Runs all composed operations over the message.
         If an operation fails, returns original message
         and status code.
-        """
+        '''
         proccessed = message
         for processor in self.__processors:
             try:

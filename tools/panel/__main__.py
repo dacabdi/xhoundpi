@@ -1,4 +1,4 @@
-""" xHoundPi panel system proof of concept """
+''' xHoundPi panel system proof of concept '''
 # pylint: disable=logging-fstring-interpolation
 # pylint: disable=wrong-import-position
 
@@ -15,7 +15,7 @@ from tools.panel.panel import Panel
 logger = logging.getLogger()
 
 async def main_async():
-    """xHoundPi entry point"""
+    '''xHoundPi entry point'''
     setup_logger()
 
     config = setup_argparser()
@@ -24,13 +24,13 @@ async def main_async():
     await Panel(options).run()
 
 def main():
-    """ Entry point and async main scheduler """
+    ''' Entry point and async main scheduler '''
     loop = asyncio.get_event_loop()
     exit_code = loop.run_until_complete(main_async())
     sys.exit(exit_code)
 
 def setup_logger():
-    """ Basic logger configuration """
+    ''' Basic logger configuration '''
     console_handler = logging.StreamHandler()
     formatter = logging.Formatter('PANEL:[%(asctime)s][%(levelname)s] %(message)s')
     console_handler.setFormatter(formatter)

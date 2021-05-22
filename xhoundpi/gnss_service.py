@@ -1,4 +1,4 @@
-""" GNSS client """
+''' GNSS client '''
 
 import uuid
 
@@ -15,7 +15,7 @@ from .message import Message
 
 
 class GnssService(IGnssService):
-    """ Gnss service facade """
+    ''' Gnss service facade '''
 
     def __init__( # pylint: disable=too-many-arguments
         self,
@@ -31,7 +31,7 @@ class GnssService(IGnssService):
         self.__serializer_provider = serializer_provider
 
     async def read_message(self) -> Tuple[Status, Message]:
-        """ Reads, classifies, and parses input from the GNSS client stream """
+        ''' Reads, classifies, and parses input from the GNSS client stream '''
         try:
             (header, protocol) = self.__classifier.classify(self.__gnss_client)
             reader = self.__reader_provider.get_reader(protocol)
@@ -43,7 +43,7 @@ class GnssService(IGnssService):
             return Status(err), None
 
     async def write_message(self, message: Message) -> Tuple[Status, int]:
-        """ Writes messages as byte strings to the GNSS client input """
+        ''' Writes messages as byte strings to the GNSS client input '''
         try:
             serializer = self.__serializer_provider.get_serializer(message.proto)
             data = serializer.serialize(message)

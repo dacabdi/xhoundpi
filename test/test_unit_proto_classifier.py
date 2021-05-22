@@ -8,9 +8,7 @@ import unittest
 from io import BytesIO
 
 from xhoundpi.proto_class import ProtocolClass
-from xhoundpi.proto_classifier import (StubProtocolClassifier,
-                                      ProtocolClassifier,
-                                      ProtocolClassificationError,)
+from xhoundpi.proto_classifier import StubProtocolClassifier, ProtocolClassifier, ProtocolClassificationError
 
 class test_StubProtocolClassifier(unittest.TestCase):
 

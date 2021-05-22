@@ -1,4 +1,4 @@
-""" Display buffers module """
+''' Display buffers module '''
 
 from typing import Callable, Type
 
@@ -7,7 +7,7 @@ import numpy as np
 from .geometry import Geometry
 
 class FrameBuffer:
-    """
+    '''
     Display pixel frame abstraction
 
     NOTE beware that most display representations
@@ -15,7 +15,7 @@ class FrameBuffer:
     not the rows), however, to be more in accord with
     numpy, we are using row major, thus, transposing
     the image might be neccesary before displaying.
-    """
+    '''
 
     ORDER = 'C' # numpy's row major
 
@@ -27,9 +27,9 @@ class FrameBuffer:
         self._subscribers = []
 
     def update(self):
-        """
+        '''
         Update current frame with next frame used as canvas
-        """
+        '''
         temp = self._current_frame
         self._current_frame = self._next_frame
         self._next_frame = temp
@@ -37,38 +37,38 @@ class FrameBuffer:
         self._notify()
 
     def subscribe(self, on_update: Callable):
-        """
+        '''
         Subscribe to frame updates
-        """
+        '''
         return self._subscribers.append(on_update)
 
     @property
     def geometry(self) -> Geometry:
-        """
+        '''
         Frame's geometry
-        """
+        '''
         return self._geometry
 
     @property
     def frame(self) -> np.ndarray:
-        """
+        '''
         Currently active frame
-        """
+        '''
         return self._current_frame
 
     @property
     def canvas(self) -> np.ndarray:
-        """
+        '''
         Next frame to be set on update, use as drawing space
-        """
+        '''
         return self._next_frame
 
     @property
     def pixel_type(self):
-        """
+        '''
         Return numeric type used to
         represent a pixel value per channel
-        """
+        '''
         return self._pixel_type
 
     def _notify(self):

@@ -11,11 +11,7 @@ from uuid import UUID
 
 from xhoundpi.message import Message
 from xhoundpi.proto_class import ProtocolClass
-from xhoundpi.proto_serializer import (SerializerProviderError,
-                                      SerializerError,
-                                      ProtocolSerializerProvider,
-                                      UBXProtocolSerializer,
-                                      NMEAProtocolSerializer,)
+from xhoundpi.proto_serializer import SerializerProviderError, SerializerError, ProtocolSerializerProvider, UBXProtocolSerializer, NMEAProtocolSerializer
 
 class test_ProtocolSerializerProvider(unittest.TestCase):
 

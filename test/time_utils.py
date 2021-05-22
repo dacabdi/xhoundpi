@@ -7,7 +7,7 @@ from typing import Tuple
 from xhoundpi.time import IStopWatch
 
 class FakeStopWatch(IStopWatch):
-    """ Fake stopwatch for time related testing """
+    ''' Fake stopwatch for time related testing '''
 
     def __init__(self):
         self.start_time = None
