@@ -54,3 +54,28 @@ class test_CoordinatesOffsetProviderWithConversion(unittest.TestCase):
         self.assertTrue(offset_provider.called)
         self.assertTrue(factor_provider.called)
         self.assertEqual(expected, result)
+
+    def test_access_to_decorated_object_props(self):
+        factor_provider = StubFactorProvider(CF(D2, D2))
+        offset_provider = StubOffsetProvider(GC(D1, D1, D1))
+
+        # pylint: disable=no-member
+        decorated = offset_provider.with_conversion(factor_provider) # type: ignore
+        # pylint: enable=no-member
+
+        _ = decorated.get_offset()
+        self.assertTrue(offset_provider.called)
+        self.assertTrue(factor_provider.called)
+
+         # (__getattr__) stub's property, not decorator, should passthrough
+        self.assertTrue(hasattr(decorated, 'called'))
+        self.assertTrue(decorated.called)
+        self.assertTrue(offset_provider.called)
+
+        # (__setattr__) reflects change into decorated
+        decorated.called = False
+        self.assertFalse(offset_provider.called)
+
+        # (__delattr__) remove property
+        del offset_provider.called
+        self.assertFalse(hasattr(offset_provider, 'called'))

@@ -8,6 +8,8 @@ import sys
 import asyncio
 import uuid
 import decimal
+from xhoundpi.coordinates_provider import StaticCoordinatesProvider
+from xhoundpi.conversion_factor import DistAngleFactorProvider
 
 # external imports
 import structlog
@@ -24,6 +26,7 @@ import xhoundpi.gnss_service_decorators
 import xhoundpi.gnss_client_decorators
 import xhoundpi.queue_decorators
 import xhoundpi.processor_decorators
+import xhoundpi.coordinates_offset_decorators
 # pylint: enable=unused-import
 
 # submodules
@@ -358,6 +361,7 @@ class XHoundPi:
         neg_offset = decimal.Decimal('-0.005')
         orientation_zero = StaticOrientationProvider(EulerAngles(yaw=DECIMAL0, pitch=DECIMAL0, roll=DECIMAL0))
         # orientation_non_zero = StaticOrientationProvider(EulerAngles(yaw=DECIMAL1, pitch=DECIMAL1, roll=DECIMAL1))
+        coords_provider = StaticCoordinatesProvider(GeoCoordinates(DECIMAL0, DECIMAL0, DECIMAL0))
         self._processors = CompositeProcessor([
             NullProcessor()
                 .with_events(logger=logger) # type: ignore
@@ -381,9 +385,13 @@ class XHoundPi:
                 latency=self._metrics.negative_offset_processor_latency), # type: ignore
             self._make_offset_generic_processor(
                 name='ZeroOffsetOrientationBasedProcessor',
-                offset_provider=OrientationOffsetProvider(orientation_zero, radius=DECIMAL0),
+                offset_provider=(
+                    OrientationOffsetProvider(orientation_zero, radius=DECIMAL0)\
+                        .with_conversion(DistAngleFactorProvider(coords_provider)) # type: ignore
+                ),
                 counter=self._metrics.zero_offset_orientation_processor_counter, # type: ignore
                 latency=self._metrics.zero_offset_orientation_processor_latency), # type: ignore
+            # TODO activate these once we address the issue with 1-off results at hi res levels
             # self._make_offset_generic_processor(
             #     name='PositiveOffsetOrientationBasedProcessor',
             #     offset_provider=OrientationOffsetProvider(orientation_non_zero, DECIMAL1),
