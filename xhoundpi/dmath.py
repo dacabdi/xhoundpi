@@ -11,6 +11,7 @@ from collections import defaultdict
 from decimal import (
     DefaultContext,
     ROUND_DOWN,
+    ROUND_HALF_UP,
     getcontext,
     localcontext,
     Overflow,
@@ -70,7 +71,7 @@ with localcontext() as c:
 
 def setup_common_context(
     pres: int = 24,
-    rounding: str = ROUND_HALF_EVEN):
+    rounding: str = ROUND_HALF_UP):
     '''
     Sets up common global context
     '''

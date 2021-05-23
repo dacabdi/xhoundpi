@@ -357,7 +357,7 @@ class XHoundPi:
         pos_offset = decimal.Decimal('0.005')
         neg_offset = decimal.Decimal('-0.005')
         orientation_zero = StaticOrientationProvider(EulerAngles(yaw=DECIMAL0, pitch=DECIMAL0, roll=DECIMAL0))
-        orientation_non_zero = StaticOrientationProvider(EulerAngles(yaw=DECIMAL1, pitch=DECIMAL1, roll=DECIMAL1))
+        # orientation_non_zero = StaticOrientationProvider(EulerAngles(yaw=DECIMAL1, pitch=DECIMAL1, roll=DECIMAL1))
         self._processors = CompositeProcessor([
             NullProcessor()
                 .with_events(logger=logger) # type: ignore
@@ -369,7 +369,7 @@ class XHoundPi:
                 offset_provider=StaticOffsetProvider(GeoCoordinates(lat=zero_offset, lon=zero_offset, alt=zero_offset)),
                 counter=self._metrics.zero_offset_processor_counter, # type: ignore
                 latency=self._metrics.zero_offset_processor_latency), # type: ignore
-            '''self._make_offset_generic_processor(
+            self._make_offset_generic_processor(
                 name='PositiveOffsetProcessor',
                 offset_provider=StaticOffsetProvider(GeoCoordinates(lat=pos_offset, lon=pos_offset, alt=pos_offset)),
                 counter=self._metrics.positive_offset_processor_counter, # type: ignore
@@ -381,19 +381,19 @@ class XHoundPi:
                 latency=self._metrics.negative_offset_processor_latency), # type: ignore
             self._make_offset_generic_processor(
                 name='ZeroOffsetOrientationBasedProcessor',
-                offset_provider=OrientationOffsetProvider(orientation_zero, DECIMAL0),
+                offset_provider=OrientationOffsetProvider(orientation_zero, radius=DECIMAL0),
                 counter=self._metrics.zero_offset_orientation_processor_counter, # type: ignore
                 latency=self._metrics.zero_offset_orientation_processor_latency), # type: ignore
-            self._make_offset_generic_processor(
-                name='PositiveOffsetOrientationBasedProcessor',
-                offset_provider=OrientationOffsetProvider(orientation_non_zero, DECIMAL1),
-                counter=self._metrics.positive_offset_orientation_processor_counter, # type: ignore
-                latency=self._metrics.positive_offset_orientation_processor_latency), # type: ignore'''
-            #self._make_offset_generic_processor(
-            #    name='NegativeOffsetOrientationBasedProcessor',
-            #    offset_provider=OrientationOffsetProvider(orientation_non_zero, -DECIMAL1),
-            #    counter=self._metrics.negative_offset_processor_counter, # type: ignore
-            #    latency=self._metrics.negative_offset_processor_latency), # type: ignore
+            # self._make_offset_generic_processor(
+            #     name='PositiveOffsetOrientationBasedProcessor',
+            #     offset_provider=OrientationOffsetProvider(orientation_non_zero, DECIMAL1),
+            #       counter=self._metrics.positive_offset_orientation_processor_counter, # type: ignore
+            #       latency=self._metrics.positive_offset_orientation_processor_latency), # type: ignore
+            # self._make_offset_generic_processor(
+            #     name='NegativeOffsetOrientationBasedProcessor',
+            #     offset_provider=OrientationOffsetProvider(orientation_non_zero, -DECIMAL1),
+            #     counter=self._metrics.negative_offset_processor_counter, # type: ignore
+            #     latency=self._metrics.negative_offset_processor_latency), # type: ignore
         ])
         self.processors_pipeline = AsyncPump(
              # pylint: disable=no-member

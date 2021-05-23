@@ -7,6 +7,7 @@
 import unittest
 from unittest.mock import Mock
 from decimal import Decimal as D, Inexact, localcontext
+from xhoundpi.data_formatter import UBXDataFormatter
 from ddt import ddt, data, unpack
 
 from xhoundpi.dmath import deg2rad, setup_common_context
@@ -49,17 +50,25 @@ class test_OrientationOffsetProvider(unittest.TestCase):
         _data(yaw=D("0"), pitch=D("45"), roll=D("0"), r=D("10"), lat=D("7.07106781186547"), lon=D("0"), alt=D("7.07106781186547")),
         _data(yaw=D("45"), pitch=D("45"), roll=D("0"), r=D("10"), lat=D("5"), lon=D("5"), alt=D("7.07106781186547")),
         _data(yaw=D("45"), pitch=D("45"), roll=D("90"), r=D("10"), lat=D("7.07106781186547"), lon=D("-7.07106781186547"), alt=D("0")),
+        _data(yaw=D("1"), pitch=D("1"), roll=D("1"), r=D("1"), lat=D("0.017751677161"), lon=D("-0.017145208251"), alt=D("0.999695413510")),
     )
     @unpack
     def test_provide(self, angles, radius, expected):
         orientation_provider = Mock()
         orientation_provider.get_orientation = Mock(return_value=angles)
         provider = OrientationOffsetProvider(orientation_provider, radius)
+        provider_inverse = OrientationOffsetProvider(orientation_provider, -radius)
         actual = provider.get_offset()
+        inverse = provider_inverse.get_offset()
+        formatter = UBXDataFormatter()
         with localcontext() as ctx:
             # NOTE we are ok with not having exactitude on this comparison
             ctx.traps[Inexact] = False
             self.assertEqual(round(expected.lat, self.TOLERANCE), round(actual.lat, self.TOLERANCE))
             self.assertEqual(round(expected.lon, self.TOLERANCE), round(actual.lon, self.TOLERANCE))
             self.assertEqual(round(expected.alt, self.TOLERANCE), round(actual.alt, self.TOLERANCE))
-        orientation_provider.get_orientation.assert_called_once()
+            self.assertEqual(D('0'), inverse.lat + actual.lat)
+            self.assertEqual(D('0'), inverse.lon + actual.lon)
+            self.assertEqual(D('0'), inverse.alt + actual.alt)
+            print(formatter.decdeg_to_integer(expected.alt))
+        orientation_provider.get_orientation.assert_any_call()

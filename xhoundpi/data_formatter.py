@@ -101,7 +101,7 @@ class NMEADataFormatter:
     @classmethod
     #pylint: disable=invalid-name
     def _degmins_to_decdeg(cls, dm: str) -> D:
-        if not dm or dm == '0':
+        if dm in (None, '0', '0.0'):
             return DECIMAL0
         d, m = re.match(r'^(\d+)(\d\d\.\d+)$', dm).groups()
         with localcontext() as ctx:
@@ -138,6 +138,8 @@ class UBXDataFormatter:
         with localcontext() as ctx:
             # NOTE we are aware precision is lost going to UBX integral field
             ctx.traps[Inexact] = False
+            # TODO activate this rounding once we figure out all the implications
+            # decdeg = round(decdeg, self.HIGH_RES)
             base, frac = divmod(decdeg.scaleb(self.BASE_RES), DECIMAL1)
             hi_res, _ = divmod(frac.scaleb(self.HIGH_RES - self.BASE_RES), DECIMAL1)
             return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
