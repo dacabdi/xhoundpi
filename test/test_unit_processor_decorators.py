@@ -9,19 +9,20 @@ from typing import Tuple
 from dataclasses import dataclass
 from unittest.mock import Mock, patch
 
+from test.time_utils import FakeStopWatch
+from test.log_utils import setup_test_event_logger
+
 import structlog
 from structlog.testing import capture_logs
 
 import xhoundpi.processor_decorators # pylint: disable=unused-import
+
 from xhoundpi.proto_class import ProtocolClass
 from xhoundpi.message import Message
 from xhoundpi.status import Status
 from xhoundpi.async_ext import run_sync
 from xhoundpi.processor import IProcessor
 from xhoundpi.metric import LatencyMetric, SuccessCounterMetric
-
-from test.time_utils import FakeStopWatch
-from test.log_utils import setup_test_event_logger
 
 def setUpModule():
     setup_test_event_logger()

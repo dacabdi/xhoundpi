@@ -7,7 +7,6 @@
 import unittest
 from unittest.mock import Mock
 from decimal import Decimal as D, Inexact, localcontext
-from xhoundpi.data_formatter import UBXDataFormatter
 from ddt import ddt, data, unpack
 
 from xhoundpi.dmath import deg2rad, setup_common_context
@@ -60,7 +59,6 @@ class test_OrientationOffsetProvider(unittest.TestCase):
         provider_inverse = OrientationOffsetProvider(orientation_provider, -radius)
         actual = provider.get_offset()
         inverse = provider_inverse.get_offset()
-        formatter = UBXDataFormatter()
         with localcontext() as ctx:
             # NOTE we are ok with not having exactitude on this comparison
             ctx.traps[Inexact] = False
@@ -70,5 +68,4 @@ class test_OrientationOffsetProvider(unittest.TestCase):
             self.assertEqual(D('0'), inverse.lat + actual.lat)
             self.assertEqual(D('0'), inverse.lon + actual.lon)
             self.assertEqual(D('0'), inverse.alt + actual.alt)
-            print(formatter.decdeg_to_integer(expected.alt))
         orientation_provider.get_orientation.assert_any_call()
