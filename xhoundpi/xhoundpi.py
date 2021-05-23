@@ -8,8 +8,6 @@ import sys
 import asyncio
 import uuid
 import decimal
-from xhoundpi.coordinates_provider import StaticCoordinatesProvider
-from xhoundpi.conversion_factor import DistAngleFactorProvider
 
 # external imports
 import structlog
@@ -27,6 +25,7 @@ import xhoundpi.gnss_client_decorators
 import xhoundpi.queue_decorators
 import xhoundpi.processor_decorators
 import xhoundpi.coordinates_offset_decorators
+import xhoundpi.conversion_factor_decorators
 # pylint: enable=unused-import
 
 # submodules
@@ -51,6 +50,8 @@ from .gnss_service_runner import GnssServiceRunner
 from .data_formatter import NMEADataFormatter, UBXDataFormatter
 from .message_editor import NMEAMessageEditor, UBXMessageEditor
 from .orientation import EulerAngles, StaticOrientationProvider
+from .coordinates_provider import StaticCoordinatesProvider
+from .conversion_factor import DistAngleFactorProvider
 from .coordinates_offset import GeoCoordinates, ICoordinatesOffsetProvider, OrientationOffsetProvider, StaticOffsetProvider
 from .operator import NMEAOffsetOperator, UBXOffsetOperator, UBXHiResOffsetOperator
 from .operator_provider import CoordinateOperationProvider
@@ -355,6 +356,7 @@ class XHoundPi:
         '''
         Setup GNSS processors pipeline
         '''
+        # TODO cleanup this method!
         # pylint: disable=no-member
         zero_offset = DECIMAL0
         pos_offset = decimal.Decimal('0.005')
@@ -362,6 +364,11 @@ class XHoundPi:
         orientation_zero = StaticOrientationProvider(EulerAngles(yaw=DECIMAL0, pitch=DECIMAL0, roll=DECIMAL0))
         # orientation_non_zero = StaticOrientationProvider(EulerAngles(yaw=DECIMAL1, pitch=DECIMAL1, roll=DECIMAL1))
         coords_provider = StaticCoordinatesProvider(GeoCoordinates(DECIMAL0, DECIMAL0, DECIMAL0))
+        # NOTE ^ the coordinates provider used by the dist-angle conversion factor provider is
+        #      currently static. a new dynamic implementation would tap into the stream of GNSS
+        #      messages and keep an up-to-date record of the location to provide to the
+        #      factor calculator upon request.
+        # see ref: https://github.com/dacabdi/xhoundpi/issues/42
         self._processors = CompositeProcessor([
             NullProcessor()
                 .with_events(logger=logger) # type: ignore
@@ -387,7 +394,7 @@ class XHoundPi:
                 name='ZeroOffsetOrientationBasedProcessor',
                 offset_provider=(
                     OrientationOffsetProvider(orientation_zero, radius=DECIMAL0)\
-                        .with_conversion(DistAngleFactorProvider(coords_provider)) # type: ignore
+                        .with_conversion(DistAngleFactorProvider(coords_provider).with_inversion()) # type: ignore
                 ),
                 counter=self._metrics.zero_offset_orientation_processor_counter, # type: ignore
                 latency=self._metrics.zero_offset_orientation_processor_latency), # type: ignore
