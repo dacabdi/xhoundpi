@@ -61,7 +61,7 @@ from .processor import CompositeProcessor, NullProcessor, GenericProcessor
 from .events import AppEvent, MetricsReport
 from .metric import LatencyMetric, ValueMetric, SuccessCounterMetric, MetricsCollection
 from .async_ext import loop_forever_async
-from .dmath import DECIMAL1, setup_common_context, DECIMAL0
+from .dmath import setup_common_context, DECIMAL0
 # pylint: enable=line-too-long
 
 logger = structlog.get_logger('xhoundpi')

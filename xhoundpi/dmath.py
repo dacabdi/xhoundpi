@@ -19,7 +19,6 @@ from decimal import (
     InvalidOperation,
     FloatOperation,
     Inexact,
-    ROUND_HALF_EVEN,
     Decimal as D,
     DecimalTuple as DT,
     setcontext)
