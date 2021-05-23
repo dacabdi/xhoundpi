@@ -36,7 +36,23 @@
                 "--verbose",
                 "--parse-gnss-input",
                 "--test-timeout",
-                "120", // takes longer to pass under the debugger
+                "600", // takes longer to pass under the debugger
+                "./data/smoke_test_data.cap",
+                "./data/gnss_out.bin"
+            ],
+        },
+        {
+            "name": "Canary Smoke Test (just my code)",
+            "type": "python",
+            "request": "launch",
+            "module": "tools.canary",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--verbose",
+                "--parse-gnss-input",
+                "--test-timeout",
+                "600", // takes longer to pass under the debugger
                 "./data/smoke_test_data.cap",
                 "./data/gnss_out.bin"
             ],

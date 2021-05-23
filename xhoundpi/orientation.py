@@ -6,16 +6,17 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from decimal import Decimal
 
+from .dmath import DECIMAL0
+
 @dataclass
 class EulerAngles:
     '''
     Model for Euler angles orientation
     '''
     # pylint: disable=invalid-name
-    yaw: Decimal = Decimal("0")
-    pitch: Decimal = Decimal("0")
-    roll: Decimal = Decimal("0")
-
+    yaw: Decimal = DECIMAL0
+    pitch: Decimal = DECIMAL0
+    roll: Decimal = DECIMAL0
 
 class IOrientationProvider(ABC):
     '''

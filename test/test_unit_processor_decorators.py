@@ -210,7 +210,7 @@ class test_ProcessorWithEvents(unittest.TestCase):
                 'processor_id' : 'StubProcessor',
                 'activity_id': '11111111-2222-3333-4444-555555555555',
                 'log_level': 'error',
-                'details': 'Something happened in the way of heaven',
+                'details': 'RuntimeError: Something happened in the way of heaven\n',
                 'event': 'ProcessorAction',
                 'message_id': '12345678-1234-5678-1234-567812345678',
                 'protocol' : 1,
