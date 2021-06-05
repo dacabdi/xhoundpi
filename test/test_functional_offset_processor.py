@@ -258,7 +258,7 @@ class test_Functional_OffsetProcessor(unittest.TestCase):
 
     # TODO resolve and reactivate test
     @unittest.skip('the readjustment back and forth at the res limit introduce a 1 off error '
-                   'and we still do not know how to fix this minor issue')
+                  'and we still do not know how to fix this minor issue')
     def test_ubx_zero_offset3_by_round_trip_on_height_res_limit_and_midpoint(self):
         # lon -823964140
         # lat 296421129

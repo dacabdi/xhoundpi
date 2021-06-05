@@ -85,14 +85,14 @@ class NMEADataFormatter:
             degs_width=deg_length,
             mins_width=3 + precision,
             prec=precision)
-        degs, mins = divmod(dec_deg, DECIMAL1)
-        degs = degs.copy_abs()
-        mins = mins.copy_abs()
         with localcontext() as ctx:
+            ctx.traps[Inexact] = False
             # NOTE
             # 1. the log10 is very unlikely to yield an exact value
             # 2. the mins * 60 operation can also be inexact, just provide enough precision
-            ctx.traps[Inexact] = False
+            degs, mins = divmod(dec_deg, DECIMAL1)
+            degs = degs.copy_abs()
+            mins = mins.copy_abs()
             if not degs.is_zero() and degs.log10() > deg_length:
                 raise ValueError('Too many digits in decimal degrees result')
             mins *= 60
@@ -101,7 +101,7 @@ class NMEADataFormatter:
     @classmethod
     #pylint: disable=invalid-name
     def _degmins_to_decdeg(cls, dm: str) -> D:
-        if not dm or dm == '0':
+        if dm in (None, '0', '0.0'):
             return DECIMAL0
         d, m = re.match(r'^(\d+)(\d\d\.\d+)$', dm).groups()
         with localcontext() as ctx:
@@ -135,9 +135,14 @@ class UBXDataFormatter:
         Converts signed decimal degrees
         into an UBX integer geographic co-ordinate
         '''
-        base, frac = divmod(decdeg.scaleb(self.BASE_RES), DECIMAL1)
-        hi_res, _ = divmod(frac.scaleb(self.HIGH_RES - self.BASE_RES), DECIMAL1)
-        return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
+        with localcontext() as ctx:
+            # NOTE we are aware precision is lost going to UBX integral field
+            ctx.traps[Inexact] = False
+            # TODO activate this rounding once we figure out all the implications
+            # decdeg = round(decdeg, self.HIGH_RES)
+            base, frac = divmod(decdeg.scaleb(self.BASE_RES), DECIMAL1)
+            hi_res, _ = divmod(frac.scaleb(self.HIGH_RES - self.BASE_RES), DECIMAL1)
+            return int(base.to_integral_exact()), int(hi_res.to_integral_exact())
 
     @staticmethod
     def height_from_field(base: int, hires: int = 0) -> D:

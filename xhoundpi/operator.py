@@ -3,6 +3,7 @@ Message operators
 '''
 
 from typing import Any, Dict, Tuple
+from decimal import Inexact, localcontext
 
 from .status import Status
 from .message import Message
@@ -40,8 +41,13 @@ class NMEAOffsetOperator(IMessageOperator):
         hi_res = self.__formatter.is_highpres(nmea.lat) and self.__formatter.is_highpres(nmea.lon)
         lat = self.__formatter.degmins_to_decdeg(nmea.lat, Direction.from_symbol(nmea.lat_dir))
         lon = self.__formatter.degmins_to_decdeg(nmea.lon, Direction.from_symbol(nmea.lon_dir))
-        tlat, tlat_d = self.__formatter.decdeg_to_degmins(lat + offset.lat, CoordAxis.LAT, hi_res)
-        tlon, tlon_d = self.__formatter.decdeg_to_degmins(lon + offset.lon, CoordAxis.LON, hi_res)
+        with localcontext() as ctx:
+            ctx.traps[Inexact] = False
+            # NOTE going from max precision decimal degrees to the NMEA
+            #      field representation we expect to drop some non zero values on the right
+            # pylint: disable=line-too-long
+            tlat, tlat_d = self.__formatter.decdeg_to_degmins(lat + offset.lat, CoordAxis.LAT, hi_res)
+            tlon, tlon_d = self.__formatter.decdeg_to_degmins(lon + offset.lon, CoordAxis.LON, hi_res)
         return {
             'lat': tlat,
             'lon': tlon,
@@ -54,11 +60,21 @@ class NMEAOffsetOperator(IMessageOperator):
         result = {}
         if hasattr(nmea, 'alt'):
             alt = self.__formatter.height_from_field(nmea.alt)
-            talt = self.__formatter.height_to_field(alt + offset.alt)
+            with localcontext() as ctx:
+                ctx.traps[Inexact] = False
+                # NOTE going from max precision decimal degrees to the NMEA
+                #      field representation we expect to drop some non zero values on the right
+                # pylint: disable=line-too-long
+                talt = self.__formatter.height_to_field(alt + offset.alt)
             result |= { 'alt': talt }
         if hasattr(nmea, 'alt_ref'):
             alt_ref = self.__formatter.height_from_field(nmea.alt_ref)
-            talt_ref = self.__formatter.height_to_field(alt_ref + offset.alt)
+            with localcontext() as ctx:
+                ctx.traps[Inexact] = False
+                # NOTE going from max precision decimal degrees to the NMEA
+                #      field representation we expect to drop some non zero values on the right
+                # pylint: disable=line-too-long
+                talt_ref = self.__formatter.height_to_field(alt_ref + offset.alt)
             result |= { 'alt_ref': talt_ref }
         return result
 
@@ -91,8 +107,11 @@ class UBXOffsetOperator(IMessageOperator):
         ubx = message.payload
         lat = self.__formatter.integer_to_decdeg(ubx.lat)
         lon = self.__formatter.integer_to_decdeg(ubx.lon)
-        tlat, _ = self.__formatter.decdeg_to_integer(lat + offset.lat)
-        tlon, _ = self.__formatter.decdeg_to_integer(lon + offset.lon)
+        with localcontext() as ctx:
+            ctx.traps[Inexact] = False
+            # NOTE dropped values on the right is expected going to ubx fields
+            tlat, _ = self.__formatter.decdeg_to_integer(lat + offset.lat)
+            tlon, _ = self.__formatter.decdeg_to_integer(lon + offset.lon)
         return {
             'lat': tlat,
             'lon': tlon,
@@ -104,12 +123,18 @@ class UBXOffsetOperator(IMessageOperator):
         result = {}
         if hasattr(ubx, 'height'):
             height = self.__formatter.height_from_field(ubx.height)
-            theight, theight_hp = self.__formatter.height_to_field(height + offset.alt)
+            with localcontext() as ctx:
+                ctx.traps[Inexact] = False
+                # NOTE dropped values on the right is expected going to ubx fields
+                theight, theight_hp = self.__formatter.height_to_field(height + offset.alt)
             theight, theight_hp = self.__formatter.minimize_correction(theight, theight_hp, midpoint=self.HEIGHT_MP)
             result |= { 'height' : theight }
         if hasattr(ubx, 'hMSL'):
             hmsl = self.__formatter.height_from_field(ubx.hMSL)
-            thmsl, thmsl_hp = self.__formatter.height_to_field(hmsl + offset.alt)
+            with localcontext() as ctx:
+                ctx.traps[Inexact] = False
+                # NOTE dropped values on the right is expected going to ubx fields
+                thmsl, thmsl_hp = self.__formatter.height_to_field(hmsl + offset.alt)
             thmsl, thmsl_hp = self.__formatter.minimize_correction(thmsl, thmsl_hp, midpoint=self.HEIGHT_MP)
             result |= { 'hMSL' : thmsl }
         return result
@@ -146,8 +171,11 @@ class UBXHiResOffsetOperator(IMessageOperator):
         lat = self.__formatter.integer_to_decdeg(ubx.lat, ubx.latHp)
         lon = self.__formatter.integer_to_decdeg(ubx.lon, ubx.lonHp)
         # calculate offsets
-        tlat, tlat_hp = self.__formatter.decdeg_to_integer(lat + offset.lat)
-        tlon, tlon_hp = self.__formatter.decdeg_to_integer(lon + offset.lon)
+        with localcontext() as ctx:
+            ctx.traps[Inexact] = False
+            # NOTE dropped values on the right is expected going to ubx fields
+            tlat, tlat_hp = self.__formatter.decdeg_to_integer(lat + offset.lat)
+            tlon, tlon_hp = self.__formatter.decdeg_to_integer(lon + offset.lon)
         # minimize hi pres correction delta
         tlat, tlat_hp = self.__formatter.minimize_correction(tlat, tlat_hp, midpoint=self.LATLON_MP)
         tlon, tlon_hp = self.__formatter.minimize_correction(tlon, tlon_hp, midpoint=self.LATLON_MP)
@@ -164,12 +192,18 @@ class UBXHiResOffsetOperator(IMessageOperator):
         result = {}
         if hasattr(ubx, 'height') and hasattr(ubx, 'heightHp'):
             height = self.__formatter.height_from_field(ubx.height, ubx.heightHp)
-            theight, theight_hp = self.__formatter.height_to_field(height + offset.alt)
+            with localcontext() as ctx:
+                ctx.traps[Inexact] = False
+                # NOTE dropped values on the right is expected going to ubx fields
+                theight, theight_hp = self.__formatter.height_to_field(height + offset.alt)
             theight, theight_hp = self.__formatter.minimize_correction(theight, theight_hp, midpoint=self.HEIGHT_MP)
             result |= { 'height' : theight, 'heightHp' : theight_hp }
         if hasattr(ubx, 'hMSL') and hasattr(ubx, 'hMSLHp'):
             hmsl = self.__formatter.height_from_field(ubx.hMSL, ubx.hMSLHp)
-            thmsl, thmsl_hp = self.__formatter.height_to_field(hmsl + offset.alt)
+            with localcontext() as ctx:
+                ctx.traps[Inexact] = False
+                # NOTE dropped values on the right is expected going to ubx fields
+                thmsl, thmsl_hp = self.__formatter.height_to_field(hmsl + offset.alt)
             thmsl, thmsl_hp = self.__formatter.minimize_correction(thmsl, thmsl_hp, midpoint=self.HEIGHT_MP)
             result |= { 'hMSL' : thmsl, 'hMSLHp': thmsl_hp }
         return result

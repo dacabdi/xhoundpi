@@ -1,7 +1,7 @@
 ''' Gnss service actions event '''
 
 import uuid
-
+from typing import Any
 from dataclasses import dataclass
 from enum import Enum
 
@@ -22,5 +22,5 @@ class ProcessorAction: # pylint: disable=too-many-instance-attributes
     activity_id: uuid.UUID
     message_id: uuid.UUID
     protocol: ProtocolClass
-    details: str = ''
+    details: Any = ''
     schema_ver: int = 1

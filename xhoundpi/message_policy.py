@@ -1,5 +1,8 @@
 ''' Policy implementations for messages '''
 
+from typing import Any
+from xhoundpi.proto_class import ProtocolClass
+
 from .message import Message
 from .message_policy_iface import IMessagePolicy
 
@@ -28,11 +31,24 @@ class HasLocationPolicy(IMessagePolicy):
 
     def qualifies(self, message: Message) -> bool:
         '''
-        Message qualifies if it contains latitude and longitude information
+        Message qualifies if it contains latitude and
+        longitude information and is not in the exception lists
         '''
-        try:
-            _ = message.payload.lat
-            _ = message.payload.lon
-            return True
-        except AttributeError:
-            return False
+        return self.__has_coordinates(message.payload) and self.__is_not_exception(message)
+
+    @classmethod
+    def __has_coordinates(cls, payload: Any) -> bool:
+        return hasattr(payload, 'lat') and hasattr(payload, 'lon')
+
+    @classmethod
+    def __is_not_exception(cls, msg: Message) -> bool:
+        if msg.proto == ProtocolClass.NMEA:
+            if not cls.__is_propietary(msg.payload):
+                return msg.payload.sentence_type not in [
+                    'DTM', # the lat and lon field in this msg is for offsets
+                ]
+        return True
+
+    @classmethod
+    def __is_propietary(cls, payload: Any):
+        return hasattr(payload, 'manufacturer')

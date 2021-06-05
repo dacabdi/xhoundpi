@@ -24,6 +24,8 @@ import xhoundpi.gnss_service_decorators
 import xhoundpi.gnss_client_decorators
 import xhoundpi.queue_decorators
 import xhoundpi.processor_decorators
+import xhoundpi.coordinates_offset_decorators
+import xhoundpi.conversion_factor_decorators
 # pylint: enable=unused-import
 
 # submodules
@@ -47,7 +49,10 @@ from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
 from .data_formatter import NMEADataFormatter, UBXDataFormatter
 from .message_editor import NMEAMessageEditor, UBXMessageEditor
-from .coordinates_offset import GeoCoordinates, ICoordinatesOffsetProvider, StaticOffsetProvider
+from .orientation import EulerAngles, StaticOrientationProvider
+from .coordinates_provider import StaticCoordinatesProvider
+from .conversion_factor import DistAngleFactorProvider
+from .coordinates_offset import GeoCoordinates, ICoordinatesOffsetProvider, OrientationOffsetProvider, StaticOffsetProvider
 from .operator import NMEAOffsetOperator, UBXOffsetOperator, UBXHiResOffsetOperator
 from .operator_provider import CoordinateOperationProvider
 from .message_policy_provider import OnePolicyProvider
@@ -135,7 +140,7 @@ class XHoundPi:
         '''
         if self._config.display_driver == 'none':
             self._frame_buff = None
-            self.display = None
+            self._display = None
         else:
             self.setup_frame_buffer()
             self._gnss_processed_queue = (self._gnss_processed_queue
@@ -154,25 +159,25 @@ class XHoundPi:
         Setup frame buffer
         '''
         self._display_mode = display_mode(self._config.display_mode)
-        self.display_geometry = Geometry(
+        self._display_geometry = Geometry(
             rows=self._config.display_height,
             cols=self._config.display_width,
             channels=self._display_mode.channels, # type: ignore
             depth=self._display_mode.depth) # type: ignore
-        self._frame_buff = FrameBuffer(self.display_geometry)
+        self._frame_buff = FrameBuffer(self._display_geometry)
 
     def setup_display_pygame(self):
         '''
         Configure and start pygame fake display
         '''
-        self.display = PyGameDisplay(self._frame_buff, scale=self._config.display_scale)
-        self._tasks.append(self.display.mainloop())
+        self._display = PyGameDisplay(self._frame_buff, scale=self._config.display_scale)
+        self._tasks.append(self._display.mainloop())
 
     def setup_display_gif(self):
         '''
         Configure and setup a GIF output display
         '''
-        self.display = GifDisplay(self._display_mode, self._frame_buff)
+        self._display = GifDisplay(self._display_mode, self._frame_buff)
 
     def update_frame(self, message):
         '''
@@ -215,10 +220,14 @@ class XHoundPi:
             SuccessCounterMetric('zero_offset_processor_counter', self._metric_hooks),
             SuccessCounterMetric('positive_offset_processor_counter', self._metric_hooks),
             SuccessCounterMetric('negative_offset_processor_counter', self._metric_hooks),
+            SuccessCounterMetric('zero_offset_orientation_processor_counter', self._metric_hooks),
+            SuccessCounterMetric('positive_offset_orientation_processor_counter', self._metric_hooks),
             LatencyMetric('null_processor_latency', StopWatch(), self._metric_hooks),
             LatencyMetric('zero_offset_processor_latency', StopWatch(), self._metric_hooks),
             LatencyMetric('positive_offset_processor_latency', StopWatch(), self._metric_hooks),
             LatencyMetric('negative_offset_processor_latency', StopWatch(), self._metric_hooks),
+            LatencyMetric('zero_offset_orientation_processor_latency', StopWatch(), self._metric_hooks),
+            LatencyMetric('positive_offset_orientation_processor_latency', StopWatch(), self._metric_hooks),
         ])
 
     def _setup_metrics_logger(self):
@@ -347,11 +356,20 @@ class XHoundPi:
         '''
         Setup GNSS processors pipeline
         '''
+        # TODO cleanup this method!
         # pylint: disable=no-member
         zero_offset = DECIMAL0
         pos_offset = decimal.Decimal('0.005')
         neg_offset = decimal.Decimal('-0.005')
-        self.processors = CompositeProcessor([
+        orientation_zero = StaticOrientationProvider(EulerAngles(yaw=DECIMAL0, pitch=DECIMAL0, roll=DECIMAL0))
+        # orientation_non_zero = StaticOrientationProvider(EulerAngles(yaw=DECIMAL1, pitch=DECIMAL1, roll=DECIMAL1))
+        coords_provider = StaticCoordinatesProvider(GeoCoordinates(DECIMAL0, DECIMAL0, DECIMAL0))
+        # NOTE ^ the coordinates provider used by the dist-angle conversion factor provider is
+        #      currently static. a new dynamic implementation would tap into the stream of GNSS
+        #      messages and keep an up-to-date record of the location to provide to the
+        #      factor calculator upon request.
+        # see ref: https://github.com/dacabdi/xhoundpi/issues/42
+        self._processors = CompositeProcessor([
             NullProcessor()
                 .with_events(logger=logger) # type: ignore
                 .with_metrics(
@@ -372,11 +390,30 @@ class XHoundPi:
                 offset_provider=StaticOffsetProvider(GeoCoordinates(lat=neg_offset, lon=neg_offset, alt=neg_offset)),
                 counter=self._metrics.negative_offset_processor_counter, # type: ignore
                 latency=self._metrics.negative_offset_processor_latency), # type: ignore
+            self._make_offset_generic_processor(
+                name='ZeroOffsetOrientationBasedProcessor',
+                offset_provider=(
+                    OrientationOffsetProvider(orientation_zero, radius=DECIMAL0)\
+                        .with_conversion(DistAngleFactorProvider(coords_provider).with_inversion()) # type: ignore
+                ),
+                counter=self._metrics.zero_offset_orientation_processor_counter, # type: ignore
+                latency=self._metrics.zero_offset_orientation_processor_latency), # type: ignore
+            # TODO activate these once we address the issue with 1-off results at hi res levels
+            # self._make_offset_generic_processor(
+            #     name='PositiveOffsetOrientationBasedProcessor',
+            #     offset_provider=OrientationOffsetProvider(orientation_non_zero, DECIMAL1),
+            #       counter=self._metrics.positive_offset_orientation_processor_counter, # type: ignore
+            #       latency=self._metrics.positive_offset_orientation_processor_latency), # type: ignore
+            # self._make_offset_generic_processor(
+            #     name='NegativeOffsetOrientationBasedProcessor',
+            #     offset_provider=OrientationOffsetProvider(orientation_non_zero, -DECIMAL1),
+            #     counter=self._metrics.negative_offset_processor_counter, # type: ignore
+            #     latency=self._metrics.negative_offset_processor_latency), # type: ignore
         ])
         self.processors_pipeline = AsyncPump(
              # pylint: disable=no-member
             input_queue=(self._gnss_inbound_queue
-                .with_transform(self.processors.process) # type: ignore
+                .with_transform(self._processors.process) # type: ignore
                 .with_transform(lambda result: result[1])),
             output_queue=self._gnss_processed_queue)
         self._tasks.append(asyncio.create_task(
@@ -418,8 +455,8 @@ class XHoundPi:
 
     def _setup_msg_pump(self):
         ''' Temporary msg pump '''
-        self.message_pump = AsyncPump(
+        self._message_pump = AsyncPump(
             input_queue=self._gnss_processed_queue,
             output_queue=self._gnss_outbound_queue)
         self._tasks.append(asyncio.create_task(
-            self.message_pump.run(), name='message_pump'))
+            self._message_pump.run(), name='message_pump'))
