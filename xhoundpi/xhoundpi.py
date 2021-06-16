@@ -8,7 +8,6 @@ import sys
 import asyncio
 import uuid
 import decimal
-from xhoundpi.coordinates_extractor import CoordinatesExtractor
 
 # external imports
 import structlog
@@ -51,6 +50,7 @@ from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
 from .data_formatter import NMEADataFormatter, UBXDataFormatter
 from .message_editor import NMEAMessageEditor, UBXMessageEditor
+from .coordinates_extractor import CoordinatesExtractor
 from .orientation import EulerAngles, StaticOrientationProvider
 from .coordinates_provider import DynamicCoordinatesProvider, StaticCoordinatesProvider
 from .conversion_factor import DistAngleFactorProvider

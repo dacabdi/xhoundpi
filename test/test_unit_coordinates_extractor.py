@@ -158,7 +158,7 @@ class test_CoordinatesExtractor(unittest.TestCase):
     def test_extract_nmea_without_alt(self):
         formatter = Mock()
         formatter.degmins_to_decdeg = Mock(side_effect=[D('0.1'), D('0.2')])
-        formatter.height_from_field = Mock(return_value=D('0.3'))
+        formatter.height_from_field = Mock(rside_effecteturn_value=D('0.3'))
         extractor = CoordinatesExtractor(
             nmea_formatter=formatter,
             ubx_formatter=Mock())
