@@ -39,6 +39,7 @@ from .config import display_mode
 from .time import StopWatch
 from .serial import StubSerialBinary
 from .queue_pump import AsyncPump
+from .message import Message
 from .gnss_client import GnssClient
 from .proto_class import ProtocolClass
 from .proto_classifier import ProtocolClassifier
@@ -49,8 +50,9 @@ from .gnss_service import GnssService
 from .gnss_service_runner import GnssServiceRunner
 from .data_formatter import NMEADataFormatter, UBXDataFormatter
 from .message_editor import NMEAMessageEditor, UBXMessageEditor
+from .coordinates_extractor import CoordinatesExtractor
 from .orientation import EulerAngles, StaticOrientationProvider
-from .coordinates_provider import StaticCoordinatesProvider
+from .coordinates_provider import DynamicCoordinatesProvider, StaticCoordinatesProvider
 from .conversion_factor import DistAngleFactorProvider
 from .coordinates_offset import GeoCoordinates, ICoordinatesOffsetProvider, OrientationOffsetProvider, StaticOffsetProvider
 from .operator import NMEAOffsetOperator, UBXOffsetOperator, UBXHiResOffsetOperator
@@ -79,6 +81,7 @@ class XHoundPi:
         self._setup_signals()
         self._setup_decimal_context()
         self._setup_queues()
+        self._setup_location_provider()
         self._setup_metrics()
         self._setup_metrics_logger()
         self._setup_display()
@@ -133,6 +136,23 @@ class XHoundPi:
         Setup default Decimal context for all threads
         '''
         setup_common_context()
+
+    def _setup_location_provider(self):
+        '''
+        Setup the location provider that will tap into the GNSS
+        stream and keep an up to date tracking of the current location
+        '''
+        self._location_provider = DynamicCoordinatesProvider()
+        extractor = CoordinatesExtractor(
+            nmea_formatter=NMEADataFormatter(),
+            ubx_formatter=UBXDataFormatter())
+        policy = HasLocationPolicy()
+        def update_location(msg: Message):
+            if policy.qualifies(msg):
+                coordinates = extractor.extract_coordinates(msg)
+                self._location_provider.update(coordinates)
+        self._gnss_inbound_queue = \
+            self._gnss_inbound_queue.with_callback(update_location) # type: ignore
 
     def _setup_display(self):
         '''
@@ -365,9 +385,10 @@ class XHoundPi:
         # orientation_non_zero = StaticOrientationProvider(EulerAngles(yaw=DECIMAL1, pitch=DECIMAL1, roll=DECIMAL1))
         coords_provider = StaticCoordinatesProvider(GeoCoordinates(DECIMAL0, DECIMAL0, DECIMAL0))
         # NOTE ^ the coordinates provider used by the dist-angle conversion factor provider is
-        #      currently static. a new dynamic implementation would tap into the stream of GNSS
-        #      messages and keep an up-to-date record of the location to provide to the
-        #      factor calculator upon request.
+        #      currently static. the dynamic implementation gets updated from the stream of GNSS
+        #      messages and keeps an up-to-date record of the location to provide to the
+        #      factor calculator upon request, it is functional and wired but not adequate for the emulation
+        #      scenario because we cannot control the value
         # see ref: https://github.com/dacabdi/xhoundpi/issues/42
         self._processors = CompositeProcessor([
             NullProcessor()
@@ -412,7 +433,7 @@ class XHoundPi:
         ])
         self.processors_pipeline = AsyncPump(
              # pylint: disable=no-member
-            input_queue=(self._gnss_inbound_queue
+            input_queue=(self._gnss_inbound_queue # type: ignore
                 .with_transform(self._processors.process) # type: ignore
                 .with_transform(lambda result: result[1])),
             output_queue=self._gnss_processed_queue)
