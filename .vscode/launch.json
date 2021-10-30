@@ -86,6 +86,17 @@
             ],
         },
         {
+            "name": "Human Input POC",
+            "type": "python",
+            "request": "launch",
+            "module": "tools.hi",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--verbose"
+            ],
+        },
+        {
             "name": "Main Test Runner",
             "type": "python",
             "request": "launch",

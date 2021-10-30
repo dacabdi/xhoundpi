@@ -35,7 +35,6 @@ class test_pyubx2(unittest.TestCase):
         self.assertEqual(msg.msg_id, b'\x03')
         self.assertEqual(msg.length, 16)
         self.assertEqual(msg.gpsFix, 3)
-        self.assertEqual(msg.fixStat, b'\x02')
         self.assertEqual(msg.identity, 'NAV-STATUS')
 
     def test_serialize(self):
