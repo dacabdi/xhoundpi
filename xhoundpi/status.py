@@ -8,7 +8,7 @@ class Status:
 
     def __init__(self, error: Union[Exception, None], metadata: Dict = None):
         self.__error = error
-        self.__metadata = metadata if metadata is not None else dict()
+        self.__metadata = metadata if metadata is not None else {}
 
     @classmethod
     def OK(cls, metadata: Dict = None): # pylint: disable=invalid-name
