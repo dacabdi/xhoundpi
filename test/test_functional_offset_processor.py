@@ -177,6 +177,7 @@ class test_Functional_OffsetProcessor(unittest.TestCase):
             '34 63').hex(' ').upper()) # checksum
 
     def test_ubx_zero_offset1(self):
+        self.maxDiff = None
         # lon -823964140
         # lat 296421129
         frame = bytes.fromhex(

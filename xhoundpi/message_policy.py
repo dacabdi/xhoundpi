@@ -50,5 +50,5 @@ class HasLocationPolicy(IMessagePolicy):
         return True
 
     @classmethod
-    def __is_propietary(cls, payload: Any):
+    def __is_propietary(cls, payload: Any): # pylint: disable=unused-private-member
         return hasattr(payload, 'manufacturer')

@@ -98,7 +98,7 @@ class BoundLoggerEvents(BoundLoggerBase): # pylint: disable=too-many-public-meth
                 event_fields[key] = value.value
                 event_fields[f'{key}_name'] = value.name
             elif isinstance(value, BaseException):
-                event_fields[key] = ''.join(traceback.format_exception(etype=type(value), value=value, tb=value.__traceback__))
+                event_fields[key] = ''.join(traceback.format_exception(type(value), value=value, tb=value.__traceback__))
             else:
                 event_fields[key] = str(value)
         return event.__class__.__name__, event_fields

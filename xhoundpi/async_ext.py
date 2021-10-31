@@ -14,5 +14,9 @@ def run_sync_with_loop(loop, coro: Coroutine, timeout=1):
 
 def run_sync(coro: Coroutine, timeout=1):
     ''' Run sync on main event loop with timeout '''
-    loop = asyncio.get_event_loop()
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
     return run_sync_with_loop(loop, coro, timeout)

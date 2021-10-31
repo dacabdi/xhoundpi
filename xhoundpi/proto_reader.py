@@ -66,7 +66,7 @@ class UBXProtocolReader(IProtocolReader):
     protocol_class = ProtocolClass.UBX
     __message_preamble_size = 4
     __message_checksum_size = 2
-    __expected_headers = [b'\xb5\x62']
+    __expected_headers = [b'\xb5\x62'] # pylint: disable=unused-private-member
 
     def read_frame(self, header: bytes, stream: BytesIO) -> bytes:
         ''' Check header match and read UBX binary data frame from stream '''

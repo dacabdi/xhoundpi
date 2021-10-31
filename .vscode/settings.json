@@ -6,16 +6,10 @@
     "python.venvPath": ".venv",
     "python.languageServer": "Pylance",
     "python.testing.unittestEnabled": true,
-    "workbench.editorAssociations": [
-        {
-            "viewType": "hexEditor.hexedit",
-            "filenamePattern": "*.bin"
-        },
-        {
-            "viewType": "hexEditor.hexedit",
-            "filenamePattern": "*.hex"
-        }
-    ],
+    "workbench.editorAssociations": {
+        "*.bin": "hexEditor.hexedit",
+        "*.hex": "hexEditor.hexedit"
+    },
     "yaml.format.singleQuote": true,
     "vsintellicode.features.python.deepLearning": "enabled",
     "python.testing.unittestArgs": [

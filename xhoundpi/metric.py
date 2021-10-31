@@ -1,6 +1,5 @@
 ''' Metrics abstractions module '''
 
-import collections
 from typing import Any, Callable, Iterable, List, Mapping
 
 from .time import IStopWatch
@@ -25,7 +24,7 @@ class MetricBase:
 
     def mappify(self):
         ''' Convert the metric into a dictionary '''
-        if isinstance(self.value, collections.Mapping):
+        if isinstance(self.value, Mapping):
             return self.value
         return {self.dimension: self.value}
 
